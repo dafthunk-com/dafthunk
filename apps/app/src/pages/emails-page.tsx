@@ -27,6 +27,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { EmailCreateDialog } from "@/components/workflow/widgets/input/email-create-dialog";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
@@ -35,6 +36,7 @@ import { deleteEmail, updateEmail, useEmails } from "@/services/email-service";
 interface EmailRow {
   id: string;
   name: string;
+  description: string;
   handle: string;
   address: string;
   createdAt: Date;
@@ -103,6 +105,15 @@ function createColumns(
       },
     },
     {
+      accessorKey: "description",
+      header: "Description",
+      cell: ({ row }) => (
+        <div className="text-muted-foreground truncate max-w-md">
+          {(row.getValue("description") as string) || "—"}
+        </div>
+      ),
+    },
+    {
       id: "actions",
       cell: ({ row }) => {
         const email = row.original;
@@ -146,6 +157,7 @@ export function EmailsPage() {
   const [emailToDelete, setEmailToDelete] = useState<EmailRow | null>(null);
   const [emailToEdit, setEmailToEdit] = useState<EmailRow | null>(null);
   const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -167,6 +179,7 @@ export function EmailsPage() {
   const openEditDialog = (email: EmailRow) => {
     setEmailToEdit(email);
     setEditName(email.name);
+    setEditDescription(email.description || "");
     setEditDialogOpen(true);
   };
 
@@ -187,7 +200,11 @@ export function EmailsPage() {
     if (!emailToEdit || !orgId || editName.trim() === "") return;
     setIsEditing(true);
     try {
-      await updateEmail(emailToEdit.id, { name: editName.trim() }, orgId);
+      await updateEmail(
+        emailToEdit.id,
+        { name: editName.trim(), description: editDescription.trim() },
+        orgId
+      );
       setEditDialogOpen(false);
       setEmailToEdit(null);
       mutateEmails();
@@ -239,25 +256,39 @@ export function EmailsPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Edit Email</DialogTitle>
-              <DialogDescription>Rename your email.</DialogDescription>
+              <DialogDescription>
+                Rename your email and describe what it is for.
+              </DialogDescription>
             </DialogHeader>
-            <div className="space-y-2">
-              <Label htmlFor="edit-email-name">Name</Label>
-              <Input
-                id="edit-email-name"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-              />
-              {emailToEdit &&
-                editName.trim() !== "" &&
-                editName.trim() !== emailToEdit.name && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-md">
-                    Renaming will replace the email address (currently{" "}
-                    <span className="font-medium">{emailToEdit.address}</span>).
-                    Senders using the old address will no longer reach this
-                    email.
-                  </p>
-                )}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-email-name">Name</Label>
+                <Input
+                  id="edit-email-name"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                />
+                {emailToEdit &&
+                  editName.trim() !== "" &&
+                  editName.trim() !== emailToEdit.name && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-md">
+                      Renaming will replace the email address (currently{" "}
+                      <span className="font-medium">{emailToEdit.address}</span>
+                      ). Senders using the old address will no longer reach this
+                      email.
+                    </p>
+                  )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-email-description">Description</Label>
+                <Textarea
+                  id="edit-email-description"
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  placeholder="What kind of mail this mailbox handles"
+                  rows={2}
+                />
+              </div>
             </div>
             <DialogFooter>
               <Button

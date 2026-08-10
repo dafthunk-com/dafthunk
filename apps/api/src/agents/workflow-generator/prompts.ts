@@ -5,6 +5,10 @@ import { agentToolCatalog } from "./agent-tools";
 import { projectCatalog } from "./catalog-projection";
 import type { Ineligible } from "./eligibility";
 import { withheldProviders } from "./eligibility";
+import {
+  type GroundingContext,
+  projectGroundingForSynthesis,
+} from "./grounding";
 import { RESPONDER_NODE_ID, TRIGGER_NODE_ID } from "./hydrate";
 import { selectExamples, templateToEmitFormat } from "./template-examples";
 
@@ -97,6 +101,12 @@ export const DRAFT_SCHEMA = {
         },
       },
     },
+    resources: {
+      type: "array",
+      description:
+        'Optional. Workspace components the workflow leans on: {"family": "database"|"dataset"|"queue"|"email"|"schema"|"discord"|"telegram"|"whatsapp"|"slack", "action": "use"|"create", "name": "...", "description": "...", "fields": [...]}. Reuse by the exact name listed under Workspace components; "create" only when nothing listed fits. Leave the matching node inputs unset — the server fills the ids.',
+      items: { type: "object" },
+    },
   },
 } as const;
 
@@ -156,6 +166,8 @@ export interface SystemPromptInput {
   nodeTypes: NodeType[];
   withheld: Ineligible[];
   query: string;
+  /** What the workspace owns, so the graph can lean on real components. */
+  grounding?: GroundingContext;
   /**
    * What the brief committed to delivering, when there was a brief.
    *
@@ -237,7 +249,7 @@ ${describeDelivery(input.destination)}
 
 Choose the trigger that matches how the request says the workflow starts ("when an email arrives" → email_message, "every morning" → scheduled, and so on). If it does not say, use "manual".
 
-The trigger node is added by the server, with a fixed id. Do NOT emit trigger or response nodes yourself — wire to and from the ids below.
+The trigger node is added by the server, with a fixed id. Do NOT emit trigger or response nodes yourself — wire to and from the ids below. One exception: to configure the trigger — the "scheduleExpression" cron line of a scheduled workflow, say — emit a node with the trigger's fixed id carrying only "inputs"; the server merges those values onto its own trigger node.
 
 ${describeTriggerOptions(input.nodeTypes)}
 
@@ -264,6 +276,7 @@ The shape, for a workflow whose input node is "article":
   { "name": "Empty article", "nodeValues": { "article": { "value": "" } } }
 ]
 
+${input.grounding ? `${projectGroundingForSynthesis(input.grounding)}\n` : ""}
 ${describeWithheld(input.withheld)}
 
 # Available node types

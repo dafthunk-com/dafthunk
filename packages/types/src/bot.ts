@@ -59,6 +59,7 @@ export type BotTriggerMetadata =
 // Bot CRUD types
 export interface CreateBotRequest {
   name: string;
+  description?: string;
   provider: BotProvider;
   token: string;
   // Provider-specific fields flattened for convenience
@@ -73,6 +74,7 @@ export interface CreateBotRequest {
 export interface BotResponse {
   id: string;
   name: string;
+  description: string;
   provider: BotProvider;
   tokenLastFour: string;
   metadata: Record<string, string | undefined> | null;
@@ -88,6 +90,7 @@ export interface ListBotsResponse {
 
 export interface UpdateBotRequest {
   name?: string;
+  description?: string;
   token?: string;
   // Provider-specific updatable fields
   publicKey?: string; // discord

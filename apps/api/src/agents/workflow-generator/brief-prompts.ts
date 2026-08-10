@@ -2,6 +2,7 @@ import type { BriefDestination, WorkflowTrigger } from "@dafthunk/types";
 
 import { BENCHMARK_CASES } from "./benchmark-cases";
 import { MAX_ASKED_BLANKS } from "./config";
+import { type GroundingContext, projectGroundingForBrief } from "./grounding";
 
 /**
  * The brief turn's schema.
@@ -38,7 +39,8 @@ export const BRIEF_SCHEMA = {
     },
     blanks: {
       type: "array",
-      description: `At most ${MAX_ASKED_BLANKS}, highest weight first.`,
+      description:
+        "One blank per guessed moving part, highest weight first. Do not withhold one to stay under a question budget.",
       items: {
         type: "object",
         required: ["id", "type", "question", "assumed", "weight", "role"],
@@ -65,6 +67,18 @@ export const BRIEF_SCHEMA = {
             type: "string",
             enum: ["destination", "trigger", "subject", "criterion", "detail"],
           },
+          grounding: {
+            type: "object",
+            description:
+              "Only when the options are the workspace's own components.",
+            properties: {
+              family: {
+                type: "string",
+                description:
+                  "database, dataset, queue, email, schema, discord, telegram, whatsapp or slack",
+              },
+            },
+          },
           options: {
             type: "array",
             description: "Choice blanks only. Two to four.",
@@ -78,6 +92,21 @@ export const BRIEF_SCHEMA = {
                   description: "Reads inside the sentence: 'to Discord'",
                 },
                 hint: { type: "string" },
+                triggerValue: {
+                  type: "string",
+                  description:
+                    "Trigger blanks only: the trigger kind this option implies.",
+                },
+                resourceName: {
+                  type: "string",
+                  description:
+                    "Grounded blanks only: the workspace component's name, exactly as listed. The server resolves it — never invent one.",
+                },
+                createNew: {
+                  type: "boolean",
+                  description:
+                    "Grounded blanks only: choosing this creates a new component instead of reusing one.",
+                },
               },
             },
           },
@@ -112,6 +141,8 @@ export interface BriefPromptInput {
   triggers: WorkflowTrigger[];
   /** Providers the org has connected, so the model stops asking about them. */
   connectedProviders: ReadonlySet<string>;
+  /** What the workspace owns, so the sentence can say so. */
+  grounding?: GroundingContext;
 }
 
 export function buildBriefSystemPrompt(input: BriefPromptInput): string {
@@ -140,24 +171,37 @@ People describe the interesting half of a job and leave out the obvious half. "T
 
 The sentence is what they will read and correct. Use their words wherever you can. It must be grammatical before anything is answered, because that is the state they see first.
 
-# Gaps
+# The moving parts
 
-Rank every gap by how differently the workflow would be built if you guessed wrong. Ask only the top ${MAX_ASKED_BLANKS}.
+Every workflow has four moving parts. Go through them one by one:
 
-1. Where the result goes, when more than one destination is offered. Guessing this wrong makes the whole workflow useless. It is always rank 1.
-2. What starts it, when the request implies a schedule or an incoming message but does not say which. A manual workflow that should have been email-triggered is a different workflow.
-3. What the judgement is made on — the criterion, the categories, the threshold. "Urgent" means nothing until it means something.
-4. Everything else: tone, length, format, wording. Never ask about these.
+1. TRIGGER — what starts it, and when, if that is a schedule.
+2. SOURCE — what it reads or watches: an inbox, a document collection, a feed, the text they will paste in.
+3. JUDGEMENT — the criterion, the categories, the threshold. "Urgent" means nothing until it means something.
+4. DESTINATION — where the result goes.
 
-A gap you can fill from the request is not a gap — with one exception.
+For each, decide: stated (their words already say it), guessed (you filled it
+in), or irrelevant (this job has no such part). Then:
 
-Where the result goes is ALWAYS a blank, even when the request says it. It is
-the only part of a workflow that is guaranteed to matter, and "email it to me"
-does not say which of several ways of emailing. Emit a destination blank with
-every destination as an option, and put its slot where the delivery is
-described so the sentence still reads. This is not a question — it is
-pre-filled with your assumption and they can ignore it — so it does not count
-against the ${MAX_ASKED_BLANKS} you may ask.
+- TRIGGER and DESTINATION are never irrelevant, and each gets a blank even
+  when stated — pre-filled with what they said, weight 0.2 or less, its slot
+  placed where the sentence describes that part. A scheduled trigger's blank
+  carries the time: "every morning at 8" is an option label, and the hour is
+  exactly the kind of guess this exists to surface. Every trigger option
+  carries "triggerValue": the trigger kind choosing it implies. Offer "when
+  you run it" and a schedule freely; offer other kinds only when the request
+  itself points at them.
+- The destination blank offers every destination below as an option. "Email it
+  to me" does not say which of several ways of emailing, so it is a blank even
+  when stated. It is not one of your questions — it arrives pre-filled and
+  they can ignore it.
+- A stated SOURCE or JUDGEMENT is not a gap: no blank.
+- A guessed part always gets a blank. Do not withhold one to stay under a
+  budget: only the heaviest ${MAX_ASKED_BLANKS} guesses are put as questions;
+  the rest stay visible and tappable in the sentence. Weight says how
+  differently the workflow would be built if the guess is wrong — it decides
+  which blanks become questions, nothing else.
+- Never ask about tone, length, format or wording.
 
 A blank is one question with one answer. "What starts this, and which blog
 post?" is two, and the person gets a single box to answer both in — so split it,
@@ -189,9 +233,10 @@ right now.
 
 ${connected}
 
+${input.grounding ? `${projectGroundingForBrief(input.grounding)}\n` : ""}
 # Triggers
 
-${input.triggers.join(", ")}. Use "manual" unless the request says how it starts.
+${input.triggers.join(", ")}. Use "manual" unless the request says how it starts. These are also the only legal "triggerValue"s.
 
 # When you cannot do it
 
@@ -210,7 +255,8 @@ For "post my blog updates to social media", where discord and x are both offered
 {
   "title": "Post blog updates",
   "segments": [
-    { "kind": "text", "text": "When a new blog post appears, write a short summary and " },
+    { "kind": "slot", "blankId": "when" },
+    { "kind": "text", "text": ", write a short summary of the latest blog post and " },
     { "kind": "slot", "blankId": "dest" },
     { "kind": "text", "text": "." }
   ],
@@ -225,6 +271,18 @@ For "post my blog updates to social media", where discord and x are both offered
       "options": [
         { "id": "discord", "label": "post it to Discord" },
         { "id": "x", "label": "post it to X" }
+      ]
+    },
+    {
+      "id": "when",
+      "type": "choice",
+      "question": "What starts it?",
+      "assumed": "manual",
+      "weight": 0.2,
+      "role": "trigger",
+      "options": [
+        { "id": "manual", "label": "When you run this", "triggerValue": "manual" },
+        { "id": "morning", "label": "Every morning at 8", "triggerValue": "scheduled" }
       ]
     }
   ],

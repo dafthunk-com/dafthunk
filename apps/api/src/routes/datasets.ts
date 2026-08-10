@@ -60,6 +60,7 @@ datasetRoutes.post(
     "json",
     z.object({
       name: z.string().min(1, "Dataset name is required"),
+      description: z.string().optional(),
     }) as z.ZodType<CreateDatasetRequest>
   ),
   async (c) => {
@@ -74,6 +75,7 @@ datasetRoutes.post(
     const newDataset = await createDataset(db, {
       id: datasetId,
       name: datasetName,
+      description: data.description ?? "",
       organizationId: organizationId,
       createdAt: now,
       updatedAt: now,
@@ -82,6 +84,7 @@ datasetRoutes.post(
     const response: CreateDatasetResponse = {
       id: newDataset.id,
       name: newDataset.name,
+      description: newDataset.description,
       createdAt: newDataset.createdAt,
       updatedAt: newDataset.updatedAt,
     };
@@ -106,6 +109,7 @@ datasetRoutes.get("/:id", async (c) => {
   const response: GetDatasetResponse = {
     id: dataset.id,
     name: dataset.name,
+    description: dataset.description,
     createdAt: dataset.createdAt,
     updatedAt: dataset.updatedAt,
   };
@@ -122,6 +126,7 @@ datasetRoutes.put(
     "json",
     z.object({
       name: z.string().min(1, "Dataset name is required"),
+      description: z.string().optional(),
     }) as z.ZodType<UpdateDatasetRequest>
   ),
   async (c) => {
@@ -139,12 +144,16 @@ datasetRoutes.put(
 
     const updatedDataset = await updateDataset(db, id, organizationId, {
       name: data.name,
+      ...(data.description !== undefined
+        ? { description: data.description }
+        : {}),
       updatedAt: now,
     });
 
     const response: UpdateDatasetResponse = {
       id: updatedDataset.id,
       name: updatedDataset.name,
+      description: updatedDataset.description,
       createdAt: updatedDataset.createdAt,
       updatedAt: updatedDataset.updatedAt,
     };

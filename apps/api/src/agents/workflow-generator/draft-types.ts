@@ -1,4 +1,22 @@
-import type { Edge, WorkflowTrigger } from "@dafthunk/types";
+import type { Edge, Field, WorkflowTrigger } from "@dafthunk/types";
+
+import type { OrgResourceType } from "./org-resources";
+
+/**
+ * A workspace component the draft leans on: one the model wants reused, or one
+ * it proposes creating. Names only — the resolver matches or creates, and the
+ * ids stay server-side, exactly as with every other resource binding.
+ */
+export interface DraftResource {
+  family: OrgResourceType;
+  action: "use" | "create";
+  /** For "use": the name as listed in the prompt. For "create": the new name. */
+  name: string;
+  /** Create only: one line of purpose. Lands in the instance's description. */
+  description?: string;
+  /** Schema create only: the record shape. */
+  fields?: Field[];
+}
 
 /**
  * What the model emits. Deliberately thinner than `Workflow`: no positions and
@@ -41,6 +59,8 @@ export interface GeneratedWorkflowDraft {
   edges: Edge[];
   /** Test inputs; the first one is what the generation run executes. */
   examples?: DraftExample[];
+  /** Workspace components to reuse or create; resolved server-side. */
+  resources?: DraftResource[];
   /**
    * Superseded by `examples[].trigger`, kept because the schema is appended to
    * the system prompt rather than constraining decoding — a model that answers

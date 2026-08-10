@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { getApiBaseUrl } from "@/config/api";
 import { createDiscordBot } from "@/services/bot-service";
 
@@ -65,6 +66,7 @@ export function DiscordBotCreateDialog({
   const { organization } = useAuth();
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [applicationId, setApplicationId] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [botToken, setBotToken] = useState("");
@@ -76,6 +78,7 @@ export function DiscordBotCreateDialog({
   const resetForm = () => {
     setStep("name");
     setName("");
+    setDescription("");
     setApplicationId("");
     setPublicKey("");
     setBotToken("");
@@ -97,7 +100,13 @@ export function DiscordBotCreateDialog({
 
     try {
       const response = await createDiscordBot(
-        { name, botToken, applicationId, publicKey },
+        {
+          name,
+          description: description.trim(),
+          botToken,
+          applicationId,
+          publicKey,
+        },
         organization.id
       );
       setCreatedBotId(response.id);
@@ -187,6 +196,17 @@ export function DiscordBotCreateDialog({
                 A display name for this bot in Dafthunk. This is not visible to
                 your Discord users.
               </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="discord-description">Description</Label>
+              <Textarea
+                id="discord-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="What this bot does, for you and for workflow generation."
+                rows={2}
+              />
             </div>
 
             <div className="flex justify-end gap-2 pt-1">

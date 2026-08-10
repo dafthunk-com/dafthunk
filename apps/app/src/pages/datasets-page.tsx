@@ -27,12 +27,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createDataset,
   deleteDataset,
+  updateDataset,
   useDatasets,
 } from "@/services/dataset-service";
 
@@ -44,6 +46,29 @@ function useDatasetActions() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [datasetToDelete, setDatasetToDelete] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [datasetToEdit, setDatasetToEdit] = useState<any | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleEditDataset = async () => {
+    if (!datasetToEdit || !orgId || !editName.trim()) return;
+    setIsEditing(true);
+    try {
+      await updateDataset(
+        datasetToEdit.id,
+        { name: editName.trim(), description: editDescription.trim() },
+        orgId
+      );
+      setEditDialogOpen(false);
+      setDatasetToEdit(null);
+      mutateDatasets();
+    } finally {
+      setIsEditing(false);
+    }
+  };
 
   const handleDeleteDataset = async () => {
     if (!datasetToDelete || !orgId) return;
@@ -90,16 +115,72 @@ function useDatasetActions() {
     </Dialog>
   );
 
+  const editDialog = (
+    <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Dataset</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="edit-dataset-name">Name</Label>
+            <Input
+              id="edit-dataset-name"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              className="mt-2"
+            />
+          </div>
+          <div>
+            <Label htmlFor="edit-dataset-description">Description</Label>
+            <Textarea
+              id="edit-dataset-description"
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              placeholder="What this dataset holds and what it is for"
+              className="mt-2"
+              rows={2}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setEditDialogOpen(false)}
+            disabled={isEditing}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleEditDataset}
+            disabled={isEditing || !editName.trim()}
+          >
+            {isEditing ? <Spinner className="h-4 w-4 mr-2" /> : null}
+            Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   return {
     deleteDialog,
+    editDialog,
     openDeleteDialog: (dataset: any) => {
       setDatasetToDelete(dataset);
       setDeleteDialogOpen(true);
+    },
+    openEditDialog: (dataset: any) => {
+      setDatasetToEdit(dataset);
+      setEditName(dataset.name || "");
+      setEditDescription(dataset.description || "");
+      setEditDialogOpen(true);
     },
   };
 }
 
 function createColumns(
+  openEditDialog: (dataset: any) => void,
   openDeleteDialog: (dataset: any) => void,
   navigate: ReturnType<typeof useNavigate>,
   getOrgUrl: (path: string) => string
@@ -122,6 +203,15 @@ function createColumns(
       },
     },
     {
+      accessorKey: "description",
+      header: "Description",
+      cell: ({ row }) => (
+        <div className="text-muted-foreground truncate max-w-md">
+          {(row.getValue("description") as string) || "—"}
+        </div>
+      ),
+    },
+    {
       id: "actions",
       cell: ({ row }) => {
         const dataset = row.original;
@@ -139,6 +229,9 @@ function createColumns(
                   onClick={() => navigate(getOrgUrl(`datasets/${dataset.id}`))}
                 >
                   View Dataset
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openEditDialog(dataset)}>
+                  Edit Dataset
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openDeleteDialog(dataset)}>
                   Delete Dataset
@@ -163,19 +256,25 @@ export function DatasetsPage() {
   const { datasets, datasetsError, isDatasetsLoading, mutateDatasets } =
     useDatasets();
 
-  const { deleteDialog, openDeleteDialog } = useDatasetActions();
+  const { deleteDialog, editDialog, openDeleteDialog, openEditDialog } =
+    useDatasetActions();
 
-  const columns = createColumns(openDeleteDialog, navigate, getOrgUrl);
+  const columns = createColumns(
+    openEditDialog,
+    openDeleteDialog,
+    navigate,
+    getOrgUrl
+  );
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Datasets" }]);
   }, [setBreadcrumbs]);
 
-  const handleCreateDataset = async (name: string) => {
+  const handleCreateDataset = async (name: string, description: string) => {
     if (!orgId) return;
 
     try {
-      const newDataset = await createDataset({ name }, orgId);
+      const newDataset = await createDataset({ name, description }, orgId);
       mutateDatasets();
       navigate(getOrgUrl(`datasets/${newDataset.id}`));
     } catch (error) {
@@ -219,7 +318,10 @@ export function DatasetsPage() {
                 e.preventDefault();
                 const formData = new FormData(e.currentTarget);
                 const name = formData.get("name") as string;
-                await handleCreateDataset(name);
+                const description = (
+                  (formData.get("description") as string) || ""
+                ).trim();
+                await handleCreateDataset(name, description);
                 setIsCreateDialogOpen(false);
               }}
               className="space-y-4"
@@ -231,6 +333,16 @@ export function DatasetsPage() {
                   name="name"
                   placeholder="Enter dataset name"
                   className="mt-2"
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="What this dataset holds and what it is for"
+                  className="mt-2"
+                  rows={2}
                 />
               </div>
               <DialogFooter>
@@ -246,6 +358,7 @@ export function DatasetsPage() {
             </form>
           </DialogContent>
         </Dialog>
+        {editDialog}
         {deleteDialog}
       </InsetLayout>
     </TooltipProvider>

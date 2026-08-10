@@ -1,14 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  BINDABLE_RESOURCE_TYPES,
-  bindableResources,
   boundResourceNote,
+  CREATABLE_RESOURCE_TYPES,
   describeMissingResource,
+  offerableResources,
+  PASSIVE_BINDABLE_TYPES,
   resourceToBind,
 } from "./org-resources";
 
-describe("BINDABLE_RESOURCE_TYPES", () => {
+describe("PASSIVE_BINDABLE_TYPES", () => {
   /**
    * The safety property this whole feature rests on. `hydrate.disarm` blanks
    * the arming types because binding one marks a trigger active on save, and a
@@ -24,33 +25,44 @@ describe("BINDABLE_RESOURCE_TYPES", () => {
       "telegram",
       "whatsapp",
     ] as const) {
-      expect(BINDABLE_RESOURCE_TYPES.has(arming)).toBe(false);
+      expect(PASSIVE_BINDABLE_TYPES.has(arming)).toBe(false);
     }
   });
 
   it("includes the passive types", () => {
-    expect(BINDABLE_RESOURCE_TYPES.has("database")).toBe(true);
-    expect(BINDABLE_RESOURCE_TYPES.has("dataset")).toBe(true);
+    expect(PASSIVE_BINDABLE_TYPES.has("database")).toBe(true);
+    expect(PASSIVE_BINDABLE_TYPES.has("dataset")).toBe(true);
+    expect(PASSIVE_BINDABLE_TYPES.has("schema")).toBe(true);
   });
 });
 
-describe("bindableResources", () => {
-  it("offers only what the org actually owns", () => {
-    const usable = bindableResources({
-      database: [{ id: "db1", name: "Main" }],
-      dataset: [],
-    });
+describe("CREATABLE_RESOURCE_TYPES", () => {
+  it("matches the family descriptors: everything but bots", () => {
+    expect([...CREATABLE_RESOURCE_TYPES].sort()).toEqual([
+      "database",
+      "dataset",
+      "email",
+      "queue",
+      "schema",
+    ]);
+  });
+});
 
-    expect([...usable]).toEqual(["database"]);
+describe("offerableResources", () => {
+  it("always offers the creatable families, owned or not", () => {
+    const usable = offerableResources({});
+    for (const type of CREATABLE_RESOURCE_TYPES) {
+      expect(usable.has(type)).toBe(true);
+    }
   });
 
-  it("never offers a bot, however many the org has", () => {
-    const usable = bindableResources({
-      slack: [{ id: "b1", name: "Support" }],
-      queue: [{ id: "q1", name: "Jobs" }],
-    });
-
-    expect([...usable]).toEqual([]);
+  it("offers a bot family only when the org owns one", () => {
+    expect(offerableResources({}).has("slack")).toBe(false);
+    expect(
+      offerableResources({ slack: [{ id: "b1", name: "Support" }] }).has(
+        "slack"
+      )
+    ).toBe(true);
   });
 });
 

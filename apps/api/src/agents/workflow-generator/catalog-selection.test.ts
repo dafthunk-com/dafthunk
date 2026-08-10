@@ -194,3 +194,34 @@ describe("selection stays within its budget", () => {
     }
   });
 });
+
+describe("dynamic pseudo-node descriptions", () => {
+  it("appends the live catalog's words to the hand-written line", () => {
+    const [image] = pseudoNodeTypes([
+      {
+        id: "uuid-1",
+        name: "@cf/black-forest-labs/flux-1-schnell",
+        description: "A 12 billion parameter rectified flow transformer.",
+        task: { id: "t", name: "Text-to-Image" },
+      },
+    ]);
+
+    expect(image.type).toBe("ai-image");
+    expect(image.description).toContain(
+      "Generate an image from a text description."
+    );
+    expect(image.description).toContain("rectified flow transformer");
+  });
+
+  it("stands on the hand-written text when the catalog is absent or silent", () => {
+    const withoutCatalog = pseudoNodeTypes();
+    const withUnrelated = pseudoNodeTypes([
+      { id: "uuid-2", name: "@cf/some/other-model", description: "Other." },
+    ]);
+
+    expect(withoutCatalog[0].description).toBe(
+      "Generate an image from a text description."
+    );
+    expect(withUnrelated[0].description).toBe(withoutCatalog[0].description);
+  });
+});

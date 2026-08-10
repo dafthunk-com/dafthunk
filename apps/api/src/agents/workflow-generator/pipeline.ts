@@ -1,6 +1,7 @@
 import type { InputOverrides } from "@dafthunk/runtime";
 import type {
   BriefDestination,
+  CloudflareModelInfo,
   Edge,
   GenerationValidationIssue,
   GeneratorServerMessage,
@@ -10,6 +11,7 @@ import type {
   WorkflowExample,
   WorkflowExecution,
 } from "@dafthunk/types";
+import type { ResolvedResourceBinding } from "@dafthunk/utils";
 import type { WorkflowExecutorParameters } from "../../services/workflow-executor";
 import {
   buildInputOverrides,
@@ -25,6 +27,7 @@ import {
 import type {
   DraftExample,
   DraftNode,
+  DraftResource,
   EnrichedValidationError,
   GeneratedWorkflowDraft,
 } from "./draft-types";
@@ -32,13 +35,14 @@ import { withheldProviders, withheldResources } from "./eligibility";
 import { enrichValidation, formatErrorsForLLM } from "./enrich-validation";
 import { buildGeneratedExamples } from "./examples";
 import { previewExecution } from "./execution-preview";
-import type { DisarmedInput } from "./hydrate";
+import type { GroundingContext } from "./grounding";
+import type { BoundResource, DisarmedInput } from "./hydrate";
 import { hydrateGeneratedWorkflow, normalizeTrigger } from "./hydrate";
 import type { OrgResources, OrgResourceType } from "./org-resources";
 import {
-  bindableResources,
   boundResourceNote,
   describeMissingResource,
+  offerableResources,
 } from "./org-resources";
 import { outwardActions } from "./outward-actions";
 import { parseJsonObject } from "./parse-json";
@@ -53,6 +57,8 @@ import {
   EARLY_PLAN_SCHEMA,
   EARLY_PLAN_SYSTEM,
 } from "./prompts";
+import type { CreateResourceFn } from "./resource-resolver";
+import { createResourceResolver } from "./resource-resolver";
 import type { DraftKind, TraceEntry } from "./trace";
 
 /** One LLM round trip, provider-agnostic so tests can stub it. */
@@ -91,6 +97,21 @@ export interface PipelineDependencies {
   connectedProviders: ReadonlySet<string>;
   /** What the org owns, for node inputs holding a resource id. */
   orgResources?: OrgResources;
+  /** The same facts assembled for prompts: entity purposes + instances. */
+  grounding?: GroundingContext;
+  /** Live Workers AI catalog, best-effort; static descriptions without it. */
+  modelCatalog?: CloudflareModelInfo[];
+  /**
+   * What the brief's grounded blanks resolved to — which instances to reuse,
+   * which to create — re-validated by the caller against the org's current
+   * resources. Pre-seeds the resource resolver, and wins over the draft.
+   */
+  resourceBindings?: ResolvedResourceBinding[];
+  /**
+   * Brings a missing component into being. Absent — tests, the developer
+   * path — nothing is ever created and "create" degrades to reuse-or-unset.
+   */
+  createResource?: CreateResourceFn;
   /** Address that `send-email` delivers to; the model never sees it. */
   ownerEmail?: string;
   /**
@@ -164,6 +185,12 @@ export interface PipelineResult {
   workflowId?: string;
   executionId?: string;
   workflow?: Workflow;
+  /**
+   * Components brought into being for this workflow. Kept even on a failed
+   * outcome: once a row exists it exists, and reporting it is what makes it
+   * deletable rather than orphaned.
+   */
+  createdResources: BoundResource[];
   /**
    * The trigger bindings blanked before the save, matching `workflow`. The
    * caller stores them so a later `arm` turn can write them back — without
@@ -303,6 +330,9 @@ export function parseDraft(content: string): GeneratedWorkflowDraft {
     examples: Array.isArray(parsed.examples)
       ? array<DraftExample>(parsed.examples)
       : undefined,
+    resources: Array.isArray(parsed.resources)
+      ? array<DraftResource>(parsed.resources)
+      : undefined,
     sampleTrigger:
       parsed.sampleTrigger && typeof parsed.sampleTrigger === "object"
         ? (parsed.sampleTrigger as Record<string, unknown>)
@@ -335,12 +365,20 @@ export async function runGenerationPipeline(
   const trace: TraceEntry[] = [];
   const note = (entry: TraceEntry) => trace.push(entry);
 
+  /**
+   * Components created during this run, accumulated across every attempt.
+   * Lives beside the token totals for the same reason: every exit — success,
+   * unrepairable, cancelled, the catch — must report what now exists.
+   */
+  const createdResources: BoundResource[] = [];
+
   /** Totals, recomputed at every exit so no path can forget to sum. */
   const totals = () => ({
     inputTokens: usage.fast.inputTokens + usage.synthesis.inputTokens,
     outputTokens: usage.fast.outputTokens + usage.synthesis.outputTokens,
     usage,
     trace,
+    createdResources,
   });
 
   const checkCancelled = () => {
@@ -381,7 +419,8 @@ export async function runGenerationPipeline(
       deps.nodeTypes,
       deps.connectedProviders,
       deps.destination?.nodeTypes ?? [],
-      deps.orgResources ? bindableResources(deps.orgResources) : new Set()
+      deps.orgResources ? offerableResources(deps.orgResources) : new Set(),
+      deps.modelCatalog
     );
 
     {
@@ -457,15 +496,35 @@ export async function runGenerationPipeline(
      * person who asked. Any other use of `send-email` addresses someone else,
      * and defaulting there would be a silently wrong recipient rather than a
      * missing one the repair loop would catch.
+     *
+     * The resolver is constructed once and consulted per attempt: repair
+     * rounds re-emit the draft, and its creation cache is what keeps a
+     * re-emitted "create" from multiplying rows. Creation runs before the
+     * (synchronous) hydration, which then binds whatever now exists.
      */
-    const hydrate = (input: GeneratedWorkflowDraft) =>
-      hydrateGeneratedWorkflow(
-        input,
-        deps.nodeTypes,
-        candidates,
-        deps.destination?.kind === "email" ? deps.ownerEmail : undefined,
-        deps.orgResources
-      );
+    const resolver = createResourceResolver(deps.orgResources ?? {}, {
+      create: deps.createResource,
+      briefBindings: deps.resourceBindings,
+    });
+
+    const hydrate = async (input: GeneratedWorkflowDraft) => {
+      const resolution = await resolver.resolve(input.resources);
+      for (const created of resolution.created) {
+        createdResources.push({
+          type: created.type,
+          name: created.resource.name,
+        });
+      }
+      for (const message of resolution.notes) {
+        deps.emit({ type: "log", level: "info", message, important: true });
+      }
+      return hydrateGeneratedWorkflow(input, deps.nodeTypes, candidates, {
+        ownerEmail:
+          deps.destination?.kind === "email" ? deps.ownerEmail : undefined,
+        orgResources: deps.orgResources,
+        bindings: resolution.bindings,
+      });
+    };
 
     // ── Generate ──────────────────────────────────────────────────────────
     if (!deps.resume) {
@@ -484,6 +543,7 @@ export async function runGenerationPipeline(
           withheld,
           query: deps.prompt,
           destination: deps.destination,
+          grounding: deps.grounding,
         });
 
     // A resumed turn replays the conversation that produced the workflow and
@@ -574,7 +634,7 @@ export async function runGenerationPipeline(
         types: draft.nodes.map((node) => node.type),
       });
 
-    let hydrated = hydrate(draft);
+    let hydrated = await hydrate(draft);
     let errors = validate(hydrated);
 
     /**
@@ -625,8 +685,14 @@ export async function runGenerationPipeline(
     noteGraph();
 
     // Said once, on the first graph. A binding the user did not choose has to
-    // be visible, or a workflow quietly reads from the wrong database.
+    // be visible, or a workflow quietly reads from the wrong database. A
+    // binding to something created moments ago already has its "Created …"
+    // line; repeating it as "Used your …" would read as two resources.
+    const createdNames = new Set(
+      createdResources.map((entry) => `${entry.type}:${entry.name}`)
+    );
     for (const bound of hydrated.boundResources) {
+      if (createdNames.has(`${bound.type}:${bound.name}`)) continue;
       deps.emit({
         type: "log",
         level: "info",
@@ -695,7 +761,7 @@ export async function runGenerationPipeline(
       }
 
       draft = revised;
-      hydrated = hydrate(draft);
+      hydrated = await hydrate(draft);
       errors = validate(hydrated);
 
       noteDraft(kind);

@@ -286,6 +286,7 @@ export const deleteBot = async (
 export const createDiscordBot = async (
   request: {
     name: string;
+    description?: string;
     botToken: string;
     applicationId: string;
     publicKey: string;
@@ -295,6 +296,7 @@ export const createDiscordBot = async (
   return createBot(
     {
       name: request.name,
+      description: request.description,
       provider: "discord",
       token: request.botToken,
       applicationId: request.applicationId,
@@ -305,12 +307,13 @@ export const createDiscordBot = async (
 };
 
 export const createTelegramBot = async (
-  request: { name: string; botToken: string },
+  request: { name: string; description?: string; botToken: string },
   orgId: string
 ): Promise<BotResponse> => {
   return createBot(
     {
       name: request.name,
+      description: request.description,
       provider: "telegram",
       token: request.botToken,
     },
@@ -319,12 +322,18 @@ export const createTelegramBot = async (
 };
 
 export const createSlackBot = async (
-  request: { name: string; botToken: string; signingSecret: string },
+  request: {
+    name: string;
+    description?: string;
+    botToken: string;
+    signingSecret: string;
+  },
   orgId: string
 ): Promise<BotResponse> => {
   return createBot(
     {
       name: request.name,
+      description: request.description,
       provider: "slack",
       token: request.botToken,
       signingSecret: request.signingSecret,
@@ -336,6 +345,7 @@ export const createSlackBot = async (
 export const createWhatsAppAccount = async (
   request: {
     name: string;
+    description?: string;
     accessToken: string;
     phoneNumberId: string;
     wabaId?: string;
@@ -346,6 +356,7 @@ export const createWhatsAppAccount = async (
   return createBot(
     {
       name: request.name,
+      description: request.description,
       provider: "whatsapp",
       token: request.accessToken,
       phoneNumberId: request.phoneNumberId,
@@ -360,13 +371,19 @@ export const createWhatsAppAccount = async (
 
 export const updateDiscordBot = async (
   id: string,
-  request: { name?: string; publicKey?: string; botToken?: string },
+  request: {
+    name?: string;
+    description?: string;
+    publicKey?: string;
+    botToken?: string;
+  },
   orgId: string
 ): Promise<UpdateBotResponse> => {
   return updateBot(
     id,
     {
       name: request.name,
+      description: request.description,
       publicKey: request.publicKey,
       token: request.botToken,
     },
@@ -376,13 +393,14 @@ export const updateDiscordBot = async (
 
 export const updateTelegramBot = async (
   id: string,
-  request: { name?: string; botToken?: string },
+  request: { name?: string; description?: string; botToken?: string },
   orgId: string
 ): Promise<UpdateBotResponse> => {
   return updateBot(
     id,
     {
       name: request.name,
+      description: request.description,
       token: request.botToken,
     },
     orgId
@@ -391,13 +409,19 @@ export const updateTelegramBot = async (
 
 export const updateSlackBot = async (
   id: string,
-  request: { name?: string; botToken?: string; signingSecret?: string },
+  request: {
+    name?: string;
+    description?: string;
+    botToken?: string;
+    signingSecret?: string;
+  },
   orgId: string
 ): Promise<UpdateBotResponse> => {
   return updateBot(
     id,
     {
       name: request.name,
+      description: request.description,
       token: request.botToken,
       signingSecret: request.signingSecret,
     },
@@ -409,6 +433,7 @@ export const updateWhatsAppAccount = async (
   id: string,
   request: {
     name?: string;
+    description?: string;
     accessToken?: string;
     phoneNumberId?: string;
     appSecret?: string;
@@ -420,6 +445,7 @@ export const updateWhatsAppAccount = async (
     id,
     {
       name: request.name,
+      description: request.description,
       token: request.accessToken,
       phoneNumberId: request.phoneNumberId,
       appSecret: request.appSecret,

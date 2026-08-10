@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { getApiBaseUrl } from "@/config/api";
 import { createSlackBot } from "@/services/bot-service";
 
@@ -60,6 +61,7 @@ export function SlackBotCreateDialog({
   const { organization } = useAuth();
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [signingSecret, setSigningSecret] = useState("");
   const [botToken, setBotToken] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,6 +72,7 @@ export function SlackBotCreateDialog({
   const resetForm = () => {
     setStep("name");
     setName("");
+    setDescription("");
     setSigningSecret("");
     setBotToken("");
     setError(null);
@@ -90,7 +93,7 @@ export function SlackBotCreateDialog({
 
     try {
       const response = await createSlackBot(
-        { name, botToken, signingSecret },
+        { name, description: description.trim(), botToken, signingSecret },
         organization.id
       );
       setCreatedBotId(response.id);
@@ -153,6 +156,17 @@ export function SlackBotCreateDialog({
                 A display name for this bot in Dafthunk. This is not visible to
                 your Slack users.
               </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="slack-description">Description</Label>
+              <Textarea
+                id="slack-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="What this bot does, for you and for workflow generation."
+                rows={2}
+              />
             </div>
 
             <div className="flex justify-end gap-2 pt-1">

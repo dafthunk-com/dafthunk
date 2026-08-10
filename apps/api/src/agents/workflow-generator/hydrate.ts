@@ -28,8 +28,12 @@ import { findSimilarTypes } from "./node-search";
 /** The node whose recipient the server can fill in when nobody else did. */
 const SEND_EMAIL_TYPE = "send-email";
 
-import type { OrgResources, OrgResourceType } from "./org-resources";
-import { BINDABLE_RESOURCE_TYPES, resourceToBind } from "./org-resources";
+import type {
+  OrgResource,
+  OrgResources,
+  OrgResourceType,
+} from "./org-resources";
+import { PASSIVE_BINDABLE_TYPES, resourceToBind } from "./org-resources";
 
 export const TRIGGER_NODE_ID = "trigger";
 export const RESPONDER_NODE_ID = "responder";
@@ -244,6 +248,35 @@ export interface HydrateResult {
   disarmed: DisarmedInput[];
 }
 
+export interface HydrateOptions {
+  /**
+   * Address to use when a `send-email` node has no recipient.
+   *
+   * Passed only when the workflow is meant to mail the person who asked for it
+   * — the model never sees who that is, so it could not fill this in however
+   * hard it tried. A default, never an override: a node whose recipient the
+   * model set, or wired an edge into, is left exactly as it is, because
+   * "reply to the customer" must not quietly become "reply to the owner".
+   */
+  ownerEmail?: string;
+  /**
+   * What the org owns, for inputs that hold a resource id rather than a value.
+   *
+   * The model is never shown these ids — they mean nothing to it and it would
+   * only invent plausible ones. Fallback binding happens here, after the graph
+   * exists, and only for the types `PASSIVE_BINDABLE_TYPES` allows.
+   */
+  orgResources?: OrgResources;
+  /**
+   * Explicit instance choices, one per family — what the brief's blanks and
+   * the resource resolver settled on. These win over the oldest-fallback, and
+   * they are the ONLY way an arming type (queue, email, bot) gets a value:
+   * bound before `disarm` runs, so a binding on the trigger node lands in
+   * `disarmed` and is restored by the `arm` turn rather than firing on save.
+   */
+  bindings?: Partial<Record<OrgResourceType, OrgResource>>;
+}
+
 /**
  * Turns the model's thin draft into a full `Workflow`.
  *
@@ -255,25 +288,9 @@ export function hydrateGeneratedWorkflow(
   draft: GeneratedWorkflowDraft,
   nodeTypes: NodeType[],
   candidates: NodeType[],
-  /**
-   * Address to use when a `send-email` node has no recipient.
-   *
-   * Passed only when the workflow is meant to mail the person who asked for it
-   * — the model never sees who that is, so it could not fill this in however
-   * hard it tried. A default, never an override: a node whose recipient the
-   * model set, or wired an edge into, is left exactly as it is, because
-   * "reply to the customer" must not quietly become "reply to the owner".
-   */
-  ownerEmail?: string,
-  /**
-   * What the org owns, for inputs that hold a resource id rather than a value.
-   *
-   * The model is never shown these ids — they mean nothing to it and it would
-   * only invent plausible ones. Binding happens here, after the graph exists,
-   * and only for the types `BINDABLE_RESOURCE_TYPES` allows.
-   */
-  orgResources?: OrgResources
+  options: HydrateOptions = {}
 ): HydrateResult {
+  const { ownerEmail, orgResources, bindings } = options;
   const errors: EnrichedValidationError[] = [];
   const byType = new Map(nodeTypes.map((nt) => [nt.type, nt]));
 
@@ -301,14 +318,14 @@ export function hydrateGeneratedWorkflow(
     };
   }
 
-  // Server-owned trigger/responder nodes. The model is told these already
-  // exist, so anything it emitted with the same ids or a trigger type is
-  // dropped rather than merged.
+  // Server-owned trigger/responder nodes. Built armed, and disarmed at the
+  // very end — after binding and configuration merging — so that everything
+  // meant to arm them lands in `disarmed`, where the `arm` turn restores it.
   const disarmed: DisarmedInput[] = [];
   const injected = buildTriggerNodes(trigger, nodeTypes, {
     idFor: (_nodeType: NodeType, index: number) =>
       index === 0 ? TRIGGER_NODE_ID : RESPONDER_NODE_ID,
-  }).map((node: Node) => disarm(node, disarmed));
+  });
 
   const injectedIds = new Set(injected.map((n: Node) => n.id));
   const triggerTypeIds = new Set(
@@ -318,7 +335,21 @@ export function hydrateGeneratedWorkflow(
   const nodes: Node[] = [...injected];
 
   for (const draftNode of draft.nodes) {
-    if (injectedIds.has(draftNode.id)) continue;
+    if (injectedIds.has(draftNode.id)) {
+      // The model does not own the trigger node — but it is the only one who
+      // knows the configuration the request implies: the cron line behind
+      // "every morning at 8" has nowhere else to come from. Its literal
+      // inputs are merged onto the injected node; the node itself stays
+      // server-built, and `disarm` will still blank the arming values.
+      const target = nodes.find((node) => node.id === draftNode.id);
+      if (target && draftNode.inputs) {
+        for (const [name, value] of Object.entries(draftNode.inputs)) {
+          const input = target.inputs.find((entry) => entry.name === name);
+          if (input) input.value = value as Parameter["value"];
+        }
+      }
+      continue;
+    }
     if (triggerTypeIds.has(draftNode.type)) continue;
 
     // Returns undefined for anything that isn't a pseudo type, so this doubles
@@ -373,19 +404,35 @@ export function hydrateGeneratedWorkflow(
     }
   }
 
-  // Bind org-owned resources. Runs after `disarm`, and only over the passive
-  // types, so nothing here can arm a trigger — see `BINDABLE_RESOURCE_TYPES`.
+  // Bind org-owned resources, before `disarm` so a binding on the trigger
+  // node is collected rather than saved live. Explicit bindings — the ones a
+  // person or the resolver chose — apply to any family; the oldest-fallback
+  // stays restricted to the passive types, because falling back must never be
+  // able to arm anything.
   const boundResources: BoundResource[] = [];
-  if (orgResources) {
+  if (orgResources || bindings) {
     const seen = new Set<string>();
     for (const node of nodes) {
       for (const input of node.inputs) {
-        if (!BINDABLE_RESOURCE_TYPES.has(input.type as OrgResourceType)) {
-          continue;
-        }
         if (input.value !== undefined) continue;
         const type = input.type as OrgResourceType;
-        const resource = resourceToBind(orgResources, type);
+
+        let resource: OrgResource | undefined = bindings?.[type];
+        if (!resource) {
+          if (!PASSIVE_BINDABLE_TYPES.has(type)) continue;
+          // A structured-output schema must not contain blob fields, and an
+          // OrgResource cannot say whether one does — so scoped inputs are
+          // never filled by fallback. An explicit choice above still lands:
+          // the person picked it, and the consuming node enforces the scope
+          // at runtime.
+          if (input.type === "schema" && input.scope === "structured-output") {
+            continue;
+          }
+          resource = orgResources
+            ? resourceToBind(orgResources, type)
+            : undefined;
+        }
+
         if (!resource) continue;
         input.value = resource.id;
         if (!seen.has(type)) {
@@ -393,6 +440,17 @@ export function hydrateGeneratedWorkflow(
           boundResources.push({ type, name: resource.name });
         }
       }
+    }
+  }
+
+  // Disarm last. A bound mailbox or queue on the trigger node moves into
+  // `disarmed`, so the save is inert and the `arm` turn writes it back when
+  // the person turns the workflow on. Mid-graph arming-typed inputs are left
+  // alone: `syncTriggers` never reads them, and blanking would fabricate
+  // MISSING_REQUIRED_INPUT errors.
+  for (let index = 0; index < nodes.length; index++) {
+    if (injectedIds.has(nodes[index].id)) {
+      nodes[index] = disarm(nodes[index], disarmed);
     }
   }
 

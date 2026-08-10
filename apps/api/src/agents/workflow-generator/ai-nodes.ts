@@ -1,4 +1,9 @@
-import type { CloudflareModelMeta, Node, NodeType } from "@dafthunk/types";
+import type {
+  CloudflareModelInfo,
+  CloudflareModelMeta,
+  Node,
+  NodeType,
+} from "@dafthunk/types";
 
 import { createCloudflareModelNode } from "../../templates/cloudflare-model-template";
 
@@ -107,9 +112,37 @@ const PSEUDO_NODE_TYPES: PseudoNodeType[] = [
 
 const BY_TYPE = new Map(PSEUDO_NODE_TYPES.map((p) => [p.nodeType.type, p]));
 
-/** Pseudo node types, in the same shape as registry types so they can be ranked together. */
-export function pseudoNodeTypes(): NodeType[] {
-  return PSEUDO_NODE_TYPES.map((p) => p.nodeType);
+/** Upstream text is a detail line in a catalog entry, not an essay. */
+const MAX_UPSTREAM_DESCRIPTION = 160;
+
+/**
+ * Pseudo node types, in the same shape as registry types so they can be
+ * ranked together.
+ *
+ * Given the live model catalog, each pinned model's upstream description is
+ * appended to the hand-written capability line — so what the generator reads
+ * evolves with Cloudflare's catalog while the curation (which models, which
+ * capabilities) stays a decision. The hand-written text is the fallback, and
+ * membership never changes here: a new upstream model stays out until it is
+ * chosen on purpose.
+ */
+export function pseudoNodeTypes(catalog?: CloudflareModelInfo[]): NodeType[] {
+  if (!catalog?.length) return PSEUDO_NODE_TYPES.map((p) => p.nodeType);
+
+  // Upstream `name` carries the "@cf/…" path; `id` is an opaque UUID.
+  const byModel = new Map(catalog.map((model) => [model.name, model]));
+  return PSEUDO_NODE_TYPES.map((p) => {
+    const upstream = byModel.get(p.model)?.description?.trim();
+    if (!upstream) return p.nodeType;
+    const detail =
+      upstream.length <= MAX_UPSTREAM_DESCRIPTION
+        ? upstream
+        : `${upstream.slice(0, MAX_UPSTREAM_DESCRIPTION - 1)}…`;
+    return {
+      ...p.nodeType,
+      description: `${p.nodeType.description} ${detail}`,
+    };
+  });
 }
 
 /**

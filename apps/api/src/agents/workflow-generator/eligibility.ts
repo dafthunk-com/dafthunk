@@ -4,14 +4,15 @@ import type { NodeType, Parameter } from "@dafthunk/types";
  * Parameter types that reference a resource the org must already have created.
  *
  * A generated workflow cannot invent one. Whether a node needing one is usable
- * depends on two things: the org owning at least one, and the type being safe
- * to bind without review — see `BINDABLE_RESOURCE_TYPES`.
+ * depends on the org owning at least one, or the generator being able to
+ * create one — see `offerableResources` in org-resources.ts.
  */
 const ORG_RESOURCE_TYPES: ReadonlySet<string> = new Set([
   "database",
   "dataset",
   "queue",
   "email",
+  "schema",
   "discord",
   "telegram",
   "whatsapp",
@@ -81,10 +82,10 @@ export interface EligibilityContext {
   /** OAuth providers the org has actually connected. */
   connectedProviders: ReadonlySet<string>;
   /**
-   * Resource types this org owns *and* that may be bound without review.
+   * Resource types whose nodes may be offered: owned, or creatable on demand.
    * Absent means none, which is the old behaviour: withhold them all.
    */
-  bindableResources?: ReadonlySet<string>;
+  offerableResources?: ReadonlySet<string>;
 }
 
 /** The `provider` of every `integration` input a node declares. */
@@ -95,11 +96,20 @@ function requiredProviders(nodeType: NodeType): string[] {
     .filter((p): p is string => typeof p === "string");
 }
 
-/** The org-scoped resource types a node's inputs reference, if any. */
+/**
+ * The org-scoped resource types a node cannot run without.
+ *
+ * Required inputs only. An optional resource input — the validation schema on
+ * a database query, the structured-output schema on a model node — does not
+ * gate the node: it works untouched without one, and withholding every model
+ * node from an org that never made a schema would remove capabilities that
+ * were never at risk.
+ */
 function orgResourcesNeeded(nodeType: NodeType): string[] {
   return [
     ...new Set(
       nodeType.inputs
+        .filter((p: Parameter) => p.required)
         .map((p: Parameter) => p.type)
         .filter((type) => ORG_RESOURCE_TYPES.has(type))
     ),
@@ -195,9 +205,9 @@ export function filterEligible(
       continue;
     }
 
-    const bindable = context.bindableResources ?? new Set<string>();
+    const offerable = context.offerableResources ?? new Set<string>();
     const unsuppliable = orgResourcesNeeded(nodeType).find(
-      (resource) => !bindable.has(resource)
+      (resource) => !offerable.has(resource)
     );
     if (unsuppliable) {
       withheld.push({

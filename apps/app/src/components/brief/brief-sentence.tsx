@@ -1,5 +1,5 @@
 import type { Brief, BriefAnswers, BriefBlank } from "@dafthunk/types";
-import { resolveBlank } from "@dafthunk/utils";
+import { isAskedBlank, resolveBlank } from "@dafthunk/utils";
 
 import { cn } from "@/utils/utils";
 
@@ -43,6 +43,10 @@ function BriefSlot({
   tightRight,
 }: BriefSlotProps) {
   const answered = Boolean(answers[blank.id]?.trim());
+  // A demoted blank renders in the answered style from the start: it carries a
+  // guess the user may ignore, and quiet is what keeps it from reading as one
+  // more question. The dashed style is reserved for open questions.
+  const quiet = answered || !isAskedBlank(blank);
   const text = resolveBlank(blank, answers);
 
   return (
@@ -56,7 +60,7 @@ function BriefSlot({
         "ml-0.5 rounded px-1 transition-colors",
         tightRight ? "mr-0 pr-0" : "mr-0.5",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        answered
+        quiet
           ? "bg-primary/10 text-foreground"
           : "border-b-2 border-dashed border-primary/60 italic text-muted-foreground",
         isOpen && "ring-2 ring-primary/40",

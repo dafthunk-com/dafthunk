@@ -59,6 +59,7 @@ queueRoutes.post(
     "json",
     z.object({
       name: z.string().min(1, "Queue name is required"),
+      description: z.string().optional(),
     }) as z.ZodType<CreateQueueRequest>
   ),
   async (c) => {
@@ -73,6 +74,7 @@ queueRoutes.post(
     const newQueue = await createQueue(db, {
       id: queueId,
       name: queueName,
+      description: data.description ?? "",
       organizationId: organizationId,
       createdAt: now,
       updatedAt: now,
@@ -81,6 +83,7 @@ queueRoutes.post(
     const response: CreateQueueResponse = {
       id: newQueue.id,
       name: newQueue.name,
+      description: newQueue.description,
       createdAt: newQueue.createdAt,
       updatedAt: newQueue.updatedAt,
     };
@@ -105,6 +108,7 @@ queueRoutes.get("/:id", async (c) => {
   const response: GetQueueResponse = {
     id: queue.id,
     name: queue.name,
+    description: queue.description,
     createdAt: queue.createdAt,
     updatedAt: queue.updatedAt,
   };
@@ -121,6 +125,7 @@ queueRoutes.put(
     "json",
     z.object({
       name: z.string().min(1, "Queue name is required"),
+      description: z.string().optional(),
     }) as z.ZodType<UpdateQueueRequest>
   ),
   async (c) => {
@@ -138,12 +143,16 @@ queueRoutes.put(
 
     const updatedQueue = await updateQueue(db, id, organizationId, {
       name: data.name,
+      ...(data.description !== undefined
+        ? { description: data.description }
+        : {}),
       updatedAt: now,
     });
 
     const response: UpdateQueueResponse = {
       id: updatedQueue.id,
       name: updatedQueue.name,
+      description: updatedQueue.description,
       createdAt: updatedQueue.createdAt,
       updatedAt: updatedQueue.updatedAt,
     };

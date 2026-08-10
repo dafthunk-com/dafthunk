@@ -41,3 +41,30 @@ export function isUniqueHandleError(err: unknown): boolean {
     /SQLITE_CONSTRAINT/i.test(msg)
   );
 }
+
+const MAX_HANDLE_ATTEMPTS = 5;
+
+/**
+ * Runs `attempt` with freshly generated handles until one is unique.
+ *
+ * The suffix makes collisions unlikely; the retry makes them survivable.
+ * Shared by the emails route and the workflow generator, so the two can never
+ * disagree about what allocating a mailbox means. Returns undefined once the
+ * attempts run out — a failure rare enough to be worth logging, not throwing.
+ */
+export async function withUniqueHandle<T>(
+  name: string,
+  attempt: (handle: string) => Promise<T>
+): Promise<T | undefined> {
+  let lastError: unknown;
+  for (let index = 0; index < MAX_HANDLE_ATTEMPTS; index++) {
+    try {
+      return await attempt(generateEmailHandle(name));
+    } catch (err) {
+      lastError = err;
+      if (!isUniqueHandleError(err)) throw err;
+    }
+  }
+  console.error("Failed to allocate a unique email handle", lastError);
+  return undefined;
+}

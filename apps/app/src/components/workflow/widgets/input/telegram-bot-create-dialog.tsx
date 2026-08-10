@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { createTelegramBot } from "@/services/bot-service";
 
 type Step = "name" | "bot-token" | "setup";
@@ -44,6 +45,7 @@ export function TelegramBotCreateDialog({
   const { organization } = useAuth();
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [botToken, setBotToken] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +56,7 @@ export function TelegramBotCreateDialog({
   const resetForm = () => {
     setStep("name");
     setName("");
+    setDescription("");
     setBotToken("");
     setError(null);
     setCreatedBotUsername(null);
@@ -72,7 +75,7 @@ export function TelegramBotCreateDialog({
 
     try {
       const response = await createTelegramBot(
-        { name, botToken },
+        { name, description: description.trim(), botToken },
         organization.id
       );
       setCreatedBotUsername(
@@ -128,6 +131,17 @@ export function TelegramBotCreateDialog({
                 A display name for this bot in Dafthunk. This is not visible to
                 your Telegram users.
               </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="telegram-description">Description</Label>
+              <Textarea
+                id="telegram-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="What this bot does, for you and for workflow generation."
+                rows={2}
+              />
             </div>
 
             <div className="flex justify-end gap-2 pt-1">

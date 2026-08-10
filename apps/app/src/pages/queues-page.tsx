@@ -27,6 +27,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
@@ -39,6 +40,7 @@ import {
 interface QueueRow {
   id: string;
   name: string;
+  description: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -56,6 +58,15 @@ function createColumns(
         const name = row.getValue("name") as string;
         return <span className="font-medium">{name || "Untitled Queue"}</span>;
       },
+    },
+    {
+      accessorKey: "description",
+      header: "Description",
+      cell: ({ row }) => (
+        <div className="text-muted-foreground truncate max-w-md">
+          {(row.getValue("description") as string) || "—"}
+        </div>
+      ),
     },
     {
       id: "endpoint",
@@ -113,6 +124,7 @@ export function QueuesPage() {
   const [queueToDelete, setQueueToDelete] = useState<QueueRow | null>(null);
   const [queueToEdit, setQueueToEdit] = useState<QueueRow | null>(null);
   const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -139,6 +151,7 @@ export function QueuesPage() {
   const openEditDialog = (queue: QueueRow) => {
     setQueueToEdit(queue);
     setEditName(queue.name);
+    setEditDescription(queue.description || "");
     setEditDialogOpen(true);
   };
 
@@ -159,7 +172,11 @@ export function QueuesPage() {
     if (!queueToEdit || !orgId || editName.trim() === "") return;
     setIsEditing(true);
     try {
-      await updateQueue(queueToEdit.id, { name: editName.trim() }, orgId);
+      await updateQueue(
+        queueToEdit.id,
+        { name: editName.trim(), description: editDescription.trim() },
+        orgId
+      );
       setEditDialogOpen(false);
       setQueueToEdit(null);
       mutateQueues();
@@ -168,9 +185,9 @@ export function QueuesPage() {
     }
   };
 
-  const handleCreateQueue = async (name: string) => {
+  const handleCreateQueue = async (name: string, description: string) => {
     try {
-      await createQueue({ name }, orgId);
+      await createQueue({ name, description }, orgId);
       mutateQueues();
       setIsCreateDialogOpen(false);
     } catch (error) {
@@ -221,7 +238,10 @@ export function QueuesPage() {
                 e.preventDefault();
                 const formData = new FormData(e.currentTarget);
                 const name = formData.get("name") as string;
-                await handleCreateQueue(name);
+                const description = (
+                  (formData.get("description") as string) || ""
+                ).trim();
+                await handleCreateQueue(name, description);
               }}
               className="space-y-4"
             >
@@ -232,6 +252,16 @@ export function QueuesPage() {
                   name="name"
                   placeholder="Enter queue name"
                   className="mt-2"
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="What flows through this queue and why"
+                  className="mt-2"
+                  rows={2}
                 />
               </div>
               <DialogFooter>
@@ -259,15 +289,29 @@ export function QueuesPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Edit Queue</DialogTitle>
-              <DialogDescription>Rename your queue.</DialogDescription>
+              <DialogDescription>
+                Rename your queue and describe what it is for.
+              </DialogDescription>
             </DialogHeader>
-            <div className="space-y-2">
-              <Label htmlFor="edit-queue-name">Name</Label>
-              <Input
-                id="edit-queue-name"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-              />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-queue-name">Name</Label>
+                <Input
+                  id="edit-queue-name"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-queue-description">Description</Label>
+                <Textarea
+                  id="edit-queue-description"
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  placeholder="What flows through this queue and why"
+                  rows={2}
+                />
+              </div>
             </div>
             <DialogFooter>
               <Button

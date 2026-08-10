@@ -58,6 +58,22 @@ export type BriefSegment =
   | { kind: "text"; text: string }
   | { kind: "slot"; blankId: string };
 
+/**
+ * Component families a blank's options may be grounded in: the org-scoped
+ * resources a workflow can hold by id. Bots appear per provider because that is
+ * how the parameter types (and therefore the bindings) are keyed.
+ */
+export type BriefResourceFamily =
+  | "database"
+  | "dataset"
+  | "queue"
+  | "email"
+  | "schema"
+  | "discord"
+  | "telegram"
+  | "whatsapp"
+  | "slack";
+
 interface BriefBlankBase {
   id: string;
   /** One short question, shown only when the blank is opened. "Which one?" */
@@ -77,6 +93,21 @@ interface BriefBlankBase {
   weight: number;
   /** `destination` and `trigger` rewrite the brief, not merely the sentence. */
   role: "destination" | "trigger" | "subject" | "criterion" | "detail";
+  /**
+   * Whether this blank is put to the person as a question (prominent, dashed)
+   * or merely kept reachable (quiet, styled like an answered slot). The budget
+   * counts asked blanks; a demoted blank stays tappable, so eviction no longer
+   * destroys a correctly identified moving part.
+   *
+   * Absent means asked: briefs stored before this field existed had no quiet
+   * blanks. Computed by the server in `normalizeBrief`, never by the model.
+   */
+  asked?: boolean;
+  /**
+   * Set when this blank picks a real platform resource. Its choice options
+   * then reference org instances by id, or propose creating one.
+   */
+  grounding?: { family: BriefResourceFamily };
 }
 
 export interface BriefChoiceOption {
@@ -85,6 +116,23 @@ export interface BriefChoiceOption {
   /** Reads inside the sentence: "to Discord", "every morning". */
   label: string;
   hint?: string;
+  /**
+   * Grounded blanks only: the org instance this option denotes. Validated
+   * against what the org actually owns — an id that no longer exists is
+   * dropped, never offered.
+   */
+  resourceId?: string;
+  /**
+   * Grounded blanks only: choosing this option creates a new instance of the
+   * blank's family instead of reusing one. Only kept on creatable families.
+   */
+  createNew?: boolean;
+  /**
+   * Trigger-role blanks only: the trigger kind this option implies. What lets
+   * a trigger blank's answer actually change how the workflow starts, rather
+   * than only rewording the sentence.
+   */
+  triggerValue?: WorkflowTrigger;
 }
 
 export interface BriefChoiceBlank extends BriefBlankBase {

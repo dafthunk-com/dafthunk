@@ -1,4 +1,4 @@
-import type { NodeType } from "@dafthunk/types";
+import type { CloudflareModelInfo, NodeType } from "@dafthunk/types";
 
 import { pseudoNodeTypes } from "./ai-nodes";
 import { MAX_CANDIDATE_NODE_TYPES, WITHHELD_RELEVANCE_RATIO } from "./config";
@@ -45,13 +45,15 @@ export function selectCandidates(
    * reason the brief exists), so it scores nothing and would be cut.
    */
   required: readonly string[] = [],
-  /** Resource types the org owns that may be bound without review. */
-  bindable: ReadonlySet<string> = new Set()
+  /** Resource types whose nodes may be offered: owned, or creatable. */
+  offerable: ReadonlySet<string> = new Set(),
+  /** Live Workers AI catalog; enriches pseudo-node descriptions when present. */
+  modelCatalog?: CloudflareModelInfo[]
 ): CandidateSelection {
-  const withPseudo = [...nodeTypes, ...pseudoNodeTypes()];
+  const withPseudo = [...nodeTypes, ...pseudoNodeTypes(modelCatalog)];
   const { eligible, byType, withheld } = filterEligible(withPseudo, {
     connectedProviders,
-    bindableResources: bindable,
+    offerableResources: offerable,
   });
 
   /**

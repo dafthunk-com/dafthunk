@@ -3,10 +3,11 @@ import type {
   BriefBlank,
   BriefChoiceOption,
   BriefDestination,
+  BriefResourceFamily,
   BriefSegment,
   WorkflowTrigger,
 } from "@dafthunk/types";
-import { TRIGGER_TO_NODE_TYPES } from "@dafthunk/utils";
+import { RESOURCE_FAMILY_NOUNS, TRIGGER_TO_NODE_TYPES } from "@dafthunk/utils";
 
 import { BENCHMARK_CASES } from "./benchmark-cases";
 import {
@@ -18,9 +19,11 @@ import {
   BRIEF_ATTEMPTS,
   BRIEF_SUGGESTION_COUNT,
   MAX_ASKED_BLANKS,
+  MAX_TOTAL_BLANKS,
   MIN_REQUEST_WORDS,
 } from "./config";
 import { defaultDestination } from "./destinations";
+import type { GroundingContext } from "./grounding";
 import { normalizeTrigger } from "./hydrate";
 import { parseJsonObject } from "./parse-json";
 import type { GenerateCall, GenerateResult } from "./pipeline";
@@ -42,6 +45,8 @@ export interface BriefDependencies {
   request: string;
   destinations: BriefDestination[];
   connectedProviders: ReadonlySet<string>;
+  /** What the workspace owns, so the sentence can name real components. */
+  grounding?: GroundingContext;
   callLLM: (call: GenerateCall) => Promise<GenerateResult>;
 }
 
@@ -180,14 +185,46 @@ interface RawBlank {
   prefill?: unknown;
   weight?: unknown;
   role?: unknown;
+  grounding?: unknown;
   options?: unknown;
 }
 
-function toOptions(value: unknown): BriefChoiceOption[] {
+const RESOURCE_FAMILIES = new Set<string>(Object.keys(RESOURCE_FAMILY_NOUNS));
+
+function toGrounding(
+  value: unknown
+): { family: BriefResourceFamily } | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const family = (value as { family?: unknown }).family;
+  if (typeof family !== "string" || !RESOURCE_FAMILIES.has(family)) {
+    return undefined;
+  }
+  return { family: family as BriefResourceFamily };
+}
+
+/**
+ * An option as parsed. `resourceName` is transient: the model names workspace
+ * components — ids never enter a prompt — and the server resolves the name to
+ * a `resourceId` during normalization, or drops the option.
+ */
+interface ParsedOption extends BriefChoiceOption {
+  resourceName?: string;
+}
+
+function toOptions(value: unknown): ParsedOption[] {
   if (!Array.isArray(value)) return [];
   return value
     .filter(
-      (option): option is { id: string; label: string; hint?: string } =>
+      (
+        option
+      ): option is {
+        id: string;
+        label: string;
+        hint?: string;
+        triggerValue?: unknown;
+        resourceName?: unknown;
+        createNew?: unknown;
+      } =>
         Boolean(option) &&
         typeof option === "object" &&
         typeof (option as { id?: unknown }).id === "string" &&
@@ -197,6 +234,16 @@ function toOptions(value: unknown): BriefChoiceOption[] {
       id: option.id,
       label: option.label,
       ...(typeof option.hint === "string" ? { hint: option.hint } : {}),
+      // Kept only when they survive their role-specific validation later:
+      // a triggerValue naming no real trigger and a resourceName naming no
+      // real component are both promises the run cannot keep.
+      ...(typeof option.triggerValue === "string"
+        ? { triggerValue: option.triggerValue as WorkflowTrigger }
+        : {}),
+      ...(typeof option.resourceName === "string"
+        ? { resourceName: option.resourceName }
+        : {}),
+      ...(option.createNew === true ? { createNew: true } : {}),
     }));
 }
 
@@ -211,6 +258,8 @@ function toBlank(raw: RawBlank): BriefBlank | undefined {
   const id = typeof raw.id === "string" ? raw.id : undefined;
   const assumed = typeof raw.assumed === "string" ? raw.assumed.trim() : "";
   if (!id || !assumed) return undefined;
+
+  const grounding = toGrounding(raw.grounding);
 
   const base = {
     id,
@@ -227,6 +276,8 @@ function toBlank(raw: RawBlank): BriefBlank | undefined {
     )
       ? raw.role
       : "detail") as BriefBlank["role"],
+    // Options-based mechanics only, so an open blank cannot carry it.
+    ...(grounding && raw.type !== "open" ? { grounding } : {}),
   };
 
   if (raw.type === "open") {
@@ -287,6 +338,8 @@ function assumedLabel(
 export interface NormalizeBriefContext {
   request: string;
   destinations: BriefDestination[];
+  /** What the org owns right now; grounded options are validated against it. */
+  grounding?: GroundingContext;
 }
 
 /**
@@ -307,6 +360,73 @@ export function normalizeBrief(
   const parsed = (Array.isArray(raw.blanks) ? raw.blanks : [])
     .map((entry) => toBlank((entry ?? {}) as RawBlank))
     .filter((blank): blank is BriefBlank => blank !== undefined);
+
+  /**
+   * A `triggerValue` naming no real trigger is stripped, not trusted: the
+   * option stays — its phrasing may still be right — but it can no longer
+   * change how the workflow starts. Off a trigger blank the field means
+   * nothing, so it is stripped there too.
+   */
+  const validTriggers = new Set(Object.keys(TRIGGER_TO_NODE_TYPES));
+  for (const blank of parsed) {
+    if (blank.type !== "choice") continue;
+    blank.options = blank.options.map((option) => {
+      if (option.triggerValue === undefined) return option;
+      if (blank.role === "trigger" && validTriggers.has(option.triggerValue)) {
+        return option;
+      }
+      const stripped = { ...option };
+      delete stripped.triggerValue;
+      return stripped;
+    });
+  }
+
+  /**
+   * Grounded options are promises about the workspace, and they live under
+   * the destination rule: never offer what we cannot bind. The model names
+   * components — ids never enter a prompt — so names are resolved to ids
+   * here, and an option naming nothing real is dropped. A create option on a
+   * family that cannot be created is dropped the same way.
+   */
+  const byFamily = new Map(
+    (context.grounding?.families ?? []).map((family) => [family.family, family])
+  );
+  for (const blank of parsed) {
+    if (!blank.grounding || blank.type !== "choice") continue;
+    const family = byFamily.get(blank.grounding.family);
+    if (!family) {
+      // Grounding claimed against nothing we know — the blank survives as a
+      // plain choice, but it can no longer bind anything.
+      delete blank.grounding;
+      continue;
+    }
+
+    blank.options = (blank.options as ParsedOption[]).flatMap((option) => {
+      const { resourceName, ...kept } = option;
+      if (kept.createNew) {
+        return family.creatable ? [kept] : [];
+      }
+      const wanted = resourceName ?? kept.resourceId;
+      if (wanted === undefined) return [kept];
+      const needle = wanted.trim().toLowerCase();
+      const instance =
+        family.instances.find((entry) => entry.id === wanted) ??
+        family.instances.find(
+          (entry) => entry.name.trim().toLowerCase() === needle
+        );
+      if (!instance) return [];
+      return [{ ...kept, resourceId: instance.id }];
+    });
+
+    // The assumption must stay an offered option: follow it to a surviving
+    // one, existing instances before creation — assuming "create" would
+    // build a duplicate of something the org already has.
+    if (!blank.options.some((option) => option.id === blank.assumed)) {
+      const fallback =
+        blank.options.find((option) => option.resourceId) ?? blank.options[0];
+      if (fallback) blank.assumed = fallback.id;
+    }
+  }
 
   const known = new Set(
     context.destinations.map((destination) => destination.id)
@@ -332,16 +452,57 @@ export function normalizeBrief(
    * already made — which is how "email it to me" ended up meaning Gmail with
    * nothing on screen to say so.
    */
-  const ranked = [...parsed].sort((a, b) => b.weight - a.weight);
-  const destinationBlank = ranked.find(
-    (blank) => blank.role === "destination" && offerable(blank)
-  );
+  /**
+   * A grounded blank may have lost options to validation. What is left has to
+   * still be a choice whose assumption is on offer; otherwise the blank is
+   * decided, and collapses into the words its assumption reads as.
+   */
+  const viable = (blank: BriefBlank) =>
+    blank.type !== "choice" ||
+    (blank.options.length >= 2 &&
+      blank.options.some((option) => option.id === blank.assumed));
 
-  const blanks = [
-    ...(destinationBlank ? [destinationBlank] : []),
-    ...ranked
-      .filter((blank) => blank !== destinationBlank && offerable(blank))
-      .slice(0, MAX_ASKED_BLANKS),
+  const ranked = [...parsed].sort((a, b) => b.weight - a.weight);
+  const eligible = ranked.filter((blank) => offerable(blank) && viable(blank));
+  const destinationBlank = eligible.find(
+    (blank) => blank.role === "destination"
+  );
+  const rest = eligible.filter((blank) => blank !== destinationBlank);
+
+  /**
+   * Eviction demotes; it no longer destroys.
+   *
+   * The top `MAX_ASKED_BLANKS` are put as questions. The ones beyond used to
+   * collapse into plain text, which threw away moving parts the model had
+   * correctly identified — the schedule hour was tappable on one run and inert
+   * prose on the next, for no reason the user could see. Now they stay in the
+   * sentence as quiet slots: styled like an answered guess, still tappable,
+   * asking for nothing.
+   *
+   * `MAX_TOTAL_BLANKS` bounds the confetti. A trigger blank is exempt — like
+   * the destination, it is a guaranteed slot, never collapsed by rank.
+   */
+  const asked = rest.slice(0, MAX_ASKED_BLANKS);
+  const overflow = rest.slice(MAX_ASKED_BLANKS);
+
+  let quietCapacity = Math.max(
+    0,
+    MAX_TOTAL_BLANKS - (destinationBlank ? 1 : 0) - asked.length
+  );
+  const quiet: BriefBlank[] = [];
+  for (const blank of overflow) {
+    if (blank.role === "trigger") {
+      quiet.push(blank);
+    } else if (quietCapacity > 0) {
+      quiet.push(blank);
+      quietCapacity--;
+    }
+  }
+
+  const blanks: BriefBlank[] = [
+    ...(destinationBlank ? [{ ...destinationBlank, asked: true }] : []),
+    ...asked.map((blank) => ({ ...blank, asked: true })),
+    ...quiet.map((blank) => ({ ...blank, asked: false })),
   ];
 
   const surviving = new Set(blanks.map((blank) => blank.id));
@@ -466,10 +627,30 @@ export function normalizeBrief(
 
 /** What one model call produced, before deciding whether to try again. */
 type BriefAttempt =
-  | { kind: "brief"; brief: Brief }
+  | { kind: "brief"; brief: Brief; missingRoles: BriefRole[] }
   | { kind: "insufficient" }
   /** Our end: the call threw, or the answer could not be read as a brief. */
   | { kind: "unusable"; reason: string };
+
+export type BriefRole = BriefBlank["role"];
+
+/**
+ * The guaranteed slots a normalized brief still lacks.
+ *
+ * The trigger is always a slot, and the destination is a slot whenever there
+ * is more than one place the result could go. The normalizer cannot repair a
+ * miss — a slot that was never emitted has no sentence position to synthesize
+ * into — so it is reported here and the caller re-asks.
+ */
+export function missingBriefRoles(brief: Brief): BriefRole[] {
+  const roles = new Set(brief.blanks.map((blank) => blank.role));
+  const missing: BriefRole[] = [];
+  if (!roles.has("trigger")) missing.push("trigger");
+  if (!roles.has("destination") && brief.destinationOptions.length > 1) {
+    missing.push("destination");
+  }
+  return missing;
+}
 
 /**
  * Extra instruction appended when a previous attempt came back off-schema.
@@ -483,15 +664,22 @@ type BriefAttempt =
 const RETRY_NUDGE =
   '\n\nYour previous answer could not be read: `segments` must be a JSON array of objects, each with a `kind` of either "text" or "slot". Do not wrap it in a string or split it across other keys. Return the whole object through the tool.';
 
+/**
+ * The same mechanism for a structurally sound brief that left out a slot the
+ * sentence is required to carry. Same cache-busting property as `RETRY_NUDGE`.
+ */
+function roleNudge(roles: BriefRole[]): string {
+  return `\n\nYour previous answer left out required moving parts: ${roles.join(
+    ", "
+  )}. Every brief needs a blank with role "trigger" — what starts it, and when, if scheduled — placed where the sentence describes the start, with "triggerValue" on each option; and a blank with role "destination" when more than one destination is offered. Re-emit the whole brief with those slots in the sentence.`;
+}
+
 async function attemptBrief(
   deps: BriefDependencies,
   triggers: WorkflowTrigger[],
-  attemptNumber: number
+  nudge: string | undefined
 ): Promise<{ attempt: BriefAttempt; usage: BriefUsage }> {
-  const userPrompt =
-    attemptNumber === 0
-      ? buildBriefUserPrompt(deps.request)
-      : buildBriefUserPrompt(deps.request) + RETRY_NUDGE;
+  const userPrompt = buildBriefUserPrompt(deps.request) + (nudge ?? "");
 
   let response: GenerateResult;
   try {
@@ -502,6 +690,7 @@ async function attemptBrief(
         destinations: deps.destinations,
         triggers,
         connectedProviders: deps.connectedProviders,
+        grounding: deps.grounding,
       }),
       messages: [{ role: "user", content: userPrompt }],
     });
@@ -531,6 +720,7 @@ async function attemptBrief(
   const brief = normalizeBrief(raw, {
     request: deps.request,
     destinations: deps.destinations,
+    grounding: deps.grounding,
   });
 
   if (!brief) {
@@ -549,7 +739,10 @@ async function attemptBrief(
     };
   }
 
-  return { attempt: { kind: "brief", brief }, usage };
+  return {
+    attempt: { kind: "brief", brief, missingRoles: missingBriefRoles(brief) },
+    usage,
+  };
 }
 
 /**
@@ -583,19 +776,39 @@ export async function generateBrief(
   let inputTokens = 0;
   let outputTokens = 0;
   let lastReason = "";
+  let nudge: string | undefined;
+  // A brief that renders but lacks a guaranteed slot. Worth one more call —
+  // and worth keeping in hand, because it is still far better than failing.
+  let incomplete: Brief | undefined;
 
-  for (let attemptNumber = 0; attemptNumber < BRIEF_ATTEMPTS; attemptNumber++) {
-    const { attempt, usage } = await attemptBrief(
-      deps,
-      triggers,
-      attemptNumber
-    );
+  /**
+   * One retry per fault kind, not one budget for both. A mangled answer and a
+   * missing slot are unrelated transients, and a run that hits both in
+   * sequence — the corruption first, then a structurally sound brief with no
+   * trigger blank — used to spend its whole budget on the first and accept
+   * the second unrepaired. Worst case is three fast-tier calls.
+   */
+  let unusableRetries = BRIEF_ATTEMPTS - 1;
+  let roleRetries = BRIEF_ATTEMPTS - 1;
+
+  for (;;) {
+    const { attempt, usage } = await attemptBrief(deps, triggers, nudge);
     inputTokens += usage.inputTokens;
     outputTokens += usage.outputTokens;
     const spent = { inputTokens, outputTokens };
 
     if (attempt.kind === "brief") {
-      return { kind: "brief", brief: attempt.brief, usage: spent };
+      if (attempt.missingRoles.length === 0) {
+        return { kind: "brief", brief: attempt.brief, usage: spent };
+      }
+      incomplete = attempt.brief;
+      console.warn(
+        `[WorkflowGenerator] brief missing roles: ${attempt.missingRoles.join(", ")}`
+      );
+      if (roleRetries === 0) break;
+      roleRetries--;
+      nudge = roleNudge(attempt.missingRoles);
+      continue;
     }
     if (attempt.kind === "insufficient") {
       return {
@@ -606,9 +819,23 @@ export async function generateBrief(
     }
 
     lastReason = attempt.reason;
+    console.warn(`[WorkflowGenerator] brief attempt unusable: ${lastReason}`);
+    if (unusableRetries === 0) break;
+    unusableRetries--;
+    nudge = RETRY_NUDGE;
+  }
+
+  // Enforcement degrades to best-effort rather than punishing a fine request:
+  // a brief without its trigger slot is a defect on our side, not the user's.
+  if (incomplete) {
     console.warn(
-      `[WorkflowGenerator] brief attempt ${attemptNumber + 1}/${BRIEF_ATTEMPTS} unusable: ${lastReason}`
+      `[WorkflowGenerator] accepting a brief without guaranteed slots`
     );
+    return {
+      kind: "brief",
+      brief: incomplete,
+      usage: { inputTokens, outputTokens },
+    };
   }
 
   return {

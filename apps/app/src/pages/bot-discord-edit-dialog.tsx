@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { updateDiscordBot } from "@/services/bot-service";
 
 interface BotDiscordEditDialogProps {
@@ -31,6 +32,7 @@ export function BotDiscordEditDialog({
   const { organization } = useAuth();
   const meta = (bot.metadata ?? {}) as Record<string, string | undefined>;
   const [name, setName] = useState(bot.name);
+  const [description, setDescription] = useState(bot.description ?? "");
   const [publicKey, setPublicKey] = useState(meta.publicKey ?? "");
   const [botToken, setBotToken] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,6 +49,10 @@ export function BotDiscordEditDialog({
         bot.id,
         {
           name: name !== bot.name ? name : undefined,
+          description:
+            description.trim() !== (bot.description ?? "")
+              ? description.trim()
+              : undefined,
           publicKey: publicKey !== meta.publicKey ? publicKey : undefined,
           botToken: botToken.trim() !== "" ? botToken : undefined,
         },
@@ -64,6 +70,7 @@ export function BotDiscordEditDialog({
   const handleOpenChange = (value: boolean) => {
     if (!value) {
       setName(bot.name);
+      setDescription(bot.description ?? "");
       setPublicKey(meta.publicKey ?? "");
       setBotToken("");
       setError(null);
@@ -88,6 +95,17 @@ export function BotDiscordEditDialog({
               id="edit-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-description">Description</Label>
+            <Textarea
+              id="edit-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="What this bot does, for you and for workflow generation."
+              rows={2}
             />
           </div>
 

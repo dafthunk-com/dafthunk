@@ -421,6 +421,7 @@ export async function getDatasets(
     .select({
       id: datasets.id,
       name: datasets.name,
+      description: datasets.description,
       createdAt: datasets.createdAt,
       updatedAt: datasets.updatedAt,
     })
@@ -534,6 +535,7 @@ export async function getQueues(
     .select({
       id: queues.id,
       name: queues.name,
+      description: queues.description,
       createdAt: queues.createdAt,
       updatedAt: queues.updatedAt,
     })
@@ -652,6 +654,7 @@ export async function getDatabases(
     .select({
       id: databases.id,
       name: databases.name,
+      description: databases.description,
       createdAt: databases.createdAt,
       updatedAt: databases.updatedAt,
     })
@@ -846,6 +849,7 @@ export async function getEmails(
     .select({
       id: emails.id,
       name: emails.name,
+      description: emails.description,
       handle: emails.handle,
       createdAt: emails.createdAt,
       updatedAt: emails.updatedAt,
@@ -1206,6 +1210,7 @@ export async function getBots(
     .select({
       id: bots.id,
       name: bots.name,
+      description: bots.description,
       provider: bots.provider,
       tokenLastFour: bots.tokenLastFour,
       metadata: bots.metadata,

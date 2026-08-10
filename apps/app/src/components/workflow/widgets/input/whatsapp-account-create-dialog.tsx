@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { getApiBaseUrl } from "@/config/api";
 import { createWhatsAppAccount } from "@/services/bot-service";
 
@@ -55,6 +56,7 @@ export function WhatsAppAccountCreateDialog({
   const { organization } = useAuth();
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [appSecret, setAppSecret] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [phoneNumberId, setPhoneNumberId] = useState("");
@@ -69,6 +71,7 @@ export function WhatsAppAccountCreateDialog({
   const resetForm = () => {
     setStep("name");
     setName("");
+    setDescription("");
     setAppSecret("");
     setAccessToken("");
     setPhoneNumberId("");
@@ -93,6 +96,7 @@ export function WhatsAppAccountCreateDialog({
       const response = await createWhatsAppAccount(
         {
           name,
+          description: description.trim(),
           accessToken,
           phoneNumberId,
           wabaId: wabaId || undefined,
@@ -160,6 +164,17 @@ export function WhatsAppAccountCreateDialog({
                 A display name for this account in Dafthunk. This is not visible
                 to your WhatsApp users.
               </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="whatsapp-description">Description</Label>
+              <Textarea
+                id="whatsapp-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="What this account is used for, for you and for workflow generation."
+                rows={2}
+              />
             </div>
 
             <div className="flex justify-end gap-2 pt-1">

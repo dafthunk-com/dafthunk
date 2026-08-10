@@ -34,6 +34,7 @@ botRoutes.use("*", jwtMiddleware);
 function toBotResponse(bot: {
   id: string;
   name: string;
+  description: string;
   provider: string;
   tokenLastFour: string;
   metadata: string | null;
@@ -43,6 +44,7 @@ function toBotResponse(bot: {
   return {
     id: bot.id,
     name: bot.name,
+    description: bot.description,
     provider: bot.provider as BotProvider,
     tokenLastFour: bot.tokenLastFour,
     metadata: bot.metadata ? JSON.parse(bot.metadata) : null,
@@ -219,6 +221,7 @@ botRoutes.post(
     "json",
     z.object({
       name: z.string().min(1, "Bot name is required"),
+      description: z.string().optional(),
       provider: z.enum(["discord", "telegram", "whatsapp", "slack"]),
       token: z.string().min(1, "Token is required"),
       applicationId: z.string().optional(),
@@ -282,6 +285,7 @@ botRoutes.post(
     const newBot = await createBot(db, {
       id: botId,
       name: data.name || "Untitled Bot",
+      description: data.description ?? "",
       provider: data.provider,
       encryptedToken,
       tokenLastFour: data.token.slice(-4),
@@ -314,6 +318,7 @@ botRoutes.put(
     "json",
     z.object({
       name: z.string().min(1).optional(),
+      description: z.string().optional(),
       token: z.string().min(1).optional(),
       publicKey: z.string().optional(),
       phoneNumberId: z.string().optional(),
@@ -335,6 +340,8 @@ botRoutes.put(
     const updateData: Record<string, unknown> = { updatedAt: now };
 
     if (data.name) updateData.name = data.name;
+    if (data.description !== undefined)
+      updateData.description = data.description;
 
     // If token changed, validate it
     if (data.token) {

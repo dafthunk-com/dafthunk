@@ -1,11 +1,13 @@
 // Database Types
 export interface CreateDatabaseRequest {
   name: string;
+  description?: string;
 }
 
 export interface CreateDatabaseResponse {
   id: string;
   name: string;
+  description: string;
 
   createdAt: Date;
   updatedAt: Date;
@@ -14,6 +16,7 @@ export interface CreateDatabaseResponse {
 export interface GetDatabaseResponse {
   id: string;
   name: string;
+  description: string;
 
   createdAt: Date;
   updatedAt: Date;
@@ -23,6 +26,7 @@ export interface ListDatabasesResponse {
   databases: {
     id: string;
     name: string;
+    description: string;
 
     createdAt: Date;
     updatedAt: Date;
@@ -31,11 +35,13 @@ export interface ListDatabasesResponse {
 
 export interface UpdateDatabaseRequest {
   name: string;
+  description?: string;
 }
 
 export interface UpdateDatabaseResponse {
   id: string;
   name: string;
+  description: string;
 
   createdAt: Date;
   updatedAt: Date;

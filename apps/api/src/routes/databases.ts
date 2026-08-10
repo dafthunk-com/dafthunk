@@ -72,6 +72,7 @@ databaseRoutes.post(
           IDENTIFIER_PATTERN,
           "Must start with a letter or underscore, and contain only letters, digits, or underscores"
         ),
+      description: z.string().optional(),
     }) as z.ZodType<CreateDatabaseRequest>
   ),
   async (c) => {
@@ -86,6 +87,7 @@ databaseRoutes.post(
     const newDatabase = await createDatabaseRecord(db, {
       id: databaseId,
       name: databaseName,
+      description: data.description ?? "",
       organizationId: organizationId,
       createdAt: now,
       updatedAt: now,
@@ -94,6 +96,7 @@ databaseRoutes.post(
     const response: CreateDatabaseResponse = {
       id: newDatabase.id,
       name: newDatabase.name,
+      description: newDatabase.description,
       createdAt: newDatabase.createdAt,
       updatedAt: newDatabase.updatedAt,
     };
@@ -118,6 +121,7 @@ databaseRoutes.get("/:id", async (c) => {
   const response: GetDatabaseResponse = {
     id: database.id,
     name: database.name,
+    description: database.description,
     createdAt: database.createdAt,
     updatedAt: database.updatedAt,
   };
@@ -140,6 +144,7 @@ databaseRoutes.put(
           IDENTIFIER_PATTERN,
           "Must start with a letter or underscore, and contain only letters, digits, or underscores"
         ),
+      description: z.string().optional(),
     }) as z.ZodType<UpdateDatabaseRequest>
   ),
   async (c) => {
@@ -157,12 +162,16 @@ databaseRoutes.put(
 
     const updatedDatabase = await updateDatabaseRecord(db, id, organizationId, {
       name: data.name,
+      ...(data.description !== undefined
+        ? { description: data.description }
+        : {}),
       updatedAt: now,
     });
 
     const response: UpdateDatabaseResponse = {
       id: updatedDatabase.id,
       name: updatedDatabase.name,
+      description: updatedDatabase.description,
       createdAt: updatedDatabase.createdAt,
       updatedAt: updatedDatabase.updatedAt,
     };

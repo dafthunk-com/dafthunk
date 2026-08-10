@@ -6,6 +6,8 @@ import {
   GetDatasetResponse,
   ListDatasetFilesResponse,
   ListDatasetsResponse,
+  UpdateDatasetRequest,
+  UpdateDatasetResponse,
   UploadDatasetFileResponse,
 } from "@dafthunk/types";
 import useSWR from "swr";
@@ -104,6 +106,25 @@ export const createDataset = async (
   );
 
   return response;
+};
+
+/**
+ * Update a dataset by ID
+ */
+export const updateDataset = async (
+  id: string,
+  request: UpdateDatasetRequest,
+  orgId: string
+): Promise<UpdateDatasetResponse> => {
+  return await makeOrgRequest<UpdateDatasetResponse>(
+    orgId,
+    API_ENDPOINT_BASE,
+    `/${id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(request),
+    }
+  );
 };
 
 /**

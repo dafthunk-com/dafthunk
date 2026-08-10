@@ -306,7 +306,7 @@ describe("the send-email recipient", () => {
       draft,
       FIXTURE_NODE_TYPES,
       FIXTURE_NODE_TYPES,
-      "owner@example.com"
+      { ownerEmail: "owner@example.com" }
     );
     expect(recipientOf(workflow)).toBe("owner@example.com");
   });
@@ -327,7 +327,7 @@ describe("the send-email recipient", () => {
       },
       FIXTURE_NODE_TYPES,
       FIXTURE_NODE_TYPES,
-      "owner@example.com"
+      { ownerEmail: "owner@example.com" }
     );
     expect(recipientOf(workflow)).toBe("customer@example.com");
   });
@@ -348,7 +348,7 @@ describe("the send-email recipient", () => {
       },
       FIXTURE_NODE_TYPES,
       FIXTURE_NODE_TYPES,
-      "owner@example.com"
+      { ownerEmail: "owner@example.com" }
     );
     expect(recipientOf(workflow)).toBeUndefined();
   });
@@ -380,8 +380,7 @@ describe("binding org-owned resources", () => {
       queryDraft,
       FIXTURE_NODE_TYPES,
       FIXTURE_NODE_TYPES,
-      undefined,
-      { database: [{ id: "db1", name: "Main" }] }
+      { orgResources: { database: [{ id: "db1", name: "Main" }] } }
     );
 
     expect(databaseOf(workflow)).toBe("db1");
@@ -394,20 +393,39 @@ describe("binding org-owned resources", () => {
       queryDraft,
       FIXTURE_NODE_TYPES,
       FIXTURE_NODE_TYPES,
-      undefined,
-      { database: [] }
+      { orgResources: { database: [] } }
     );
 
     expect(databaseOf(workflow)).toBeUndefined();
     expect(boundResources).toEqual([]);
   });
 
+  it("prefers an explicit binding over the oldest fallback", () => {
+    const { workflow, boundResources } = hydrateGeneratedWorkflow(
+      queryDraft,
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES,
+      {
+        orgResources: {
+          database: [
+            { id: "db1", name: "Main" },
+            { id: "db2", name: "Analytics" },
+          ],
+        },
+        bindings: { database: { id: "db2", name: "Analytics" } },
+      }
+    );
+
+    expect(databaseOf(workflow)).toBe("db2");
+    expect(boundResources).toEqual([{ type: "database", name: "Analytics" }]);
+  });
+
   /**
-   * The safety property, asserted end to end: `disarm` blanks the queue id and
-   * binding must not put it back, or saving the workflow would mark the queue
-   * trigger active before anyone had reviewed it.
+   * The safety property, asserted end to end: the oldest-fallback must never
+   * reach an arming type, or saving the workflow would mark the queue trigger
+   * active before anyone had reviewed it.
    */
-  it("never binds a resource that would arm a trigger", () => {
+  it("never binds a resource that would arm a trigger by fallback", () => {
     const { workflow, boundResources } = hydrateGeneratedWorkflow(
       draft({
         title: "Enqueue",
@@ -417,8 +435,7 @@ describe("binding org-owned resources", () => {
       }),
       FIXTURE_NODE_TYPES,
       FIXTURE_NODE_TYPES,
-      undefined,
-      { queue: [{ id: "q1", name: "Jobs" }] }
+      { orgResources: { queue: [{ id: "q1", name: "Jobs" }] } }
     );
 
     const queueId = workflow.nodes[0]?.inputs.find(
@@ -426,6 +443,84 @@ describe("binding org-owned resources", () => {
     )?.value;
     expect(queueId).toBeUndefined();
     expect(boundResources).toEqual([]);
+  });
+
+  it("binds an arming type on a mid-graph node when chosen explicitly", () => {
+    // `syncTriggers` reads resource ids only off the trigger node, so a queue
+    // on a mid-graph send arms nothing — and an explicit choice is exactly
+    // the review the blanket exclusion existed to force.
+    const { workflow, boundResources } = hydrateGeneratedWorkflow(
+      draft({
+        title: "Enqueue",
+        nodes: [
+          { id: "s", type: "send-queue-message", inputs: { body: "hi" } },
+        ],
+      }),
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES,
+      { bindings: { queue: { id: "q1", name: "Jobs" } } }
+    );
+
+    const queueId = workflow.nodes[0]?.inputs.find(
+      (input) => input.name === "queueId"
+    )?.value;
+    expect(queueId).toBe("q1");
+    expect(boundResources).toEqual([{ type: "queue", name: "Jobs" }]);
+  });
+
+  it("moves an explicit trigger-node binding into `disarmed`, not the graph", () => {
+    // Bound, but never armed behind the user's back: the mailbox lands in the
+    // disarmed collection, the saved graph stays inert, and the `arm` turn is
+    // what writes it back.
+    const { workflow, disarmed } = hydrateGeneratedWorkflow(
+      draft({ title: "Triage", trigger: "email_message", nodes: [] }),
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES,
+      { bindings: { email: { id: "em1", name: "support" } } }
+    );
+
+    const trigger = workflow.nodes.find((n) => n.id === TRIGGER_NODE_ID);
+    expect(
+      trigger?.inputs.find((input) => input.name === "email")?.value
+    ).toBeUndefined();
+    expect(disarmed).toEqual([
+      { nodeId: TRIGGER_NODE_ID, inputName: "email", value: "em1" },
+    ]);
+  });
+
+  it("merges trigger configuration from the draft, then disarms it", () => {
+    // The model does not own the trigger node, but the cron line behind
+    // "every morning at 8" has nowhere else to come from. It arrives via a
+    // draft node with the trigger's fixed id, and ends up in `disarmed` —
+    // the copy the `arm` turn restores.
+    const { workflow, disarmed } = hydrateGeneratedWorkflow(
+      draft({
+        title: "Digest",
+        trigger: "scheduled",
+        nodes: [
+          {
+            id: TRIGGER_NODE_ID,
+            type: "receive-scheduled-trigger",
+            inputs: { scheduleExpression: "0 8 * * *" },
+          },
+        ],
+      }),
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES
+    );
+
+    const trigger = workflow.nodes.find((n) => n.id === TRIGGER_NODE_ID);
+    expect(
+      trigger?.inputs.find((input) => input.name === "scheduleExpression")
+        ?.value
+    ).toBeUndefined();
+    expect(disarmed).toEqual([
+      {
+        nodeId: TRIGGER_NODE_ID,
+        inputName: "scheduleExpression",
+        value: "0 8 * * *",
+      },
+    ]);
   });
 });
 

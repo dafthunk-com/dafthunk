@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { updateWhatsAppAccount } from "@/services/bot-service";
 
 interface BotWhatsAppEditDialogProps {
@@ -31,6 +32,7 @@ export function BotWhatsAppEditDialog({
   const { organization } = useAuth();
   const meta = (account.metadata ?? {}) as Record<string, string | undefined>;
   const [name, setName] = useState(account.name);
+  const [description, setDescription] = useState(account.description ?? "");
   const [accessToken, setAccessToken] = useState("");
   const [phoneNumberId, setPhoneNumberId] = useState(meta.phoneNumberId ?? "");
   const [appSecret, setAppSecret] = useState("");
@@ -49,6 +51,10 @@ export function BotWhatsAppEditDialog({
         account.id,
         {
           name: name !== account.name ? name : undefined,
+          description:
+            description.trim() !== (account.description ?? "")
+              ? description.trim()
+              : undefined,
           accessToken: accessToken.trim() !== "" ? accessToken : undefined,
           phoneNumberId:
             phoneNumberId !== meta.phoneNumberId ? phoneNumberId : undefined,
@@ -70,6 +76,7 @@ export function BotWhatsAppEditDialog({
   const handleOpenChange = (value: boolean) => {
     if (!value) {
       setName(account.name);
+      setDescription(account.description ?? "");
       setAccessToken("");
       setPhoneNumberId(meta.phoneNumberId ?? "");
       setAppSecret("");
@@ -100,6 +107,17 @@ export function BotWhatsAppEditDialog({
             <p className="text-xs text-muted-foreground">
               A display name for this account in Dafthunk.
             </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-description">Description</Label>
+            <Textarea
+              id="edit-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="What this account is used for, for you and for workflow generation."
+              rows={2}
+            />
           </div>
 
           <div className="space-y-1.5">

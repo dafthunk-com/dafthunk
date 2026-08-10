@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { createEmail } from "@/services/email-service";
 
 import { EmailSetupInfo } from "./email-setup-info";
@@ -41,6 +42,7 @@ export function EmailCreateDialog({
   const { organization } = useAuth();
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdAddress, setCreatedAddress] = useState<string | null>(null);
@@ -48,6 +50,7 @@ export function EmailCreateDialog({
   const resetForm = () => {
     setStep("name");
     setName("");
+    setDescription("");
     setError(null);
     setCreatedAddress(null);
   };
@@ -64,7 +67,10 @@ export function EmailCreateDialog({
     setError(null);
 
     try {
-      const response = await createEmail({ name }, organization.id);
+      const response = await createEmail(
+        { name, description: description.trim() },
+        organization.id
+      );
       setCreatedAddress(response.address);
       setStep("setup");
       onCreated(response.id);
@@ -100,6 +106,17 @@ export function EmailCreateDialog({
               <p className="text-xs text-muted-foreground">
                 A display name for this email in Dafthunk.
               </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="email-description">Description</Label>
+              <Textarea
+                id="email-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="What kind of mail this mailbox handles"
+                rows={2}
+              />
             </div>
 
             {error && (

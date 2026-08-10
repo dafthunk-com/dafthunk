@@ -67,12 +67,17 @@ export const GENERATOR_MAX_TOKENS: Record<ModelTier, number> = {
 };
 
 /**
- * Tries the brief turn gets before giving up.
+ * Tries the brief turn gets per fault kind before giving up on that kind.
  *
  * Two, not one, because the forced-tool response occasionally arrives mangled
  * — and one cheap retry on the fast tier is far less costly than telling a
  * person their clear request was too vague. Not more than two: past that the
  * fault is not transient and the wait stops being worth it.
+ *
+ * Per kind, because an off-schema answer and a brief missing its guaranteed
+ * slots are unrelated transients: a run that hits both in sequence deserves a
+ * repair for each, and sharing one budget meant the second went unrepaired.
+ * Worst case is three fast-tier calls.
  */
 export const BRIEF_ATTEMPTS = 2;
 
@@ -118,6 +123,21 @@ export const MAX_APPROVAL_ROUNDS = 2;
  * what they left out, but they can correct something concrete.
  */
 export const MAX_ASKED_BLANKS = 2;
+
+/**
+ * Tappable spans a sentence may carry in total — asked and quiet together.
+ *
+ * Extends `MAX_ASKED_BLANKS` rather than contradicting it: the budget above
+ * limits *questions*, because elicitation competes with the thing it is for.
+ * A quiet slot is not elicitation — it is an affordance the user can ignore —
+ * so a correctly identified moving part no longer has to be destroyed to
+ * protect the question budget. But every span is still a thing the eye
+ * snags on, and a sentence that is all slots is as illegible as one with
+ * none, so the total is capped too. Beyond it, the old behavior returns:
+ * the lowest-weight blanks collapse into the words they would have read as.
+ * Guaranteed roles (destination, trigger) are exempt from the cap.
+ */
+export const MAX_TOTAL_BLANKS = 6;
 
 /**
  * Below this many words a request cannot carry a sentence, so the brief turn

@@ -529,7 +529,8 @@ export function BriefPage() {
               mind. The guesses live in a caption, not in the verb. */}
           {unansweredAssumptions(state.brief, answers).length > 0 && (
             <p className="text-sm text-muted-foreground">
-              The dotted parts are my guesses — fine to leave them.
+              The dotted parts are questions; the tinted parts are my guesses —
+              all fine to leave, all tappable.
             </p>
           )}
           <div className="flex flex-wrap items-center gap-3">

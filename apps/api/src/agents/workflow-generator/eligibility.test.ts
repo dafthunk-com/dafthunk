@@ -7,6 +7,7 @@ import {
   withheldResources,
 } from "./eligibility";
 import { FIXTURE_NODE_TYPES } from "./fixtures";
+import { offerableResources } from "./org-resources";
 
 const typesOf = (nodeTypes: { type: string }[]) =>
   new Set(nodeTypes.map((nodeType) => nodeType.type));
@@ -27,10 +28,10 @@ describe("org resources and eligibility", () => {
     });
   });
 
-  it("allows it once the workspace owns one", () => {
+  it("allows it once the resource is offerable", () => {
     const { eligible, withheld } = filterEligible(FIXTURE_NODE_TYPES, {
       connectedProviders: new Set(),
-      bindableResources: new Set(["database"]),
+      offerableResources: new Set(["database"]),
     });
 
     expect(typesOf(eligible).has("database-execute")).toBe(true);
@@ -38,21 +39,48 @@ describe("org resources and eligibility", () => {
   });
 
   /**
-   * Owning a queue is not enough, and must never be. Binding it would mark the
-   * trigger active the moment the generator saved, so a workflow nobody has
-   * read yet would start consuming the org's real messages.
+   * Queue nodes are offerable now that a missing queue is something the
+   * generator can create. The arming hazard that used to keep them withheld
+   * did not move here — it lives in hydration, which binds arming types only
+   * when told to explicitly and disarms the trigger node before save.
    */
-  it("still withholds a queue node even when the workspace owns queues", () => {
-    const { eligible, withheld } = filterEligible(FIXTURE_NODE_TYPES, {
+  it("offers a queue node when the resource set says queues are offerable", () => {
+    const { eligible } = filterEligible(FIXTURE_NODE_TYPES, {
       connectedProviders: new Set(),
-      bindableResources: new Set(["database", "dataset"]),
+      offerableResources: offerableResources({}),
     });
 
-    expect(typesOf(eligible).has("send-queue-message")).toBe(false);
-    expect(reasonFor(withheld, "send-queue-message")).toMatchObject({
-      reason: "org-resource",
-      resource: "queue",
+    expect(typesOf(eligible).has("send-queue-message")).toBe(true);
+  });
+
+  it("ignores optional resource inputs — only required ones gate a node", () => {
+    const withOptionalSchema = {
+      id: "model-x",
+      name: "Model X",
+      type: "model-x",
+      description: "A model with an optional structured-output schema",
+      tags: [],
+      icon: "sparkles",
+      inputs: [
+        {
+          name: "schema",
+          type: "schema" as const,
+          hidden: true,
+          required: false,
+        },
+        { name: "prompt", type: "string" as const, required: true },
+      ],
+      outputs: [],
+    };
+
+    const { eligible } = filterEligible([withOptionalSchema], {
+      connectedProviders: new Set(),
+      // Nothing offerable at all — and the node must still be usable, because
+      // it works untouched without the schema.
+      offerableResources: new Set(),
     });
+
+    expect(typesOf(eligible).has("model-x")).toBe(true);
   });
 
   it("keeps the two withholding reasons apart", () => {

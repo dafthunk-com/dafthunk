@@ -1,11 +1,14 @@
-import type { Brief, BriefDestination } from "@dafthunk/types";
+import type { Brief, BriefBlank, BriefDestination } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import {
   buildSynthesisPrompt,
+  isAskedBlank,
   renderBriefSentence,
   resolveBlank,
   resolveDestination,
+  resolveResourceBindings,
+  resolveTrigger,
   unansweredAssumptions,
 } from "./workflow-brief";
 
@@ -177,5 +180,158 @@ describe("buildSynthesisPrompt", () => {
   it("says nothing about assumptions when everything was answered", () => {
     const prompt = buildSynthesisPrompt(brief(), { dest: "display" });
     expect(prompt).not.toContain("Assumed");
+  });
+});
+
+const TRIGGER_BLANK: BriefBlank = {
+  id: "when",
+  type: "choice",
+  question: "When should it run?",
+  assumed: "manual",
+  weight: 0.8,
+  role: "trigger",
+  options: [
+    { id: "manual", label: "when you run it", triggerValue: "manual" },
+    { id: "morning", label: "every morning at 8", triggerValue: "scheduled" },
+  ],
+};
+
+describe("isAskedBlank", () => {
+  it("treats an absent flag as asked, so old stored briefs keep their behavior", () => {
+    expect(isAskedBlank(brief().blanks[0])).toBe(true);
+    expect(isAskedBlank({ ...brief().blanks[0], asked: true })).toBe(true);
+    expect(isAskedBlank({ ...brief().blanks[0], asked: false })).toBe(false);
+  });
+});
+
+describe("resolveTrigger", () => {
+  it("follows the trigger blank's answer into the trigger itself", () => {
+    const withTrigger = brief({ blanks: [...brief().blanks, TRIGGER_BLANK] });
+    expect(resolveTrigger(withTrigger, { when: "morning" })).toBe("scheduled");
+  });
+
+  it("follows the assumption when the blank is unanswered", () => {
+    const assumed = brief({
+      blanks: [{ ...TRIGGER_BLANK, assumed: "morning" }],
+      trigger: "manual",
+    });
+    expect(resolveTrigger(assumed)).toBe("scheduled");
+  });
+
+  it("falls back to the brief's trigger without a trigger blank or triggerValue", () => {
+    expect(resolveTrigger(brief())).toBe("manual");
+    const untyped = brief({
+      blanks: [
+        {
+          ...TRIGGER_BLANK,
+          options: [
+            { id: "manual", label: "when you run it" },
+            { id: "morning", label: "every morning at 8" },
+          ],
+        },
+      ],
+    });
+    expect(resolveTrigger(untyped, { when: "morning" })).toBe("manual");
+  });
+});
+
+const DATASET_BLANK: BriefBlank = {
+  id: "source",
+  type: "choice",
+  question: "Which documents?",
+  assumed: "docs",
+  weight: 0.7,
+  role: "subject",
+  grounding: { family: "dataset" },
+  options: [
+    { id: "docs", label: "the product docs", resourceId: "ds-1" },
+    { id: "kb", label: "the support KB", resourceId: "ds-2" },
+    { id: "new", label: "a new dataset", createNew: true },
+  ],
+};
+
+describe("resolveResourceBindings", () => {
+  it("binds the assumed instance when unanswered", () => {
+    const grounded = brief({ blanks: [DATASET_BLANK] });
+    expect(resolveResourceBindings(grounded)).toEqual([
+      {
+        blankId: "source",
+        family: "dataset",
+        binding: {
+          kind: "existing",
+          resourceId: "ds-1",
+          name: "the product docs",
+        },
+      },
+    ]);
+  });
+
+  it("binds the answered instance over the assumption", () => {
+    const grounded = brief({ blanks: [DATASET_BLANK] });
+    expect(resolveResourceBindings(grounded, { source: "kb" })).toEqual([
+      {
+        blankId: "source",
+        family: "dataset",
+        binding: {
+          kind: "existing",
+          resourceId: "ds-2",
+          name: "the support KB",
+        },
+      },
+    ]);
+  });
+
+  it("turns a create-new answer into a create binding", () => {
+    const grounded = brief({ blanks: [DATASET_BLANK] });
+    expect(resolveResourceBindings(grounded, { source: "new" })).toEqual([
+      {
+        blankId: "source",
+        family: "dataset",
+        binding: { kind: "create", name: "a new dataset" },
+      },
+    ]);
+  });
+
+  it("yields nothing for ungrounded briefs", () => {
+    expect(resolveResourceBindings(brief())).toEqual([]);
+  });
+});
+
+describe("buildSynthesisPrompt resources", () => {
+  it("states bindings as names, never ids", () => {
+    const grounded = brief({ blanks: [...brief().blanks, DATASET_BLANK] });
+    const prompt = buildSynthesisPrompt(grounded, { source: "kb" });
+
+    expect(prompt).toContain("Resources:");
+    expect(prompt).toContain('Use the dataset named "the support KB".');
+    expect(prompt).not.toContain("ds-2");
+  });
+
+  it("states a create binding without inventing a name", () => {
+    const grounded = brief({ blanks: [...brief().blanks, DATASET_BLANK] });
+    const prompt = buildSynthesisPrompt(grounded, { source: "new" });
+
+    expect(prompt).toContain("A new dataset should be created");
+  });
+
+  it("prefers caller-supplied bindings, which carry authoritative names", () => {
+    const grounded = brief({ blanks: [...brief().blanks, DATASET_BLANK] });
+    const prompt = buildSynthesisPrompt(grounded, {}, [
+      {
+        blankId: "source",
+        family: "dataset",
+        binding: { kind: "existing", resourceId: "ds-1", name: "Product docs" },
+      },
+    ]);
+
+    expect(prompt).toContain('Use the dataset named "Product docs".');
+    expect(prompt).not.toContain('Use the dataset named "the product docs"');
+  });
+
+  it("uses the resolved trigger, not the stored one", () => {
+    const withTrigger = brief({ blanks: [...brief().blanks, TRIGGER_BLANK] });
+    expect(buildSynthesisPrompt(withTrigger, { when: "morning" })).toContain(
+      "Trigger: scheduled"
+    );
   });
 });

@@ -993,3 +993,124 @@ describe("dormant workflows and their disarmed bindings", () => {
     expect(outcome.disarmed).toEqual([]);
   });
 });
+
+describe("creating workspace components", () => {
+  /** A report workflow leaning on a database the org does not have yet. */
+  const DB_DRAFT = {
+    title: "Report",
+    description: "Queries the reports database",
+    trigger: "manual",
+    steps: ["Query", "Show"],
+    nodes: [
+      { id: "q", type: "database-execute", inputs: { sql: "select 1" } },
+      { id: "conv", type: "to-string" },
+      { id: "sink", type: "output-text" },
+    ],
+    edges: [
+      {
+        source: "q",
+        sourceOutput: "rows",
+        target: "conv",
+        targetInput: "value",
+      },
+      {
+        source: "conv",
+        sourceOutput: "result",
+        target: "sink",
+        targetInput: "value",
+      },
+    ],
+    examples: [{ name: "Basic" }],
+    resources: [
+      {
+        family: "database",
+        action: "create",
+        name: "Reports",
+        description: "Rolling report data",
+      },
+    ],
+  };
+
+  const createStub = () =>
+    vi.fn(async (_type: string, spec: { name: string }) => ({
+      id: "db-9",
+      name: spec.name,
+    }));
+
+  it("creates the component, binds it, and announces it once", async () => {
+    const createResource = createStub();
+    const { deps, frames, saved } = harness([llmResult(DB_DRAFT)], {
+      orgResources: {},
+      createResource,
+    });
+
+    const result = await runGenerationPipeline(deps);
+
+    expect(result.outcome).toBe("ok");
+    expect(createResource).toHaveBeenCalledWith("database", {
+      name: "Reports",
+      description: "Rolling report data",
+    });
+
+    // Bound before validation, so the required input is satisfied.
+    const query = saved[0].nodes.find((n) => n.id === "q");
+    expect(
+      query?.inputs.find((input) => input.name === "databaseId")?.value
+    ).toBe("db-9");
+
+    // One "Created …" line; no duplicate "Used your …" line for the same row.
+    const logs = frames.filter((f) => f.type === "log");
+    expect(
+      logs.filter((f) => f.message.includes('Created the database "Reports"'))
+    ).toHaveLength(1);
+    expect(logs.some((f) => f.message.includes("Used your database"))).toBe(
+      false
+    );
+
+    expect(result.createdResources).toEqual([
+      { type: "database", name: "Reports" },
+    ]);
+  });
+
+  it("creates once, however many repair rounds re-ask", async () => {
+    const createResource = createStub();
+    // First round wires the query straight into the text sink — the classic
+    // mismatch — so a repair round re-emits the whole draft, resources included.
+    const broken = {
+      ...DB_DRAFT,
+      edges: [
+        {
+          source: "q",
+          sourceOutput: "rows",
+          target: "sink",
+          targetInput: "value",
+        },
+      ],
+    };
+    const { deps } = harness([llmResult(broken), llmResult(DB_DRAFT)], {
+      orgResources: {},
+      createResource,
+    });
+
+    const result = await runGenerationPipeline(deps);
+
+    expect(result.outcome).toBe("ok");
+    expect(createResource).toHaveBeenCalledTimes(1);
+    expect(result.createdResources).toEqual([
+      { type: "database", name: "Reports" },
+    ]);
+  });
+
+  it("creates nothing when no creator was supplied", async () => {
+    const { deps } = harness(
+      [llmResult(DB_DRAFT), llmResult(DB_DRAFT), llmResult(DB_DRAFT)],
+      { orgResources: {} }
+    );
+
+    const result = await runGenerationPipeline(deps);
+
+    // The database input stays unset; without a creator the run cannot avoid
+    // the missing-input failure, but it must never invent a resource.
+    expect(result.createdResources).toEqual([]);
+  });
+});

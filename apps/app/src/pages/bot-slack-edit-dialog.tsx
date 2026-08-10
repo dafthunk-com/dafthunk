@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { updateSlackBot } from "@/services/bot-service";
 
 interface BotSlackEditDialogProps {
@@ -30,6 +31,7 @@ export function BotSlackEditDialog({
 }: BotSlackEditDialogProps) {
   const { organization } = useAuth();
   const [name, setName] = useState(bot.name);
+  const [description, setDescription] = useState(bot.description ?? "");
   const [botToken, setBotToken] = useState("");
   const [signingSecret, setSigningSecret] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,6 +48,10 @@ export function BotSlackEditDialog({
         bot.id,
         {
           name: name !== bot.name ? name : undefined,
+          description:
+            description.trim() !== (bot.description ?? "")
+              ? description.trim()
+              : undefined,
           botToken: botToken.trim() !== "" ? botToken : undefined,
           signingSecret:
             signingSecret.trim() !== "" ? signingSecret : undefined,
@@ -64,6 +70,7 @@ export function BotSlackEditDialog({
   const handleOpenChange = (value: boolean) => {
     if (!value) {
       setName(bot.name);
+      setDescription(bot.description ?? "");
       setBotToken("");
       setSigningSecret("");
       setError(null);
@@ -86,6 +93,17 @@ export function BotSlackEditDialog({
               id="edit-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-description">Description</Label>
+            <Textarea
+              id="edit-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="What this bot does, for you and for workflow generation."
+              rows={2}
             />
           </div>
 

@@ -28,11 +28,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createDatabase,
   deleteDatabase,
+  updateDatabase,
   useDatabases,
 } from "@/services/database-service";
 import { cn } from "@/utils/utils";
@@ -45,6 +47,32 @@ function useDatabaseActions() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [databaseToDelete, setDatabaseToDelete] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [databaseToEdit, setDatabaseToEdit] = useState<any | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+
+  const isEditNameValid =
+    editName.trim().length > 0 && IDENTIFIER_PATTERN.test(editName.trim());
+
+  const handleEditDatabase = async () => {
+    if (!databaseToEdit || !orgId || !isEditNameValid) return;
+    setIsEditing(true);
+    try {
+      await updateDatabase(
+        databaseToEdit.id,
+        { name: editName.trim(), description: editDescription.trim() },
+        orgId
+      );
+      setEditDialogOpen(false);
+      setDatabaseToEdit(null);
+      mutateDatabases();
+    } finally {
+      setIsEditing(false);
+    }
+  };
 
   const handleDeleteDatabase = async () => {
     if (!databaseToDelete || !orgId) return;
@@ -91,16 +119,83 @@ function useDatabaseActions() {
     </Dialog>
   );
 
+  const editDialog = (
+    <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Database</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="edit-database-name">Name</Label>
+            <Input
+              id="edit-database-name"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              className={cn(
+                "mt-2",
+                editName.trim().length > 0 &&
+                  !IDENTIFIER_PATTERN.test(editName.trim()) &&
+                  "border-destructive"
+              )}
+            />
+            {editName.trim().length > 0 &&
+              !IDENTIFIER_PATTERN.test(editName.trim()) && (
+                <p className="text-xs text-destructive mt-1">
+                  Letters, digits, and underscores only (e.g. my_database)
+                </p>
+              )}
+          </div>
+          <div>
+            <Label htmlFor="edit-database-description">Description</Label>
+            <Textarea
+              id="edit-database-description"
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              placeholder="What this database stores and what it is for"
+              className="mt-2"
+              rows={2}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setEditDialogOpen(false)}
+            disabled={isEditing}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleEditDatabase}
+            disabled={isEditing || !isEditNameValid}
+          >
+            {isEditing ? <Spinner className="h-4 w-4 mr-2" /> : null}
+            Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   return {
     deleteDialog,
+    editDialog,
     openDeleteDialog: (database: any) => {
       setDatabaseToDelete(database);
       setDeleteDialogOpen(true);
+    },
+    openEditDialog: (database: any) => {
+      setDatabaseToEdit(database);
+      setEditName(database.name || "");
+      setEditDescription(database.description || "");
+      setEditDialogOpen(true);
     },
   };
 }
 
 function createColumns(
+  openEditDialog: (database: any) => void,
   openDeleteDialog: (database: any) => void,
   orgId: string
 ): ColumnDef<any>[] {
@@ -114,6 +209,15 @@ function createColumns(
           <span className="font-medium">{name || "Untitled Database"}</span>
         );
       },
+    },
+    {
+      accessorKey: "description",
+      header: "Description",
+      cell: ({ row }) => (
+        <div className="text-muted-foreground truncate max-w-md">
+          {(row.getValue("description") as string) || "—"}
+        </div>
+      ),
     },
     {
       id: "actions",
@@ -139,6 +243,9 @@ function createColumns(
                     Open Console
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openEditDialog(database)}>
+                  Edit Database
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openDeleteDialog(database)}>
                   Delete Database
                 </DropdownMenuItem>
@@ -161,19 +268,20 @@ export function DatabasesPage() {
   const { databases, databasesError, isDatabasesLoading, mutateDatabases } =
     useDatabases();
 
-  const { deleteDialog, openDeleteDialog } = useDatabaseActions();
+  const { deleteDialog, editDialog, openDeleteDialog, openEditDialog } =
+    useDatabaseActions();
 
-  const columns = createColumns(openDeleteDialog, orgId);
+  const columns = createColumns(openEditDialog, openDeleteDialog, orgId);
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Databases" }]);
   }, [setBreadcrumbs]);
 
-  const handleCreateDatabase = async (name: string) => {
+  const handleCreateDatabase = async (name: string, description: string) => {
     if (!orgId) return;
 
     try {
-      await createDatabase({ name }, orgId);
+      await createDatabase({ name, description }, orgId);
       mutateDatabases();
       setIsCreateDialogOpen(false);
     } catch (error) {
@@ -223,7 +331,11 @@ export function DatabasesPage() {
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
-                await handleCreateDatabase(newDatabaseName.trim());
+                const formData = new FormData(e.currentTarget);
+                const description = (
+                  (formData.get("description") as string) || ""
+                ).trim();
+                await handleCreateDatabase(newDatabaseName.trim(), description);
                 setNewDatabaseName("");
               }}
               className="space-y-4"
@@ -250,6 +362,16 @@ export function DatabasesPage() {
                     </p>
                   )}
               </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="What this database stores and what it is for"
+                  className="mt-2"
+                  rows={2}
+                />
+              </div>
               <DialogFooter>
                 <Button
                   variant="outline"
@@ -271,6 +393,7 @@ export function DatabasesPage() {
             </form>
           </DialogContent>
         </Dialog>
+        {editDialog}
         {deleteDialog}
       </InsetLayout>
     </TooltipProvider>

@@ -49,6 +49,7 @@ interface BotRow {
   id: string;
   type: "discord" | "telegram" | "whatsapp" | "slack";
   name: string;
+  description: string;
   tokenLastFour: string;
   createdAt: string | Date;
 }
@@ -94,6 +95,15 @@ function createColumns(
           </Link>
         );
       },
+    },
+    {
+      accessorKey: "description",
+      header: "Description",
+      cell: ({ row }) => (
+        <div className="text-muted-foreground truncate max-w-md">
+          {(row.getValue("description") as string) || "—"}
+        </div>
+      ),
     },
     {
       accessorKey: "tokenLastFour",
@@ -190,6 +200,7 @@ export function BotsPage() {
       id: bot.id,
       type: "discord" as const,
       name: bot.name,
+      description: bot.description,
       tokenLastFour: bot.tokenLastFour,
       createdAt: bot.createdAt,
     })),
@@ -197,6 +208,7 @@ export function BotsPage() {
       id: bot.id,
       type: "telegram" as const,
       name: bot.name,
+      description: bot.description,
       tokenLastFour: bot.tokenLastFour,
       createdAt: bot.createdAt,
     })),
@@ -204,6 +216,7 @@ export function BotsPage() {
       id: bot.id,
       type: "slack" as const,
       name: bot.name,
+      description: bot.description,
       tokenLastFour: bot.tokenLastFour,
       createdAt: bot.createdAt,
     })),
@@ -211,6 +224,7 @@ export function BotsPage() {
       id: account.id,
       type: "whatsapp" as const,
       name: account.name,
+      description: account.description,
       tokenLastFour: account.tokenLastFour,
       createdAt: account.createdAt,
     })),

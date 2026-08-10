@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { updateTelegramBot } from "@/services/bot-service";
 
 interface BotTelegramEditDialogProps {
@@ -30,6 +31,7 @@ export function BotTelegramEditDialog({
 }: BotTelegramEditDialogProps) {
   const { organization } = useAuth();
   const [name, setName] = useState(bot.name);
+  const [description, setDescription] = useState(bot.description ?? "");
   const [botToken, setBotToken] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +47,10 @@ export function BotTelegramEditDialog({
         bot.id,
         {
           name: name !== bot.name ? name : undefined,
+          description:
+            description.trim() !== (bot.description ?? "")
+              ? description.trim()
+              : undefined,
           botToken: botToken.trim() !== "" ? botToken : undefined,
         },
         organization.id
@@ -61,6 +67,7 @@ export function BotTelegramEditDialog({
   const handleOpenChange = (value: boolean) => {
     if (!value) {
       setName(bot.name);
+      setDescription(bot.description ?? "");
       setBotToken("");
       setError(null);
     }
@@ -84,6 +91,17 @@ export function BotTelegramEditDialog({
               id="edit-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-description">Description</Label>
+            <Textarea
+              id="edit-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="What this bot does, for you and for workflow generation."
+              rows={2}
             />
           </div>
 

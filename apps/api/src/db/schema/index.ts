@@ -338,6 +338,7 @@ export const datasets = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
+    description: text("description").notNull().default(""),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -429,6 +430,7 @@ export const queues = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
+    description: text("description").notNull().default(""),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -448,6 +450,7 @@ export const databases = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
+    description: text("description").notNull().default(""),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -514,6 +517,7 @@ export const emails = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
+    description: text("description").notNull().default(""),
     handle: text("handle").notNull(),
     organizationId: text("organization_id")
       .notNull()
@@ -689,6 +693,7 @@ export const bots = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
+    description: text("description").notNull().default(""),
     provider: text("provider").$type<BotProviderType>().notNull(),
     encryptedToken: text("encrypted_token").notNull(),
     tokenLastFour: text("token_last_four").notNull(),

@@ -1,11 +1,13 @@
 // Email Types
 export interface CreateEmailRequest {
   name: string;
+  description?: string;
 }
 
 interface EmailResponseBase {
   id: string;
   name: string;
+  description: string;
   handle: string;
   address: string;
   createdAt: Date;
@@ -22,6 +24,7 @@ export interface ListEmailsResponse {
 
 export interface UpdateEmailRequest {
   name: string;
+  description?: string;
 }
 
 export type UpdateEmailResponse = EmailResponseBase;

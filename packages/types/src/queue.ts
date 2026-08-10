@@ -1,11 +1,13 @@
 // Queue Types
 export interface CreateQueueRequest {
   name: string;
+  description?: string;
 }
 
 export interface CreateQueueResponse {
   id: string;
   name: string;
+  description: string;
 
   createdAt: Date;
   updatedAt: Date;
@@ -14,6 +16,7 @@ export interface CreateQueueResponse {
 export interface GetQueueResponse {
   id: string;
   name: string;
+  description: string;
 
   createdAt: Date;
   updatedAt: Date;
@@ -23,6 +26,7 @@ export interface ListQueuesResponse {
   queues: {
     id: string;
     name: string;
+    description: string;
 
     createdAt: Date;
     updatedAt: Date;
@@ -31,11 +35,13 @@ export interface ListQueuesResponse {
 
 export interface UpdateQueueRequest {
   name: string;
+  description?: string;
 }
 
 export interface UpdateQueueResponse {
   id: string;
   name: string;
+  description: string;
 
   createdAt: Date;
   updatedAt: Date;

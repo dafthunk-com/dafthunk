@@ -2,8 +2,13 @@ import type {
   Brief,
   BriefAnswers,
   BriefBlank,
+  BriefChoiceOption,
   BriefDestination,
+  BriefResourceFamily,
+  WorkflowTrigger,
 } from "@dafthunk/types";
+
+import { RESOURCE_FAMILY_NOUNS } from "./component-families";
 
 /**
  * Turning a brief into words.
@@ -21,6 +26,87 @@ import type {
  * the label is looked up — which is what lets `resolveDestination` and the
  * sentence agree about what was chosen without storing the same thing twice.
  */
+/**
+ * Whether a blank is put to the person as a question, as opposed to kept
+ * quietly tappable. Absent means asked — the contract that lets briefs stored
+ * before the field existed keep their old behavior. One definition, both ends.
+ */
+export function isAskedBlank(blank: BriefBlank): boolean {
+  return blank.asked !== false;
+}
+
+/** The option a choice blank currently resolves to: answer over assumption. */
+function effectiveOption(
+  blank: BriefBlank,
+  answers: BriefAnswers
+): BriefChoiceOption | undefined {
+  if (blank.type !== "choice") return undefined;
+  const chosen = answers[blank.id] ?? blank.assumed;
+  return blank.options.find((option) => option.id === chosen);
+}
+
+/**
+ * The trigger in force: a trigger blank's resolved option wins over the
+ * brief's top-level field, when that option says which kind it implies.
+ *
+ * Without this, answering a trigger blank changed the sentence and nothing
+ * else — synthesis read `brief.trigger` and built the other workflow anyway.
+ */
+export function resolveTrigger(
+  brief: Brief,
+  answers: BriefAnswers = {}
+): WorkflowTrigger {
+  const blank = brief.blanks.find((entry) => entry.role === "trigger");
+  if (!blank) return brief.trigger;
+  return effectiveOption(blank, answers)?.triggerValue ?? brief.trigger;
+}
+
+export interface ResolvedResourceBinding {
+  blankId: string;
+  family: BriefResourceFamily;
+  binding:
+    | { kind: "existing"; resourceId: string; name: string }
+    | { kind: "create"; name: string };
+}
+
+/**
+ * What the grounded blanks resolved to: which real instances to reuse, which
+ * to create. The ids never reach the model — they are handed out-of-band to
+ * hydration, mirroring how org resources are bound today.
+ */
+export function resolveResourceBindings(
+  brief: Brief,
+  answers: BriefAnswers = {}
+): ResolvedResourceBinding[] {
+  const bindings: ResolvedResourceBinding[] = [];
+
+  for (const blank of brief.blanks) {
+    if (!blank.grounding) continue;
+    const option = effectiveOption(blank, answers);
+    if (!option) continue;
+
+    if (option.createNew) {
+      bindings.push({
+        blankId: blank.id,
+        family: blank.grounding.family,
+        binding: { kind: "create", name: option.label },
+      });
+    } else if (option.resourceId) {
+      bindings.push({
+        blankId: blank.id,
+        family: blank.grounding.family,
+        binding: {
+          kind: "existing",
+          resourceId: option.resourceId,
+          name: option.label,
+        },
+      });
+    }
+  }
+
+  return bindings;
+}
+
 export function resolveBlank(blank: BriefBlank, answers: BriefAnswers): string {
   const answer = answers[blank.id];
 
@@ -121,17 +207,38 @@ export function unansweredAssumptions(
  */
 export function buildSynthesisPrompt(
   brief: Brief,
-  answers: BriefAnswers = {}
+  answers: BriefAnswers = {},
+  /**
+   * Bindings to state in the prompt, when the caller has re-validated them
+   * against what the org owns right now (and so carries authoritative instance
+   * names). Falls back to what the brief itself resolves to. Names only — the
+   * model is never shown a resource id.
+   */
+  resourceBindings?: ResolvedResourceBinding[]
 ): string {
   const destination = resolveDestination(brief, answers);
   const assumptions = unansweredAssumptions(brief, answers);
+  const bindings = resourceBindings ?? resolveResourceBindings(brief, answers);
 
   const parts = [
     renderBriefSentence(brief, answers),
     "",
-    `Trigger: ${brief.trigger}`,
+    `Trigger: ${resolveTrigger(brief, answers)}`,
     `Deliver the result by: ${destination.label}. Use one of these node types to do it: ${destination.nodeTypes.join(", ")}.`,
   ];
+
+  if (bindings.length) {
+    parts.push(
+      "",
+      "Resources:",
+      ...bindings.map((entry) => {
+        const noun = RESOURCE_FAMILY_NOUNS[entry.family];
+        return entry.binding.kind === "existing"
+          ? `- Use the ${noun} named "${entry.binding.name}".`
+          : `- A new ${noun} should be created for this; the workspace does not have a suitable one yet.`;
+      })
+    );
+  }
 
   if (assumptions.length) {
     parts.push(

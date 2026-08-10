@@ -27,11 +27,7 @@ import {
 } from "../db";
 import type { EmailRow } from "../db/schema";
 import { inboxKeys } from "../support-storage";
-import {
-  formatEmailAddress,
-  generateEmailHandle,
-  isUniqueHandleError,
-} from "../utils/email-handle";
+import { formatEmailAddress, withUniqueHandle } from "../utils/email-handle";
 
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
@@ -39,8 +35,6 @@ type ExtendedApiContext = ApiContext & {
     organizationId?: string;
   };
 };
-
-const MAX_HANDLE_ATTEMPTS = 5;
 
 const emailRoutes = new Hono<ExtendedApiContext>();
 
@@ -65,11 +59,15 @@ const blobSecurityHeaders = (
 });
 
 const toEmailPayload = (
-  email: Pick<EmailRow, "id" | "name" | "handle" | "createdAt" | "updatedAt">,
+  email: Pick<
+    EmailRow,
+    "id" | "name" | "description" | "handle" | "createdAt" | "updatedAt"
+  >,
   domain: string
 ) => ({
   id: email.id,
   name: email.name,
+  description: email.description,
   handle: email.handle,
   address: formatEmailAddress(email.handle, domain),
   createdAt: email.createdAt,
@@ -100,6 +98,7 @@ emailRoutes.post(
     "json",
     z.object({
       name: nameSchema,
+      description: z.string().optional(),
     }) as z.ZodType<CreateEmailRequest>
   ),
   async (c) => {
@@ -110,28 +109,19 @@ emailRoutes.post(
 
     const emailName = data.name;
 
-    let created: EmailRow | undefined;
-    let lastError: unknown;
-    for (let attempt = 0; attempt < MAX_HANDLE_ATTEMPTS; attempt++) {
-      const handle = generateEmailHandle(emailName);
-      try {
-        created = await createEmail(db, {
-          id: uuid(),
-          name: emailName,
-          handle,
-          organizationId,
-          createdAt: now,
-          updatedAt: now,
-        });
-        break;
-      } catch (err) {
-        lastError = err;
-        if (!isUniqueHandleError(err)) throw err;
-      }
-    }
+    const created = await withUniqueHandle(emailName, (handle) =>
+      createEmail(db, {
+        id: uuid(),
+        name: emailName,
+        description: data.description ?? "",
+        handle,
+        organizationId,
+        createdAt: now,
+        updatedAt: now,
+      })
+    );
 
     if (!created) {
-      console.error("Failed to allocate unique email handle", lastError);
       return c.json({ error: "Failed to create email" }, 500);
     }
 
@@ -171,6 +161,7 @@ emailRoutes.put(
     "json",
     z.object({
       name: nameSchema,
+      description: z.string().optional(),
     }) as z.ZodType<UpdateEmailRequest>
   ),
   async (c) => {
@@ -189,32 +180,26 @@ emailRoutes.put(
 
     let updatedEmail: EmailRow | undefined;
     if (nameChanged) {
-      let lastError: unknown;
-      for (let attempt = 0; attempt < MAX_HANDLE_ATTEMPTS; attempt++) {
-        const handle = generateEmailHandle(data.name);
-        try {
-          updatedEmail = await updateEmail(db, id, organizationId, {
-            name: data.name,
-            handle,
-            updatedAt: now,
-          });
-          break;
-        } catch (err) {
-          lastError = err;
-          if (!isUniqueHandleError(err)) throw err;
-        }
-      }
+      updatedEmail = await withUniqueHandle(data.name, (handle) =>
+        updateEmail(db, id, organizationId, {
+          name: data.name,
+          ...(data.description !== undefined
+            ? { description: data.description }
+            : {}),
+          handle,
+          updatedAt: now,
+        })
+      );
 
       if (!updatedEmail) {
-        console.error(
-          "Failed to allocate unique email handle on rename",
-          lastError
-        );
         return c.json({ error: "Failed to update email" }, 500);
       }
     } else {
       updatedEmail = await updateEmail(db, id, organizationId, {
         name: data.name,
+        ...(data.description !== undefined
+          ? { description: data.description }
+          : {}),
         updatedAt: now,
       });
     }

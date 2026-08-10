@@ -27,6 +27,7 @@ import { calculateTokenUsage } from "@dafthunk/runtime/utils/usage";
 import type {
   Brief,
   BriefAnswers,
+  CloudflareModelInfo,
   GenerationPhase,
   GenerationStatus,
   GeneratorClientMessage,
@@ -41,6 +42,7 @@ import {
   buildSynthesisPrompt,
   renderBriefSentence,
   resolveDestination,
+  resolveResourceBindings,
 } from "@dafthunk/utils";
 import { Agent } from "agents";
 import { eq } from "drizzle-orm";
@@ -53,10 +55,14 @@ import {
 } from "../agents/workflow-generator/config";
 import { achievableDestinations } from "../agents/workflow-generator/destinations";
 import { filterEligible } from "../agents/workflow-generator/eligibility";
+import { buildGroundingContext } from "../agents/workflow-generator/grounding";
 import type { DisarmedInput } from "../agents/workflow-generator/hydrate";
 import { createModelRouter } from "../agents/workflow-generator/model-router";
 import type { OrgResources } from "../agents/workflow-generator/org-resources";
-import { loadOrgResources } from "../agents/workflow-generator/org-resources";
+import {
+  loadOrgResources,
+  offerableResources,
+} from "../agents/workflow-generator/org-resources";
 import type {
   GenerateCall,
   TierUsage,
@@ -71,8 +77,10 @@ import {
   stampOnboardingStage,
 } from "../db";
 import { users } from "../db/schema";
+import { fetchCloudflareModelCatalog } from "../runtime/cloudflare-model-catalog";
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
 import { availableIntegrationProviders } from "../services/integration-availability";
+import { createResourceProvisioner } from "../services/resource-provisioner";
 import type { WorkflowExecutorParameters } from "../services/workflow-executor";
 import { WorkflowExecutor } from "../services/workflow-executor";
 import { ExampleStore } from "../stores/example-store";
@@ -778,12 +786,29 @@ export class WorkflowGeneratorAgent extends Agent<
       console.error("[WorkflowGenerator] could not read org resources:", error);
     }
 
+    // The live Workers AI catalog, so the model descriptions the generator
+    // reads evolve with what Cloudflare serves. Best-effort by construction:
+    // without it the hand-written descriptions stand, which is exactly what
+    // shipped before.
+    let modelCatalog: CloudflareModelInfo[] = [];
+    try {
+      modelCatalog = await fetchCloudflareModelCatalog(this.env, {
+        waitUntil: (promise) => this.durableCtx.waitUntil(promise),
+      });
+    } catch (error) {
+      console.warn(
+        "[WorkflowGenerator] model catalog unavailable, using static descriptions:",
+        error instanceof Error ? error.message : error
+      );
+    }
+
     return {
       userId,
       organizationId,
       billingInfo,
       ownerEmail,
       orgResources,
+      modelCatalog,
       nodeTypes: registry.getNodeTypes() as NodeType[],
       connectedProviders: new Set(
         integrations.map((integration) => integration.provider)
@@ -817,8 +842,12 @@ export class WorkflowGeneratorAgent extends Agent<
       });
       this.touch(sessionId);
 
+      // Identical inputs to the pipeline's own eligibility pass, so the brief
+      // and synthesis agree by construction about what can be offered. These
+      // used to diverge: the brief filtered without resource knowledge.
       const { eligible } = filterEligible(context.nodeTypes, {
         connectedProviders: context.connectedProviders,
+        offerableResources: offerableResources(context.orgResources),
       });
 
       const outcome = await generateBrief({
@@ -833,6 +862,14 @@ export class WorkflowGeneratorAgent extends Agent<
           connectedProviders: context.connectedProviders,
         }),
         connectedProviders: context.connectedProviders,
+        // The sentence can only name what the workspace really has — this is
+        // where the org's own components reach the brief's judgement.
+        grounding: buildGroundingContext({
+          nodeTypes: context.nodeTypes,
+          orgResources: context.orgResources,
+          emailDomain: this.env.EMAIL_DOMAIN,
+          modelCatalog: context.modelCatalog,
+        }),
         callLLM: (call: GenerateCall) => this.callModel(call),
       });
 
@@ -937,8 +974,30 @@ export class WorkflowGeneratorAgent extends Agent<
       // What the model is asked to build. A brief resolves to a sentence plus
       // an explicit destination; a raw prompt is its own instruction.
       const answers = input.answers ?? {};
+
+      // Grounded bindings are re-validated against what the org owns *now* —
+      // the brief may be minutes old and a dataset may have been deleted in
+      // the meantime — and existing bindings pick up their authoritative
+      // instance names, which is what the synthesis prompt states.
+      const resourceBindings = input.brief
+        ? resolveResourceBindings(input.brief, answers).flatMap((entry) => {
+            const bound = entry.binding;
+            if (bound.kind === "create") return [entry];
+            const owned = (context.orgResources[entry.family] ?? []).find(
+              (resource) => resource.id === bound.resourceId
+            );
+            if (!owned) {
+              console.warn(
+                `[WorkflowGenerator] dropping stale ${entry.family} binding ${bound.resourceId} (session=${sessionId})`
+              );
+              return [];
+            }
+            return [{ ...entry, binding: { ...bound, name: owned.name } }];
+          })
+        : [];
+
       const prompt = input.brief
-        ? buildSynthesisPrompt(input.brief, answers)
+        ? buildSynthesisPrompt(input.brief, answers, resourceBindings)
         : (input.prompt ?? "");
 
       const destination = input.brief
@@ -983,6 +1042,18 @@ export class WorkflowGeneratorAgent extends Agent<
         nodeTypes: context.nodeTypes,
         connectedProviders: context.connectedProviders,
         orgResources: context.orgResources,
+        resourceBindings,
+        createResource: createResourceProvisioner(
+          createDatabase(this.env.DB),
+          organizationId
+        ),
+        grounding: buildGroundingContext({
+          nodeTypes: context.nodeTypes,
+          orgResources: context.orgResources,
+          emailDomain: this.env.EMAIL_DOMAIN,
+          modelCatalog: context.modelCatalog,
+        }),
+        modelCatalog: context.modelCatalog,
         ownerEmail: context.ownerEmail,
         apiHost: this.state?.apiHost,
         isCancelled: () => this.isCancelled(sessionId),
