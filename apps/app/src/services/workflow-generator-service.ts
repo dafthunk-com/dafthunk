@@ -61,8 +61,6 @@ export class WorkflowGeneratorWebSocket {
   /** The scheduled retry, so waking events can fire it early. */
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
   private listenersAttached = false;
-  /** Set once `start` has been sent for this session; never sent twice. */
-  private hasStarted = false;
   /**
    * A message submitted before the socket opened.
    *
@@ -275,19 +273,6 @@ export class WorkflowGeneratorWebSocket {
       return;
     }
     this.ws.send(JSON.stringify(message));
-  }
-
-  /**
-   * Build straight from a prompt, with no brief.
-   *
-   * Keeps its own one-way latch: the developer generate page mounts, sends
-   * once, and relies on the server replaying rather than restarting. The brief
-   * flow has no such latch because a session there is a conversation.
-   */
-  start(prompt: string): void {
-    if (this.hasStarted) return;
-    this.hasStarted = true;
-    this.send({ type: "start", prompt });
   }
 
   /** Read a request back as a brief. */

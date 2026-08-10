@@ -12,12 +12,13 @@ const generateRoutes = new Hono<ApiContext>();
 /**
  * WebSocket endpoint for workflow generation.
  *
- * Keyed by a client-generated session id — there is no workflow yet. Unlike the
- * editor socket, the organization has to travel as a header too, because the DO
- * has no workflow record to derive it from.
+ * The client mints the id, and it is the workflow id: the WorkflowAgent this
+ * lands on is the same object the editor will open once the workflow is saved.
+ * Unlike the editor socket, the organization has to travel as a header too,
+ * because at connect time there may be no workflow record to derive it from.
  */
 generateRoutes.get(
-  "/:sessionId",
+  "/:workflowId",
   jwtMiddleware,
   developerModeMiddleware,
   async (c) => {
@@ -42,15 +43,16 @@ generateRoutes.get(
       );
     }
 
-    const sessionId = c.req.param("sessionId")!;
+    const workflowId = c.req.param("workflowId")!;
 
     // getAgentByName initializes the partyserver name before returning the stub
-    const stub = await getAgentByName(
-      c.env.WORKFLOW_GENERATOR_AGENT,
-      sessionId
-    );
+    const stub = await getAgentByName(c.env.WORKFLOW_AGENT, workflowId);
 
     const headers = new Headers(c.req.raw.headers);
+    // `set`, not append: like the identity headers, the protocol tag is the
+    // route's claim about this socket and must override anything the client
+    // put there.
+    headers.set("X-Agent-Protocol", "generation");
     headers.set("X-User-Id", userId);
     headers.set("X-Organization-Id", organizationId);
     headers.set(

@@ -7,7 +7,6 @@ import { DatabaseDO } from "./durable-objects/database-do";
 import type { EmailAgentRunner } from "./durable-objects/email-agent-runner";
 import type { MailboxDO } from "./durable-objects/mailbox-do";
 import type { WorkflowAgent } from "./durable-objects/workflow-agent";
-import type { WorkflowGeneratorAgent } from "./durable-objects/workflow-generator-agent";
 
 export interface Bindings {
   DB: D1Database;
@@ -17,7 +16,6 @@ export interface Bindings {
   RATE_LIMIT_EXECUTE: RateLimit;
   EXECUTE: Workflow<RuntimeParams>;
   WORKFLOW_AGENT: DurableObjectNamespace<WorkflowAgent>;
-  WORKFLOW_GENERATOR_AGENT: DurableObjectNamespace<WorkflowGeneratorAgent>;
   DATABASE: DurableObjectNamespace<DatabaseDO>;
   AGENT_RUNNER: DurableObjectNamespace<AgentRunner>;
   EMAIL_AGENT_RUNNER: DurableObjectNamespace<EmailAgentRunner>;

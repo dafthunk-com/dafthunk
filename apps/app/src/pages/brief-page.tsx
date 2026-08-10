@@ -333,13 +333,14 @@ export function BriefPage() {
             </Link>
           </p>
         )}
-        {/* A bookmarked session past its hour of retention. The history is
-            gone — sessions are reclaimed — and silence here read as the page
-            having eaten it. */}
+        {/* A bookmarked session that was reclaimed: it never built anything,
+            so there is nothing to point at — and silence here read as the
+            page having eaten it. Sessions that did build carry their pointer
+            in the session frame and land on the built-workflow screen. */}
         {sessionId && (
           <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-            This session has ended — sessions last about an hour after they
-            finish. The workflow itself, if one was built, is under Workflows.
+            This session has ended. If it built a workflow, you'll find it under
+            Workflows.
           </p>
         )}
         <h1 className="text-3xl font-semibold tracking-tight">
@@ -684,6 +685,52 @@ export function BriefPage() {
       <Shell banner={banner}>
         <p className="text-lg">Stopped. Nothing was saved or sent.</p>
         <Button onClick={startOver}>Start again</Button>
+      </Shell>
+    );
+  }
+
+  // ── A finished session, revisited after its replay log was pruned ───────
+  // The run row outlives the frames, and the session frame carries its
+  // pointer — so a visitor arriving past the hour gets the workflow's front
+  // door rather than the outcome scaffolding rendered around nothing. Keyed
+  // on "nothing was replayed", not on which fields the replay would have
+  // filled, so the screen keeps meaning the same thing as frames evolve.
+  if (
+    (state.status === "done" || state.status === "failed") &&
+    state.workflowId &&
+    !state.replayed
+  ) {
+    return (
+      <Shell banner={banner}>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          This one's already built
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {state.prompt
+            ? `The workflow from "${state.prompt}" is saved.`
+            : "The workflow this session built is saved."}{" "}
+          {state.status === "failed" &&
+            "Its last run hit trouble, so look it over before relying on it."}
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            onClick={() =>
+              navigate(
+                getOrgUrl(
+                  `workflows/${state.workflowId}?view=overview${
+                    state.executionId ? `&executionId=${state.executionId}` : ""
+                  }`
+                )
+              )
+            }
+          >
+            Open it
+            <ArrowRight className="ml-2 size-4" />
+          </Button>
+          <Button variant="ghost" onClick={startOver}>
+            Start over
+          </Button>
+        </div>
       </Shell>
     );
   }

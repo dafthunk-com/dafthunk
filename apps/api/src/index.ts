@@ -145,7 +145,6 @@ app.route("/:organizationId/generate", generateRoutes);
 
 // Export Durable Objects
 export { WorkflowAgent } from "./durable-objects/workflow-agent";
-export { WorkflowGeneratorAgent } from "./durable-objects/workflow-generator-agent";
 export { DatabaseDO };
 export { Sandbox } from "@cloudflare/sandbox";
 export { FFmpegContainer } from "./containers/ffmpeg-container";

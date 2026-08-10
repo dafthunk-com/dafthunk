@@ -30,10 +30,9 @@ export { AgentRunner } from "./durable-objects/agent-runner";
 export { EmailAgentRunner } from "./durable-objects/email-agent-runner";
 // Export MailboxDO so the per-org mailbox can be exercised in tests.
 export { MailboxDO } from "./durable-objects/mailbox-do";
-// Export WorkflowAgent for Durable Object testing (if needed in future)
+// Export WorkflowAgent so both its protocols — the editor graph session and
+// the generation conversation — can be exercised in tests.
 export { WorkflowAgent } from "./durable-objects/workflow-agent";
-// Export WorkflowGeneratorAgent so the generator protocol can be exercised.
-export { WorkflowGeneratorAgent } from "./durable-objects/workflow-generator-agent";
 // Export mock runtime for workflow testing
 // Note: We export it as "Runtime" so wrangler config can reference it by that name
 export { MockRuntime as Runtime } from "./mocks/runtime";

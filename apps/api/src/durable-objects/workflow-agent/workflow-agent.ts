@@ -1,9 +1,26 @@
 /**
  * WorkflowAgent Durable Object
  *
- * Manages workflow state synchronization, WebSocket connections, and execution
- * triggering. Extends the Cloudflare Agents SDK `Agent` base class for built-in
- * WebSocket management and workflow orchestration via AgentWorkflow callbacks.
+ * One object per workflow, named by the workflow id, hosting both ways of
+ * changing it: the editor's direct-manipulation session and the AI generator's
+ * conversation. Manages workflow state synchronization, WebSocket connections,
+ * and execution triggering. Extends the Cloudflare Agents SDK `Agent` base
+ * class for built-in WebSocket management and workflow orchestration via
+ * AgentWorkflow callbacks.
+ *
+ * ## Two protocols, one object
+ *
+ * Editor connections arrive via `/ws/` and speak the graph protocol
+ * (update/execute in, init/update/execution_update out). Generation
+ * connections arrive via `/generate/` and speak the generator protocol
+ * (ask/resolve/critique/… in, streamed frames out). Each connection is tagged
+ * with its kind at connect, and `sendToTagged` is the only fan-out path —
+ * a generator frame reaching an editor socket would be closed as a protocol
+ * violation by the client, so the filter is load-bearing, not cosmetic.
+ *
+ * The generation side lives in `GenerationSession` and touches the workflow
+ * only through `saveWorkflowRecord`, which reconciles any open editor session
+ * with what generation saved. One writer, no cross-object races.
  *
  * ## Hibernation Safety
  *
@@ -11,13 +28,15 @@
  * are lost when the DO hibernates. The design ensures correctness by storing
  * critical state in persistent mechanisms:
  *
- * - **Agent state** (`this.state`): workflowId, userId, apiHost
- * - **Connection state** (`connection.setState`): executionId per connection
+ * - **Agent state** (`this.state`): workflowId, userId, apiHost, generation status
+ * - **Connection state** (`connection.setState`): kind + executionId per connection
  * - **DO storage** (`this.storage`): pending persist snapshots, execution buffers
- * - **Agent SDK schedules**: debounced persistence timer
+ * - **DO SQL storage** (`ctx.storage.sql`): the generation conversation tables
+ * - **Agent SDK schedules**: debounced persistence timer, generation cleanup
  *
- * In-memory fields (`workflowState`, `organizationId`, `executionManager`) are
- * caches, reconstructed on demand after hibernation wake.
+ * In-memory fields (`workflowState`, `organizationId`, `executionManager`,
+ * `generationSession`) are caches, reconstructed on demand after hibernation
+ * wake.
  *
  * Callers obtain a stub via getAgentByName() which initializes the partyserver
  * name required by Agent internals. Direct idFromName/get access will fail.
@@ -35,11 +54,16 @@ import type {
 } from "@dafthunk/types";
 import { Agent } from "agents";
 import type { Connection, ConnectionContext } from "partyserver";
-
-import type { Bindings } from "../context";
-import { ExecutionManager } from "../services/execution-manager";
-import type { SaveWorkflowRecord } from "../stores/workflow-store";
-import { WorkflowStore } from "../stores/workflow-store";
+import { RUN_RETENTION_MS } from "../../agents/workflow-generator/config";
+import type { Bindings } from "../../context";
+import { ExecutionManager } from "../../services/execution-manager";
+import type { SaveWorkflowRecord } from "../../stores/workflow-store";
+import { WorkflowStore } from "../../stores/workflow-store";
+import type {
+  GenerationHost,
+  GenerationStateSlice,
+} from "./generation-session";
+import { GenerationSession } from "./generation-session";
 
 // ── Agent SDK type shim ──────────────────────────────────────────────────
 // The agents bundled d.ts doesn't resolve some inherited Agent/Server methods
@@ -48,8 +72,7 @@ import { WorkflowStore } from "../stores/workflow-store";
 // place rather than scattering it across call sites.
 
 interface HiddenAgentMethods {
-  broadcast(msg: string, without?: string[]): void;
-  getConnection(id: string): Connection | undefined;
+  readonly name: string;
   getConnections(): Iterable<Connection>;
   runWorkflow(
     workflowName: string,
@@ -68,10 +91,22 @@ interface HiddenAgentMethods {
 
 // ── Types ────────────────────────────────────────────────────────────────
 
-interface WorkflowAgentState {
-  workflowId?: string;
-  userId?: string;
-  apiHost?: string;
+/**
+ * The one persisted state shape both sides share — declared with the
+ * generation module because the host seam needs it; aliased here so the
+ * agent's own name for it stays local.
+ */
+type WorkflowAgentState = GenerationStateSlice;
+
+/**
+ * Per-connection tag, set before the first await of onConnect. Which protocol
+ * a socket speaks decides which fan-outs may reach it — the editor client
+ * closes on any frame type it does not know, so an untagged or cross-tagged
+ * send is not noise but a killed session.
+ */
+interface ConnectionState {
+  kind: "editor" | "generation";
+  executionId?: string;
 }
 
 interface PendingPersist {
@@ -101,6 +136,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
   private executionManager: ExecutionManager | null = null;
   private workflowState: WorkflowState | null = null;
   private organizationId: string | null = null;
+  private generationSession: GenerationSession | null = null;
 
   // ── Agent SDK method wrappers ─────────────────────────────────────────
   // Each wraps the cast once. Call sites use these instead of agentSelf().
@@ -109,13 +145,175 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     return this as unknown as HiddenAgentMethods;
   }
 
-  /** DO transactional storage — survives hibernation. */
-  private get storage(): DurableObjectStorage {
-    return (this as unknown as { ctx: DurableObjectState }).ctx.storage;
+  private get durableCtx(): DurableObjectState {
+    return (this as unknown as { ctx: DurableObjectState }).ctx;
   }
 
-  private broadcastMessage(msg: string, exclude?: string[]): void {
-    this.hiddenMethods.broadcast(msg, exclude);
+  /** DO transactional storage — survives hibernation. */
+  private get storage(): DurableObjectStorage {
+    return this.durableCtx.storage;
+  }
+
+  /**
+   * Send to the connections speaking one protocol, and only those. The other
+   * protocol's client would close on the unknown frame, so this is the sole
+   * fan-out path — nothing may call the SDK's broadcast directly.
+   */
+  private sendToTagged(
+    kind: ConnectionState["kind"],
+    msg: string,
+    exclude?: string[]
+  ): void {
+    for (const conn of this.hiddenMethods.getConnections()) {
+      const state = conn.state as ConnectionState | undefined;
+      if (state?.kind !== kind) continue;
+      if (exclude?.includes(conn.id)) continue;
+      try {
+        conn.send(msg);
+      } catch {
+        // A dead socket; its close handler will clean up.
+      }
+    }
+  }
+
+  /** The one record→editor-state mapping, shared by the load and save paths. */
+  private setWorkflowStateFrom(
+    workflowId: string,
+    source: {
+      name: string;
+      description?: string | null;
+      trigger: string;
+      runtime?: string;
+      nodes: WorkflowState["nodes"];
+      edges: WorkflowState["edges"];
+    },
+    timestamp: number
+  ): void {
+    this.workflowState = {
+      id: workflowId,
+      name: source.name,
+      description: source.description ?? undefined,
+      trigger: source.trigger as WorkflowState["trigger"],
+      runtime: source.runtime as WorkflowState["runtime"],
+      nodes: source.nodes,
+      edges: source.edges,
+      timestamp,
+    };
+  }
+
+  /** Push the current editor state to editor tabs, minus the sender if any. */
+  private broadcastWorkflowState(exclude?: string[]): void {
+    if (!this.workflowState) return;
+    const message: WorkflowUpdateMessage = {
+      type: "update",
+      state: this.workflowState,
+    };
+    this.sendToTagged("editor", JSON.stringify(message), exclude);
+  }
+
+  /**
+   * Record which execution a connection watches — preserving its protocol
+   * tag, because setState replaces the whole attachment. The `kind` default
+   * covers attachments written before tagging existed; onMessage routes
+   * untagged connections to the editor path, so the default agrees with
+   * dispatch.
+   */
+  private tagExecution(connection: Connection, executionId: string): void {
+    connection.setState({
+      kind: "editor",
+      ...(connection.state as ConnectionState | undefined),
+      executionId,
+    } satisfies ConnectionState);
+  }
+
+  // ── Generation side ───────────────────────────────────────────────────
+
+  private get generation(): GenerationSession {
+    if (!this.generationSession) {
+      this.generationSession = new GenerationSession(
+        this.createGenerationHost()
+      );
+    }
+    return this.generationSession;
+  }
+
+  private createGenerationHost(): GenerationHost {
+    // An adapter rather than `implements`: it keeps the host surface private
+    // on this class, and `name` must be read off the runtime instance — a
+    // class getter of the same name would shadow the base field.
+    const agent = this;
+    return {
+      get name() {
+        return agent.hiddenMethods.name;
+      },
+      get env() {
+        return agent.env;
+      },
+      get sql() {
+        return agent.storage.sql;
+      },
+      get genState() {
+        return agent.state ?? {};
+      },
+      patchState: (patch) => {
+        agent.setState({ ...agent.state, ...patch });
+      },
+      broadcastFrame: (payload) => {
+        agent.sendToTagged("generation", payload);
+      },
+      waitUntil: (promise) => {
+        agent.durableCtx.waitUntil(promise);
+      },
+      scheduleGenerationCleanup: () => agent.scheduleGenerationCleanup(),
+      saveWorkflowRecord: (record) => agent.saveWorkflowRecord(record),
+    };
+  }
+
+  /** Called by the Agent SDK schedule system when the retention delay fires. */
+  async generationCleanupCallback(): Promise<void> {
+    await this.generation.cleanup();
+  }
+
+  /**
+   * Arm (or re-arm) the generation cleanup, one retention period out. Uses
+   * the SDK schedule system, not a raw alarm: this object's alarm belongs to
+   * the SDK, which also drives the editor's debounced persist — an override
+   * here would break both.
+   */
+  private async scheduleGenerationCleanup(): Promise<void> {
+    try {
+      this.cancelSchedulesFor("generationCleanupCallback");
+      await this.hiddenMethods.schedule(
+        RUN_RETENTION_MS / 1000,
+        "generationCleanupCallback"
+      );
+    } catch (error) {
+      console.error("[WorkflowGenerator] failed to schedule cleanup:", error);
+    }
+  }
+
+  /**
+   * The one path a generated or armed workflow takes to disk — and the moment
+   * the editor side converges on it.
+   *
+   * Order matters: the stale persist schedule and its snapshot go first, so a
+   * debounced editor save queued before this write cannot fire mid-save and
+   * clobber it with the graph the generation just replaced. Anything the
+   * editor sends after this is a legitimately newer edit and wins as usual.
+   */
+  async saveWorkflowRecord(record: SaveWorkflowRecord): Promise<void> {
+    this.cancelPersistSchedules();
+    await this.storage.delete(WorkflowAgent.STORAGE_KEY_DIRTY);
+
+    await new WorkflowStore(this.env).save(record);
+
+    this.setWorkflowStateFrom(record.id, record, Date.now());
+    this.organizationId = record.organizationId;
+    if (this.state?.workflowId !== record.id) {
+      this.setState({ ...this.state, workflowId: record.id });
+    }
+
+    this.broadcastWorkflowState();
   }
 
   async executeWorkflow(params: RuntimeParams): Promise<string> {
@@ -142,10 +340,22 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     connection: Connection,
     ctx: ConnectionContext
   ): Promise<void> {
+    // Which protocol this socket speaks — stamped by the route, like the
+    // identity headers, so the contract between route and object is explicit
+    // rather than inferred from URL shape. Tagged synchronously, before any
+    // await, so no fan-out can ever see an untagged connection.
+    if (ctx.request.headers.get("X-Agent-Protocol") === "generation") {
+      connection.setState({ kind: "generation" } satisfies ConnectionState);
+      await this.generation.onConnect(connection, ctx);
+      return;
+    }
+    connection.setState({ kind: "editor" } satisfies ConnectionState);
+
+    const url = new URL(ctx.request.url);
     const userId = ctx.request.headers.get("X-User-Id") || "";
     const workflowId =
       ctx.request.headers.get("x-partykit-room") ||
-      new URL(ctx.request.url).pathname.split("/").pop() ||
+      url.pathname.split("/").pop() ||
       "";
 
     if (!workflowId || !userId) {
@@ -153,7 +363,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
       return;
     }
 
-    this.setApiHost(new URL(ctx.request.url).origin);
+    this.setApiHost(url.origin);
 
     if (!(await this.tryLoadState(workflowId, userId))) {
       connection.close(1008, "Failed to load workflow state");
@@ -173,6 +383,16 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     connection: Connection,
     message: string | ArrayBuffer
   ): Promise<void> {
+    // Per-connection protocol, per-protocol policy: generation ignores
+    // unknown message types (a client one deploy ahead must not lose its
+    // run), the editor closes on them.
+    if (
+      (connection.state as ConnectionState | undefined)?.kind === "generation"
+    ) {
+      await this.generation.onMessage(connection, message);
+      return;
+    }
+
     try {
       await this.requireInitialized();
 
@@ -217,29 +437,6 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     _wasClean: boolean
   ): Promise<void> {
     await this.flushPersist();
-  }
-
-  // ── HTTP fetch ────────────────────────────────────────────────────────
-
-  async fetch(request: Request): Promise<Response> {
-    const url = new URL(request.url);
-
-    if (url.pathname.endsWith("/state") && request.method === "GET") {
-      const pathParts = url.pathname.split("/").filter(Boolean);
-      const workflowId = pathParts[pathParts.length - 2] || "";
-      const userId = request.headers.get("X-User-Id") || "";
-
-      if (workflowId && userId) {
-        await this.tryLoadState(workflowId, userId);
-      }
-      return Response.json(this.workflowState);
-    }
-
-    // Delegate WebSocket upgrade and other requests to Agent SDK
-    const superFetch = (
-      super.fetch as (req: Request) => Promise<Response>
-    ).bind(this);
-    return superFetch(request);
   }
 
   // ── AgentWorkflow callbacks ───────────────────────────────────────────
@@ -369,16 +566,11 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
       edges: [],
     };
 
-    this.workflowState = {
-      id: workflowId,
-      name: workflowData.name,
-      description: workflowData.description,
-      trigger: workflowData.trigger as WorkflowState["trigger"],
-      runtime: workflowData.runtime,
-      nodes: workflowData.nodes,
-      edges: workflowData.edges,
-      timestamp: workflow.updatedAt?.getTime() || Date.now(),
-    };
+    this.setWorkflowStateFrom(
+      workflowId,
+      workflowData,
+      workflow.updatedAt?.getTime() || Date.now()
+    );
 
     this.organizationId = organizationId;
 
@@ -416,11 +608,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     this.workflowState = { ...message.state, edges: filteredEdges };
     await this.schedulePersist();
 
-    const updateMsg: WorkflowUpdateMessage = {
-      type: "update",
-      state: this.workflowState,
-    };
-    this.broadcastMessage(JSON.stringify(updateMsg), [connection.id]);
+    this.broadcastWorkflowState([connection.id]);
   }
 
   private async handleExecuteMessage(
@@ -438,7 +626,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     connection: Connection,
     executionId: string
   ): Promise<void> {
-    connection.setState({ executionId });
+    this.tagExecution(connection, executionId);
 
     // Check DO storage for a buffered execution update
     const key = WorkflowAgent.STORAGE_PREFIX_EXEC_BUFFER + executionId;
@@ -485,7 +673,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
           parameters
         );
 
-      connection.setState({ executionId });
+      this.tagExecution(connection, executionId);
       this.sendExecutionUpdate(connection, execution);
     } catch (error) {
       console.error("Failed to execute workflow:", error);
@@ -793,10 +981,15 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
 
   /** Cancel all pending persistCallback schedules. */
   private cancelPersistSchedules(): void {
+    this.cancelSchedulesFor("persistCallback");
+  }
+
+  /** Cancel every pending schedule for one callback name. */
+  private cancelSchedulesFor(callback: string): void {
     for (const s of this.hiddenMethods.getSchedules()) {
-      if (s.callback === "persistCallback") {
+      if (s.callback === callback) {
         // cancelSchedule is async but we fire-and-forget here —
-        // the callback is idempotent, so stale schedules are harmless.
+        // the callbacks are idempotent, so stale schedules are harmless.
         void this.hiddenMethods.cancelSchedule(s.id);
       }
     }

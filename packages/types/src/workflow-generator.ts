@@ -105,12 +105,6 @@ export interface OutwardAction {
 export const GENERATOR_PROTOCOL_VERSION = 1;
 
 export type GeneratorClientMessage =
-  /**
-   * Build straight from a raw prompt, with no brief. Kept byte-identical for
-   * the developer generate page, which is a debug surface and wants the
-   * unmediated path.
-   */
-  | { type: "start"; prompt: string }
   /** Read a request back as a brief, and wait. */
   | { type: "ask"; prompt: string }
   /** Accept the brief — answered, or skipped wholesale — and build it. */
@@ -145,6 +139,14 @@ export type GeneratorServerMessage =
       prompt?: string;
       /** `GENERATOR_PROTOCOL_VERSION` of the server that sent this. */
       protocol?: number;
+      /**
+       * Where the built workflow lives, if this session saved one. The frame
+       * log is pruned an hour after a run settles; a visitor arriving after
+       * that gets no replay, and these are what let the page still point at
+       * the thing that was built instead of rendering a void.
+       */
+      workflowId?: string;
+      executionId?: string;
     }
   | { type: "phase"; phase: GenerationPhase; label: string }
   /**

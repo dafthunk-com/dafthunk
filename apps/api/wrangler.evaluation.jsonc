@@ -71,8 +71,8 @@
         "class_name": "AgentRunner"
       },
       {
-        "name": "WORKFLOW_GENERATOR_AGENT",
-        "class_name": "WorkflowGeneratorAgent"
+        "name": "WORKFLOW_AGENT",
+        "class_name": "WorkflowAgent"
       }
     ]
   },
@@ -87,7 +87,7 @@
     },
     {
       "tag": "v3",
-      "new_sqlite_classes": ["WorkflowGeneratorAgent"]
+      "new_sqlite_classes": ["WorkflowAgent"]
     },
     {
       "tag": "v4",

@@ -63,6 +63,13 @@ export interface BriefState {
   cancelling: boolean;
   /** True once the server has described the session, so "expired" is knowable. */
   sessionLoaded: boolean;
+  /**
+   * True once any frame beyond `session` has arrived — the server had a log
+   * to replay, or a live turn is speaking. False after `session` alone is
+   * what a settled visit past frame pruning looks like, whatever fields the
+   * replay would have carried.
+   */
+  replayed: boolean;
   /** The request this session was opened with; present when resuming. */
   prompt?: string;
   /** Highest turn seen. Frames from an earlier turn are stale by construction. */
@@ -124,6 +131,7 @@ export interface BriefNote {
 const INITIAL: BriefState = {
   status: "idle",
   sessionLoaded: false,
+  replayed: false,
   turn: 0,
   notes: [],
   phaseTrail: [],
@@ -148,6 +156,17 @@ const SENDING_LABEL = "Sending…";
  * frame — which always precedes a replay — resets everything.
  */
 function reduce(state: BriefState, frame: GeneratorServerMessage): BriefState {
+  const next = applyFrame(state, frame);
+  // Any frame past the `session` reset proves the log had content.
+  return frame.type === "session" || next.replayed
+    ? next
+    : { ...next, replayed: true };
+}
+
+function applyFrame(
+  state: BriefState,
+  frame: GeneratorServerMessage
+): BriefState {
   switch (frame.type) {
     case "session":
       return {
@@ -156,6 +175,11 @@ function reduce(state: BriefState, frame: GeneratorServerMessage): BriefState {
         status: frame.status,
         phase: frame.phase,
         prompt: frame.prompt,
+        // The server keeps these past the hour after which the frame log is
+        // pruned — a returning visitor gets no replay, and this is what still
+        // points at the workflow the session built.
+        workflowId: frame.workflowId,
+        executionId: frame.executionId,
       };
 
     case "brief":
@@ -383,6 +407,8 @@ export function useWorkflowBrief(
         return;
       }
 
+      // This id is the workflow id: the server's agent is keyed by it, and
+      // the workflow the session builds is saved under it.
       const session = crypto.randomUUID();
       connect(session).ask(prompt);
       onSessionStarted?.(session);

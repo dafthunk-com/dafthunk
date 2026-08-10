@@ -696,6 +696,22 @@ export class WorkflowStore {
   }
 
   /**
+   * Which organization owns a workflow id, if any — unscoped by design.
+   *
+   * Exists for exactly one caller: the generation connect guard, which must
+   * refuse a session opened against an id that already names a workflow the
+   * session did not build. Every other read stays organization-scoped.
+   */
+  async owningOrganization(workflowId: string): Promise<string | undefined> {
+    const [row] = await this.db
+      .select({ organizationId: workflows.organizationId })
+      .from(workflows)
+      .where(eq(workflows.id, workflowId))
+      .limit(1);
+    return row?.organizationId ?? undefined;
+  }
+
+  /**
    * List workflows for an organization
    */
   async list(organizationId: string): Promise<WorkflowRow[]> {

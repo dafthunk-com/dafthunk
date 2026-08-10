@@ -1,5 +1,5 @@
 /**
- * WorkflowGeneratorAgent Durable Object
+ * GenerationSession — the AI workflow generator, hosted inside WorkflowAgent.
  *
  * Turns a natural-language description into a saved, executed workflow, and
  * streams progress to the browser over a WebSocket.
@@ -7,9 +7,16 @@
  * ## Shape
  *
  * A thin shell. All the logic lives in `runGenerationPipeline`, which takes its
- * network dependencies as callbacks — the DO just supplies real ones. That is
- * what lets the whole generate/repair/save/run flow be unit-tested without a
+ * network dependencies as callbacks — this module just supplies real ones. That
+ * is what lets the whole generate/repair/save/run flow be unit-tested without a
  * Cloudflare environment.
+ *
+ * The module holds the conversation; the host owns the Durable Object. The
+ * `GenerationHost` seam is deliberately narrow: raw SQL storage for the
+ * session tables, a broadcast that reaches only generation-tagged connections,
+ * and — crucially — `saveWorkflowRecord`, through which every workflow write
+ * goes so the host can reconcile any open editor session with what generation
+ * just saved. Generation must never write a workflow to D1/R2 on its own.
  *
  * ## Hibernation safety
  *
@@ -18,8 +25,12 @@
  * subscription and "closed the tab and came back" — a reconnecting client
  * catches up rather than restarting the run.
  *
- * Keyed by a client-generated session id, not a workflow id: the workflow does
- * not exist until the save phase.
+ * ## Identity
+ *
+ * The Durable Object is keyed by the workflow id, and the client mints it: the
+ * id a brief session opens with is the id the workflow is saved under. The
+ * `session_id` columns below always hold that same id — kept under their
+ * original name so the schema needs no migration.
  */
 
 import type { InputOverrides } from "@dafthunk/runtime";
@@ -44,77 +55,106 @@ import {
   resolveDestination,
   resolveResourceBindings,
 } from "@dafthunk/utils";
-import { Agent } from "agents";
 import { eq } from "drizzle-orm";
 import type { Connection, ConnectionContext } from "partyserver";
-import { generateBrief } from "../agents/workflow-generator/brief";
+import { generateBrief } from "../../agents/workflow-generator/brief";
 import {
   GENERATOR_MODELS,
-  RUN_RETENTION_MS,
   RUN_STALL_TIMEOUT_MS,
-} from "../agents/workflow-generator/config";
-import { achievableDestinations } from "../agents/workflow-generator/destinations";
-import { filterEligible } from "../agents/workflow-generator/eligibility";
-import { buildGroundingContext } from "../agents/workflow-generator/grounding";
-import type { DisarmedInput } from "../agents/workflow-generator/hydrate";
-import { createModelRouter } from "../agents/workflow-generator/model-router";
-import type { OrgResources } from "../agents/workflow-generator/org-resources";
+} from "../../agents/workflow-generator/config";
+import { achievableDestinations } from "../../agents/workflow-generator/destinations";
+import { filterEligible } from "../../agents/workflow-generator/eligibility";
+import { buildGroundingContext } from "../../agents/workflow-generator/grounding";
+import type { DisarmedInput } from "../../agents/workflow-generator/hydrate";
+import { createModelRouter } from "../../agents/workflow-generator/model-router";
+import type { OrgResources } from "../../agents/workflow-generator/org-resources";
 import {
   loadOrgResources,
   offerableResources,
-} from "../agents/workflow-generator/org-resources";
+} from "../../agents/workflow-generator/org-resources";
 import type {
   GenerateCall,
   TierUsage,
-} from "../agents/workflow-generator/pipeline";
-import { runGenerationPipeline } from "../agents/workflow-generator/pipeline";
-import type { Bindings } from "../context";
+} from "../../agents/workflow-generator/pipeline";
+import { runGenerationPipeline } from "../../agents/workflow-generator/pipeline";
+import type { Bindings } from "../../context";
 import {
   createDatabase,
   getIntegrations,
   getOrganizationBillingInfo,
   resolveOrganizationBillingOptions,
   stampOnboardingStage,
-} from "../db";
-import { users } from "../db/schema";
-import { fetchCloudflareModelCatalog } from "../runtime/cloudflare-model-catalog";
-import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
-import { availableIntegrationProviders } from "../services/integration-availability";
-import { createResourceProvisioner } from "../services/resource-provisioner";
-import type { WorkflowExecutorParameters } from "../services/workflow-executor";
-import { WorkflowExecutor } from "../services/workflow-executor";
-import { ExampleStore } from "../stores/example-store";
-import { WorkflowStore } from "../stores/workflow-store";
-import { isCreditExhausted } from "../utils/credits";
+} from "../../db";
+import { users } from "../../db/schema";
+import { fetchCloudflareModelCatalog } from "../../runtime/cloudflare-model-catalog";
+import { CloudflareNodeRegistry } from "../../runtime/cloudflare-node-registry";
+import { availableIntegrationProviders } from "../../services/integration-availability";
+import { createResourceProvisioner } from "../../services/resource-provisioner";
+import type { WorkflowExecutorParameters } from "../../services/workflow-executor";
+import { WorkflowExecutor } from "../../services/workflow-executor";
+import { ExampleStore } from "../../stores/example-store";
+import type { SaveWorkflowRecord } from "../../stores/workflow-store";
+import { WorkflowStore } from "../../stores/workflow-store";
+import { isCreditExhausted } from "../../utils/credits";
 
-// ── Agent SDK type shim ──────────────────────────────────────────────────
-// The agents bundled d.ts doesn't resolve some inherited Agent/Server methods
-// due to transitive partyserver type resolution issues. The methods exist at
-// runtime; the cast is contained here rather than scattered across call sites.
-
-interface HiddenAgentMethods {
-  broadcast(msg: string, without?: string[]): void;
-}
-
-interface WorkflowGeneratorState {
-  sessionId?: string;
-  userId?: string;
-  organizationId?: string;
-  apiHost?: string;
-  developerMode?: boolean;
-  status?: GenerationStatus;
-  phase?: GenerationPhase;
+/**
+ * The merged agent's persisted state — declared here because generation is
+ * the side that needs it across an interface; the host aliases it. Run
+ * status, execution id and the like live in `gen_runs`, not here: this holds
+ * only what has no SQL row behind it.
+ */
+export interface GenerationStateSlice {
+  /** Set on editor load AND on generation save; always equals the DO name. */
   workflowId?: string;
-  executionId?: string;
+  /**
+   * Whoever connected last, on either protocol. Shared deliberately: an
+   * org-mate opening the editor while the owner generates rewrites this, and
+   * a later generation turn would stamp onboarding for the editor user. A
+   * pre-existing pattern, acceptable while generation is developer-gated.
+   */
+  userId?: string;
+  apiHost?: string;
+  /** Generation connects carry it in a header; the editor derives it from D1. */
+  organizationId?: string;
+  developerMode?: boolean;
+  generationPhase?: GenerationPhase;
 }
 
-export class WorkflowGeneratorAgent extends Agent<
-  Bindings,
-  WorkflowGeneratorState
-> {
-  initialState: WorkflowGeneratorState = {};
+/**
+ * What generation needs from the Durable Object that hosts it.
+ *
+ * Everything that touches shared ground goes through here: broadcasts are
+ * filtered to generation connections by the host, workflow writes go through
+ * `saveWorkflowRecord` so the editor side is reconciled, and cleanup rides the
+ * Agent SDK schedule system rather than a raw alarm — this object shares its
+ * alarm with the editor's debounced persist, and owning it here would break
+ * that.
+ */
+export interface GenerationHost {
+  /** The Durable Object name — the workflow id this agent is keyed by. */
+  readonly name: string;
+  readonly env: Bindings;
+  /** DO SQLite storage, holding the gen_* session tables. */
+  readonly sql: SqlStorage;
+  readonly genState: GenerationStateSlice;
+  /** Merge a patch into agent state; the host spreads the existing state. */
+  patchState(patch: Partial<GenerationStateSlice>): void;
+  /** Send a raw frame payload to generation-tagged connections only. */
+  broadcastFrame(payload: string): void;
+  waitUntil(promise: Promise<unknown>): void;
+  /** Arm (or re-arm) the retention-delayed cleanup schedule. Never throws. */
+  scheduleGenerationCleanup(): Promise<void>;
+  /**
+   * Persist a generated or armed workflow AND reconcile the editor side:
+   * cancel pending persist schedules, drop the stale snapshot, refresh the
+   * in-memory editor state, broadcast an update to any open editor tabs.
+   */
+  saveWorkflowRecord(record: SaveWorkflowRecord): Promise<void>;
+}
 
+export class GenerationSession {
   private schemaReady = false;
+
   /**
    * Resolver for a run parked on the outward-steps question.
    *
@@ -131,30 +171,22 @@ export class WorkflowGeneratorAgent extends Agent<
   /** When this session first stored its workflow, so a re-save keeps the date. */
   private createdAt?: Date;
 
-  private get hiddenMethods(): HiddenAgentMethods {
-    return this as unknown as HiddenAgentMethods;
+  constructor(private readonly host: GenerationHost) {}
+
+  /** The one session this object holds — the DO name, the workflow id. */
+  private get sessionId(): string {
+    return this.host.name;
   }
 
-  private get durableCtx(): DurableObjectState {
-    return (this as unknown as { ctx: DurableObjectState }).ctx;
-  }
-
-  private get storageSql(): SqlStorage {
-    return this.durableCtx.storage.sql;
-  }
-
-  shouldSendProtocolMessages(
-    _connection: Connection,
-    _ctx: ConnectionContext
-  ): boolean {
-    return false;
+  private get sql(): SqlStorage {
+    return this.host.sql;
   }
 
   // ── Storage ───────────────────────────────────────────────────────────
 
   private ensureSchema(): void {
     if (this.schemaReady) return;
-    this.storageSql.exec(`
+    this.sql.exec(`
       CREATE TABLE IF NOT EXISTS gen_runs (
         session_id   TEXT PRIMARY KEY,
         status       TEXT NOT NULL,
@@ -166,7 +198,7 @@ export class WorkflowGeneratorAgent extends Agent<
         updated_at   INTEGER NOT NULL
       )
     `);
-    this.storageSql.exec(`
+    this.sql.exec(`
       CREATE TABLE IF NOT EXISTS gen_frames (
         seq        INTEGER PRIMARY KEY AUTOINCREMENT,
         session_id TEXT NOT NULL,
@@ -175,7 +207,7 @@ export class WorkflowGeneratorAgent extends Agent<
     `);
     // The conversation that produced a workflow, so a critique can continue it
     // rather than describe the workflow to a model that never saw it.
-    this.storageSql.exec(`
+    this.sql.exec(`
       CREATE TABLE IF NOT EXISTS gen_turns (
         session_id TEXT NOT NULL,
         turn       INTEGER NOT NULL,
@@ -185,9 +217,9 @@ export class WorkflowGeneratorAgent extends Agent<
       )
     `);
 
-    // Added after `gen_runs` shipped. There is no migration to write — sessions
-    // are reclaimed an hour after they end — but a Durable Object that was
-    // mid-flight across a deploy still holds the original table.
+    // Added after `gen_runs` shipped. There is no migration to write — a
+    // Durable Object that was mid-flight across a deploy still holds the
+    // original table, and new objects get the full shape above.
     for (const column of [
       `turn INTEGER NOT NULL DEFAULT 0`,
       `brief TEXT`,
@@ -195,7 +227,7 @@ export class WorkflowGeneratorAgent extends Agent<
       `disarmed TEXT`,
     ]) {
       try {
-        this.storageSql.exec(`ALTER TABLE gen_runs ADD COLUMN ${column}`);
+        this.sql.exec(`ALTER TABLE gen_runs ADD COLUMN ${column}`);
       } catch {
         // Already present.
       }
@@ -204,12 +236,12 @@ export class WorkflowGeneratorAgent extends Agent<
     this.schemaReady = true;
   }
 
-  private currentRun(sessionId: string) {
+  private currentRun() {
     this.ensureSchema();
-    const rows = this.storageSql
+    const rows = this.sql
       .exec(
-        `SELECT status, prompt, cancelled, updated_at, turn, brief, workflow_id, disarmed FROM gen_runs WHERE session_id = ?`,
-        sessionId
+        `SELECT status, prompt, cancelled, updated_at, turn, brief, workflow_id, execution_id, disarmed FROM gen_runs WHERE session_id = ?`,
+        this.sessionId
       )
       .toArray() as Array<{
       status: string;
@@ -219,6 +251,7 @@ export class WorkflowGeneratorAgent extends Agent<
       turn: number;
       brief: string | null;
       workflow_id: string | null;
+      execution_id: string | null;
       disarmed: string | null;
     }>;
     return rows[0];
@@ -234,19 +267,19 @@ export class WorkflowGeneratorAgent extends Agent<
    *
    * Returns the turn number to work under, or undefined to ignore the message.
    */
-  private claimTurn(
-    sessionId: string,
-    options: { prompt?: string; from: GenerationStatus[] }
-  ): number | undefined {
+  private claimTurn(options: {
+    prompt?: string;
+    from: GenerationStatus[];
+  }): number | undefined {
     this.ensureSchema();
-    const existing = this.currentRun(sessionId);
+    const existing = this.currentRun();
 
     if (!existing) {
       // A first turn can only be an opening move.
       if (!options.from.includes("idle")) return undefined;
-      this.storageSql.exec(
+      this.sql.exec(
         `INSERT INTO gen_runs (session_id, status, prompt, turn, updated_at) VALUES (?, 'running', ?, 0, ?)`,
-        sessionId,
+        this.sessionId,
         options.prompt ?? "",
         Date.now()
       );
@@ -262,10 +295,10 @@ export class WorkflowGeneratorAgent extends Agent<
 
       // A half-finished LLM call cannot be resumed, so fail it loudly rather
       // than leaving the client watching a run that will never speak again.
-      this.storageSql.exec(
+      this.sql.exec(
         `UPDATE gen_runs SET status = 'failed', error = 'stalled', updated_at = ? WHERE session_id = ?`,
         Date.now(),
-        sessionId
+        this.sessionId
       );
       this.emit({
         type: "error",
@@ -283,28 +316,30 @@ export class WorkflowGeneratorAgent extends Agent<
     const turn = existing.turn + 1;
     // `cancelled` is sticky and polled cooperatively, so a cancel during one
     // turn would silently poison the next one if it were not cleared here.
-    this.storageSql.exec(
+    this.sql.exec(
       `UPDATE gen_runs SET status = 'running', cancelled = 0, turn = ?, prompt = ?, updated_at = ? WHERE session_id = ?`,
       turn,
       options.prompt ?? existing.prompt,
       Date.now(),
-      sessionId
+      this.sessionId
     );
     return turn;
   }
 
-  private storeBrief(sessionId: string, brief: Brief | null): void {
-    this.storageSql.exec(
+  private storeBrief(brief: Brief | null): void {
+    this.sql.exec(
       `UPDATE gen_runs SET status = 'awaiting', brief = ?, updated_at = ? WHERE session_id = ?`,
       brief ? JSON.stringify(brief) : null,
       Date.now(),
-      sessionId
+      this.sessionId
     );
-    this.setState({ ...this.state, status: "awaiting" });
+    // The object now lives in a permanent namespace, so a brief abandoned at
+    // this stage would otherwise hold its frames forever — turn end is no
+    // longer the only moment that must arm the cleanup.
+    void this.host.scheduleGenerationCleanup();
   }
 
   private storeConversation(
-    sessionId: string,
     turn: number,
     system: string,
     messages: Array<{ role: "user" | "assistant"; content: string }>
@@ -317,21 +352,21 @@ export class WorkflowGeneratorAgent extends Agent<
       ...messages.filter((message) => message.role === "assistant").slice(-1),
     ];
 
-    this.storageSql.exec(
+    this.sql.exec(
       `INSERT OR REPLACE INTO gen_turns (session_id, turn, system, messages) VALUES (?, ?, ?, ?)`,
-      sessionId,
+      this.sessionId,
       turn,
       system,
       JSON.stringify(trimmed)
     );
   }
 
-  private latestConversation(sessionId: string) {
+  private latestConversation() {
     this.ensureSchema();
-    const rows = this.storageSql
+    const rows = this.sql
       .exec(
         `SELECT system, messages FROM gen_turns WHERE session_id = ? ORDER BY turn DESC LIMIT 1`,
-        sessionId
+        this.sessionId
       )
       .toArray() as Array<{ system: string; messages: string }>;
     if (!rows[0]) return undefined;
@@ -345,20 +380,20 @@ export class WorkflowGeneratorAgent extends Agent<
     };
   }
 
-  private touch(sessionId: string): void {
-    this.storageSql.exec(
+  private touch(): void {
+    this.sql.exec(
       `UPDATE gen_runs SET updated_at = ? WHERE session_id = ?`,
       Date.now(),
-      sessionId
+      this.sessionId
     );
   }
 
-  private isCancelled(sessionId: string): boolean {
-    return (this.currentRun(sessionId)?.cancelled ?? 0) === 1;
+  private isCancelled(): boolean {
+    return (this.currentRun()?.cancelled ?? 0) === 1;
   }
 
   /**
-   * Appends the frame to the log, then fans it out to every connection.
+   * Appends the frame to the log, then fans it out to generation connections.
    *
    * The write is guarded because it is not the point of the run. SQLite
    * refuses a row past its size limit with SQLITE_TOOBIG, and an unguarded
@@ -370,46 +405,39 @@ export class WorkflowGeneratorAgent extends Agent<
    */
   private emit(frame: GeneratorServerMessage): void {
     const payload = JSON.stringify(frame);
-    const sessionId = this.state?.sessionId;
 
-    if (sessionId) {
-      this.ensureSchema();
-      try {
-        this.storageSql.exec(
-          `INSERT INTO gen_frames (session_id, frame) VALUES (?, ?)`,
-          sessionId,
-          payload
-        );
-      } catch (error) {
-        console.error(
-          `[WorkflowGenerator] could not log a ${frame.type} frame (${payload.length} bytes):`,
-          error
-        );
-        // Leave a marker rather than a hole. A client that reconnects has no
-        // way to know a frame is missing, and a gap in the middle of a replay
-        // reads as the run having stopped.
-        this.logUnstorableFrame(sessionId, frame.type, payload.length);
-      }
+    this.ensureSchema();
+    try {
+      this.sql.exec(
+        `INSERT INTO gen_frames (session_id, frame) VALUES (?, ?)`,
+        this.sessionId,
+        payload
+      );
+    } catch (error) {
+      console.error(
+        `[WorkflowGenerator] could not log a ${frame.type} frame (${payload.length} bytes):`,
+        error
+      );
+      // Leave a marker rather than a hole. A client that reconnects has no
+      // way to know a frame is missing, and a gap in the middle of a replay
+      // reads as the run having stopped.
+      this.logUnstorableFrame(frame.type, payload.length);
     }
 
-    this.hiddenMethods.broadcast(payload);
+    this.host.broadcastFrame(payload);
   }
 
   /** Best-effort note that a frame was dropped from the replay log. */
-  private logUnstorableFrame(
-    sessionId: string,
-    type: string,
-    bytes: number
-  ): void {
+  private logUnstorableFrame(type: string, bytes: number): void {
     const marker: GeneratorServerMessage = {
       type: "log",
       level: "warn",
       message: `A "${type}" update was too large to keep for replay (${bytes.toLocaleString()} bytes). It is on screen now, but will not survive a reload.`,
     };
     try {
-      this.storageSql.exec(
+      this.sql.exec(
         `INSERT INTO gen_frames (session_id, frame) VALUES (?, ?)`,
-        sessionId,
+        this.sessionId,
         JSON.stringify(marker)
       );
     } catch {
@@ -417,12 +445,12 @@ export class WorkflowGeneratorAgent extends Agent<
     }
   }
 
-  private replayFrames(connection: Connection, sessionId: string): void {
+  private replayFrames(connection: Connection): void {
     this.ensureSchema();
-    const rows = this.storageSql
+    const rows = this.sql
       .exec(
         `SELECT frame FROM gen_frames WHERE session_id = ? ORDER BY seq ASC`,
-        sessionId
+        this.sessionId
       )
       .toArray() as Array<{ frame: string }>;
     for (const row of rows) connection.send(row.frame);
@@ -438,39 +466,56 @@ export class WorkflowGeneratorAgent extends Agent<
     const organizationId = ctx.request.headers.get("X-Organization-Id") || "";
     const developerMode =
       ctx.request.headers.get("X-Developer-Mode") === "true";
-    const sessionId =
-      ctx.request.headers.get("x-partykit-room") ||
-      new URL(ctx.request.url).pathname.split("/").pop() ||
-      "";
 
-    if (!sessionId || !userId || !organizationId) {
-      connection.close(1008, "Missing session, user or organization");
+    if (!userId || !organizationId) {
+      connection.close(1008, "Missing user or organization");
       return;
     }
 
-    this.setState({
-      ...this.state,
-      sessionId,
+    // The client mints the id this object is keyed by, and the save path
+    // upserts by id — so a connect against an id that already names a workflow
+    // this session did not build would let the pipeline overwrite it. Refuse
+    // both directions with the same words: a cross-org probe must not learn
+    // that the id exists.
+    const run = this.currentRun();
+    try {
+      const owner = await new WorkflowStore(this.host.env).owningOrganization(
+        this.sessionId
+      );
+      if (owner && (owner !== organizationId || run?.workflow_id == null)) {
+        connection.close(1008, "Session unavailable");
+        return;
+      }
+    } catch (error) {
+      console.error("[WorkflowGenerator] ownership check failed:", error);
+      connection.close(1011, "Could not verify the session");
+      return;
+    }
+
+    this.host.patchState({
       userId,
       organizationId,
       developerMode,
       apiHost: new URL(ctx.request.url).origin,
-      status: this.state?.status ?? "idle",
     });
 
-    const run = this.currentRun(sessionId);
     connection.send(
       JSON.stringify({
         type: "session",
-        sessionId,
+        sessionId: this.sessionId,
         status: (run?.status as GenerationStatus) ?? "idle",
-        phase: this.state?.phase,
+        phase: this.host.genState.generationPhase,
         prompt: run?.prompt,
         protocol: GENERATOR_PROTOCOL_VERSION,
+        // The pointer that survives frame pruning: an hour after a run
+        // settles the replay log is gone, and these are what still tell a
+        // returning visitor where the thing they built lives.
+        workflowId: run?.workflow_id ?? undefined,
+        executionId: run?.execution_id ?? undefined,
       } satisfies GeneratorServerMessage)
     );
 
-    this.replayFrames(connection, sessionId);
+    this.replayFrames(connection);
   }
 
   async onMessage(
@@ -490,59 +535,36 @@ export class WorkflowGeneratorAgent extends Agent<
       return;
     }
 
-    const sessionId = this.state?.sessionId;
-    if (!sessionId) {
-      connection.close(1011, "Session not initialized");
-      return;
-    }
-
     switch (parsed.type) {
-      case "start": {
-        // Claim first so a duplicate start is ignored rather than regenerating,
-        // and return immediately so `cancel` can still be received. A duplicate
-        // needs no replay here — onConnect already sent this connection the
-        // whole log, and replaying again would double every frame it has.
-        const turn = this.claimTurn(sessionId, {
-          prompt: parsed.prompt,
-          from: ["idle"],
-        });
-        if (turn !== undefined) {
-          this.setState({ ...this.state, status: "running" });
-          this.durableCtx.waitUntil(
-            this.runPipeline(sessionId, turn, { prompt: parsed.prompt })
-          );
-        }
-        return;
-      }
       case "ask": {
-        // Allowed from any settled state: retyping after suggestions, or
-        // starting over from a finished run, are both the same move.
-        const turn = this.claimTurn(sessionId, {
+        // The opening move, and allowed again from any settled state:
+        // retyping after suggestions, or starting over from a finished run,
+        // are both the same move. Claim first so a duplicate is ignored
+        // rather than regenerating, and return immediately so `cancel` can
+        // still be received.
+        const turn = this.claimTurn({
           prompt: parsed.prompt,
           from: ["idle", "awaiting", "done", "failed"],
         });
         if (turn !== undefined) {
-          this.setState({ ...this.state, status: "running" });
-          this.durableCtx.waitUntil(
-            this.runBrief(sessionId, turn, parsed.prompt)
-          );
+          this.host.waitUntil(this.runBrief(turn, parsed.prompt));
         }
         return;
       }
       case "resolve": {
-        const stored = this.currentRun(sessionId);
+        const stored = this.currentRun();
         if (!stored?.brief) return;
         const brief = JSON.parse(stored.brief) as Brief;
 
-        const turn = this.claimTurn(sessionId, { from: ["awaiting"] });
+        const turn = this.claimTurn({ from: ["awaiting"] });
         if (turn !== undefined) {
           // The honest "they committed to what we understood" event, and the
           // only one of the funnel's stages that this flow alone can report.
-          const userId = this.state?.userId;
+          const userId = this.host.genState.userId;
           if (userId) {
-            this.durableCtx.waitUntil(
+            this.host.waitUntil(
               stampOnboardingStage(
-                createDatabase(this.env.DB),
+                createDatabase(this.host.env.DB),
                 userId,
                 "briefResolved"
               ).catch((error) =>
@@ -550,9 +572,8 @@ export class WorkflowGeneratorAgent extends Agent<
               )
             );
           }
-          this.setState({ ...this.state, status: "running" });
-          this.durableCtx.waitUntil(
-            this.runPipeline(sessionId, turn, {
+          this.host.waitUntil(
+            this.runPipeline(turn, {
               brief,
               answers: parsed.answers,
             })
@@ -561,18 +582,17 @@ export class WorkflowGeneratorAgent extends Agent<
         return;
       }
       case "critique": {
-        const stored = this.currentRun(sessionId);
-        const conversation = this.latestConversation(sessionId);
+        const stored = this.currentRun();
+        const conversation = this.latestConversation();
         // Nothing to correct without a workflow and the conversation that
         // built it — an older session whose storage predates `gen_turns`
         // simply cannot take a critique.
         if (!stored?.workflow_id || !conversation) return;
 
-        const turn = this.claimTurn(sessionId, { from: ["done"] });
+        const turn = this.claimTurn({ from: ["done"] });
         if (turn !== undefined) {
-          this.setState({ ...this.state, status: "running" });
-          this.durableCtx.waitUntil(
-            this.runPipeline(sessionId, turn, {
+          this.host.waitUntil(
+            this.runPipeline(turn, {
               resume: {
                 ...conversation,
                 note: parsed.note,
@@ -590,7 +610,7 @@ export class WorkflowGeneratorAgent extends Agent<
 
         if (!resolve) {
           this.ensureSchema();
-          const stored = this.currentRun(sessionId);
+          const stored = this.currentRun();
 
           // Parked, but the continuation is gone — this object restarted while
           // it waited. Both buttons would otherwise do nothing at all, and the
@@ -598,7 +618,7 @@ export class WorkflowGeneratorAgent extends Agent<
           // there forever. Say so instead. Nothing was run, which is the one
           // reassurance actually worth giving here.
           if (stored?.status === "awaiting") {
-            this.fail(sessionId, {
+            this.fail({
               type: "error",
               code: "STALLED",
               message:
@@ -615,13 +635,11 @@ export class WorkflowGeneratorAgent extends Agent<
         }
 
         this.ensureSchema();
-        this.storageSql.exec(
+        this.sql.exec(
           `UPDATE gen_runs SET status = 'running', updated_at = ? WHERE session_id = ?`,
           Date.now(),
-          sessionId
+          this.sessionId
         );
-        this.setState({ ...this.state, status: "running" });
-
         resolve(
           parsed.type === "approve"
             ? { approved: true }
@@ -635,7 +653,7 @@ export class WorkflowGeneratorAgent extends Agent<
         // stored workflow and something actually disarmed — anything else is
         // a duplicate click or a stale client, and ignoring is right because
         // the restore is idempotent anyway.
-        const stored = this.currentRun(sessionId);
+        const stored = this.currentRun();
         if (stored?.status !== "done" || !stored.workflow_id) return;
         if (!stored.disarmed) return;
 
@@ -647,17 +665,15 @@ export class WorkflowGeneratorAgent extends Agent<
         }
         if (disarmed.length === 0) return;
 
-        this.durableCtx.waitUntil(
-          this.armWorkflow(stored.workflow_id, disarmed)
-        );
+        this.host.waitUntil(this.armWorkflow(stored.workflow_id, disarmed));
         return;
       }
       case "cancel": {
         this.ensureSchema();
-        this.storageSql.exec(
+        this.sql.exec(
           `UPDATE gen_runs SET cancelled = 1, updated_at = ? WHERE session_id = ?`,
           Date.now(),
-          sessionId
+          this.sessionId
         );
         return;
       }
@@ -668,10 +684,53 @@ export class WorkflowGeneratorAgent extends Agent<
         // client free to fall back. The reverse direction is already safe —
         // the client reducer ignores frames it does not know.
         console.warn(
-          `[WorkflowGeneratorAgent] Ignoring unknown message type: ${
+          `[WorkflowGenerator] Ignoring unknown message type: ${
             (parsed as { type?: unknown }).type
           }`
         );
+    }
+  }
+
+  // ── Cleanup ───────────────────────────────────────────────────────────
+
+  /**
+   * The generation-cleanup schedule callback body.
+   *
+   * The conversation is permanent; the replay log is not. `gen_runs` and
+   * `gen_turns` are a few small rows that keep critique working indefinitely,
+   * while `gen_frames` holds a full serialized graph per repair round — so an
+   * hour after a run settles, the frames go and the rest stays. A session
+   * that never saved anything has no conversation worth keeping either, so
+   * all three tables empty out. Generation deletes only its own tables,
+   * never the object: this Durable Object also holds form tokens, execution
+   * buffers and the editor's persistence machinery, and no generation path
+   * may be able to take those down.
+   */
+  async cleanup(): Promise<void> {
+    const run = this.currentRun();
+    if (!run) return;
+
+    // A session is not over just because a run is: a critique moves it back
+    // to `running`, and `awaiting` is someone still reading. Pruning under
+    // either would take the session out from under a live user.
+    if (run.status === "running" || run.status === "awaiting") {
+      await this.host.scheduleGenerationCleanup();
+      return;
+    }
+
+    this.sql.exec(
+      `DELETE FROM gen_frames WHERE session_id = ?`,
+      this.sessionId
+    );
+    if (!run.workflow_id) {
+      this.sql.exec(
+        `DELETE FROM gen_turns WHERE session_id = ?`,
+        this.sessionId
+      );
+      this.sql.exec(
+        `DELETE FROM gen_runs WHERE session_id = ?`,
+        this.sessionId
+      );
     }
   }
 
@@ -685,12 +744,12 @@ export class WorkflowGeneratorAgent extends Agent<
    * has exactly the same preconditions as synthesis — it costs credits and
    * needs the same catalog to know which destinations are real.
    */
-  private async prepare(sessionId: string) {
-    const userId = this.state?.userId;
-    const organizationId = this.state?.organizationId;
+  private async prepare() {
+    const userId = this.host.genState.userId;
+    const organizationId = this.host.genState.organizationId;
     if (!userId || !organizationId) return undefined;
 
-    const db = createDatabase(this.env.DB);
+    const db = createDatabase(this.host.env.DB);
 
     // Independent reads on the same key; from inside a DO each is a
     // cross-service hop, so overlapping them saves a round trip.
@@ -707,7 +766,7 @@ export class WorkflowGeneratorAgent extends Agent<
       ]);
     } catch (error) {
       console.error("[WorkflowGenerator] pre-flight failed:", error);
-      this.fail(sessionId, {
+      this.fail({
         type: "error",
         code: "INTERNAL",
         message: "Something broke on my end before it could start. Try again.",
@@ -717,7 +776,7 @@ export class WorkflowGeneratorAgent extends Agent<
     }
 
     if (!billingInfo) {
-      this.fail(sessionId, {
+      this.fail({
         type: "error",
         code: "INTERNAL",
         message: "Organization not found.",
@@ -726,8 +785,8 @@ export class WorkflowGeneratorAgent extends Agent<
       return undefined;
     }
 
-    if (isCreditExhausted(billingInfo, this.env.CLOUDFLARE_ENV)) {
-      this.fail(sessionId, {
+    if (isCreditExhausted(billingInfo, this.host.env.CLOUDFLARE_ENV)) {
+      this.fail({
         type: "error",
         code: "CREDITS_EXHAUSTED",
         message: "Not enough compute credits to generate a workflow.",
@@ -739,11 +798,11 @@ export class WorkflowGeneratorAgent extends Agent<
     // The AI Gateway helpers silently degrade to an unusable client when any
     // of these is missing, producing a confusing 404 deep in the SDK.
     if (
-      !this.env.CLOUDFLARE_ACCOUNT_ID ||
-      !this.env.CLOUDFLARE_AI_GATEWAY_ID ||
-      !this.env.CLOUDFLARE_API_TOKEN
+      !this.host.env.CLOUDFLARE_ACCOUNT_ID ||
+      !this.host.env.CLOUDFLARE_AI_GATEWAY_ID ||
+      !this.host.env.CLOUDFLARE_API_TOKEN
     ) {
-      this.fail(sessionId, {
+      this.fail({
         type: "error",
         code: "MISCONFIGURED",
         message:
@@ -754,8 +813,8 @@ export class WorkflowGeneratorAgent extends Agent<
     }
 
     const registry = new CloudflareNodeRegistry(
-      this.env,
-      this.state?.developerMode ?? false
+      this.host.env,
+      this.host.genState.developerMode ?? false
     );
 
     // The address `send-email` delivers to. Read here rather than at execution:
@@ -792,8 +851,8 @@ export class WorkflowGeneratorAgent extends Agent<
     // shipped before.
     let modelCatalog: CloudflareModelInfo[] = [];
     try {
-      modelCatalog = await fetchCloudflareModelCatalog(this.env, {
-        waitUntil: (promise) => this.durableCtx.waitUntil(promise),
+      modelCatalog = await fetchCloudflareModelCatalog(this.host.env, {
+        waitUntil: (promise) => this.host.waitUntil(promise),
       });
     } catch (error) {
       console.warn(
@@ -814,7 +873,7 @@ export class WorkflowGeneratorAgent extends Agent<
         integrations.map((integration) => integration.provider)
       ) as ReadonlySet<string>,
       availableProviders: new Set(
-        availableIntegrationProviders(this.env)
+        availableIntegrationProviders(this.host.env)
       ) as ReadonlySet<string>,
     };
   }
@@ -826,12 +885,8 @@ export class WorkflowGeneratorAgent extends Agent<
    * destinations are real for this org, and therefore what the brief is even
    * allowed to offer.
    */
-  private async runBrief(
-    sessionId: string,
-    turn: number,
-    prompt: string
-  ): Promise<void> {
-    const context = await this.prepare(sessionId);
+  private async runBrief(turn: number, prompt: string): Promise<void> {
+    const context = await this.prepare();
     if (!context) return;
 
     try {
@@ -840,7 +895,7 @@ export class WorkflowGeneratorAgent extends Agent<
         phase: "briefing",
         label: "Reading that back",
       });
-      this.touch(sessionId);
+      this.touch();
 
       // Identical inputs to the pipeline's own eligibility pass, so the brief
       // and synthesis agree by construction about what can be offered. These
@@ -867,13 +922,13 @@ export class WorkflowGeneratorAgent extends Agent<
         grounding: buildGroundingContext({
           nodeTypes: context.nodeTypes,
           orgResources: context.orgResources,
-          emailDomain: this.env.EMAIL_DOMAIN,
+          emailDomain: this.host.env.EMAIL_DOMAIN,
           modelCatalog: context.modelCatalog,
         }),
         callLLM: (call: GenerateCall) => this.callModel(call),
       });
 
-      this.logUsage(sessionId, context.organizationId, "brief", {
+      this.logUsage(context.organizationId, "brief", {
         fast: outcome.usage,
         synthesis: { inputTokens: 0, outputTokens: 0 },
       });
@@ -884,9 +939,9 @@ export class WorkflowGeneratorAgent extends Agent<
       // hold, and "(segments=string(1200), keys=0,1,2)" is not a sentence.
       if (outcome.kind === "failed") {
         console.error(
-          `[WorkflowGenerator] brief failed: ${outcome.message} (session=${sessionId})`
+          `[WorkflowGenerator] brief failed: ${outcome.message} (session=${this.sessionId})`
         );
-        this.fail(sessionId, {
+        this.fail({
           type: "error",
           code: "INTERNAL",
           message:
@@ -903,15 +958,15 @@ export class WorkflowGeneratorAgent extends Agent<
           prompts: outcome.prompts,
           matched: outcome.matched,
         });
-        this.storeBrief(sessionId, null);
+        this.storeBrief(null);
         return;
       }
 
       this.emit({ type: "brief", turn, brief: outcome.brief });
-      this.storeBrief(sessionId, outcome.brief);
+      this.storeBrief(outcome.brief);
     } catch (error) {
       console.error("[WorkflowGenerator] brief crashed:", error);
-      this.fail(sessionId, {
+      this.fail({
         type: "error",
         code: "INTERNAL",
         message:
@@ -922,7 +977,6 @@ export class WorkflowGeneratorAgent extends Agent<
   }
 
   private logUsage(
-    sessionId: string,
     organizationId: string,
     stage: string,
     usage: TierUsage
@@ -942,7 +996,7 @@ export class WorkflowGeneratorAgent extends Agent<
       0
     );
     console.log(
-      `[WorkflowGenerator] session=${sessionId} org=${organizationId} stage=${stage} fast=${usage.fast.inputTokens}/${usage.fast.outputTokens} synthesis=${usage.synthesis.inputTokens}/${usage.synthesis.outputTokens} credits=${credits}`
+      `[WorkflowGenerator] session=${this.sessionId} org=${organizationId} stage=${stage} fast=${usage.fast.inputTokens}/${usage.fast.outputTokens} synthesis=${usage.synthesis.inputTokens}/${usage.synthesis.outputTokens} credits=${credits}`
     );
   }
 
@@ -951,7 +1005,6 @@ export class WorkflowGeneratorAgent extends Agent<
    * critique of what was already built.
    */
   private async runPipeline(
-    sessionId: string,
     turn: number,
     input: {
       prompt?: string;
@@ -965,7 +1018,7 @@ export class WorkflowGeneratorAgent extends Agent<
       };
     }
   ): Promise<void> {
-    const context = await this.prepare(sessionId);
+    const context = await this.prepare();
     if (!context) return;
 
     const { userId, organizationId, billingInfo } = context;
@@ -988,7 +1041,7 @@ export class WorkflowGeneratorAgent extends Agent<
             );
             if (!owned) {
               console.warn(
-                `[WorkflowGenerator] dropping stale ${entry.family} binding ${bound.resourceId} (session=${sessionId})`
+                `[WorkflowGenerator] dropping stale ${entry.family} binding ${bound.resourceId} (session=${this.sessionId})`
               );
               return [];
             }
@@ -1014,7 +1067,7 @@ export class WorkflowGeneratorAgent extends Agent<
         destination.provider &&
         !context.connectedProviders.has(destination.provider)
       ) {
-        this.storeBrief(sessionId, input.brief ?? null);
+        this.storeBrief(input.brief ?? null);
         this.emit({
           type: "error",
           code: "NEEDS_CONNECTION",
@@ -1038,32 +1091,32 @@ export class WorkflowGeneratorAgent extends Agent<
         resume: input.resume,
         earlyPlan: true,
         onConversation: (system, messages) =>
-          this.storeConversation(sessionId, turn, system, messages),
+          this.storeConversation(turn, system, messages),
         nodeTypes: context.nodeTypes,
         connectedProviders: context.connectedProviders,
         orgResources: context.orgResources,
         resourceBindings,
         createResource: createResourceProvisioner(
-          createDatabase(this.env.DB),
+          createDatabase(this.host.env.DB),
           organizationId
         ),
         grounding: buildGroundingContext({
           nodeTypes: context.nodeTypes,
           orgResources: context.orgResources,
-          emailDomain: this.env.EMAIL_DOMAIN,
+          emailDomain: this.host.env.EMAIL_DOMAIN,
           modelCatalog: context.modelCatalog,
         }),
         modelCatalog: context.modelCatalog,
         ownerEmail: context.ownerEmail,
-        apiHost: this.state?.apiHost,
-        isCancelled: () => this.isCancelled(sessionId),
+        apiHost: this.host.genState.apiHost,
+        isCancelled: () => this.isCancelled(),
         emit: (frame) => {
           // Only phase frames advance the stall clock. Touching on every frame
           // doubled the storage writes per run to keep a timestamp that is only
           // ever compared against a three-minute threshold.
           if (frame.type === "phase") {
-            this.setState({ ...this.state, phase: frame.phase });
-            this.touch(sessionId);
+            this.host.patchState({ generationPhase: frame.phase });
+            this.touch();
           }
           this.emit(frame);
         },
@@ -1072,12 +1125,11 @@ export class WorkflowGeneratorAgent extends Agent<
           // Parked, not polled. The row goes to `awaiting` so the stall clock
           // — which exists for hung model calls — does not fail a run that is
           // simply waiting for a person to read it.
-          this.storageSql.exec(
+          this.sql.exec(
             `UPDATE gen_runs SET status = 'awaiting', updated_at = ? WHERE session_id = ?`,
             Date.now(),
-            sessionId
+            this.sessionId
           );
-          this.setState({ ...this.state, status: "awaiting" });
           return new Promise((resolve) => {
             this.pendingApproval = resolve;
           });
@@ -1103,14 +1155,9 @@ export class WorkflowGeneratorAgent extends Agent<
           ),
       });
 
-      this.logUsage(
-        sessionId,
-        organizationId,
-        `build:${result.outcome}`,
-        result.usage
-      );
+      this.logUsage(organizationId, `build:${result.outcome}`, result.usage);
 
-      this.storageSql.exec(
+      this.sql.exec(
         `UPDATE gen_runs SET status = ?, workflow_id = ?, execution_id = ?, disarmed = ?, updated_at = ? WHERE session_id = ?`,
         result.outcome === "failed" ? "failed" : "done",
         result.workflowId ?? null,
@@ -1119,20 +1166,20 @@ export class WorkflowGeneratorAgent extends Agent<
           ? JSON.stringify(result.disarmed)
           : null,
         Date.now(),
-        sessionId
+        this.sessionId
       );
 
-      this.setState({
-        ...this.state,
-        status: result.outcome === "failed" ? "failed" : "done",
-        workflowId: result.workflowId,
-        executionId: result.executionId,
-      });
+      // The shared field: only written when a save actually happened — a
+      // failed run has no workflowId to contribute, and status/execution id
+      // live in gen_runs, not in agent state.
+      if (result.workflowId) {
+        this.host.patchState({ workflowId: result.workflowId });
+      }
 
-      await this.scheduleCleanup();
+      await this.host.scheduleGenerationCleanup();
     } catch (error) {
       console.error("[WorkflowGenerator] pipeline crashed:", error);
-      this.fail(sessionId, {
+      this.fail({
         type: "error",
         code: "INTERNAL",
         message:
@@ -1142,49 +1189,15 @@ export class WorkflowGeneratorAgent extends Agent<
     }
   }
 
-  private fail(sessionId: string, frame: GeneratorServerMessage): void {
+  private fail(frame: GeneratorServerMessage): void {
     this.ensureSchema();
-    this.storageSql.exec(
+    this.sql.exec(
       `UPDATE gen_runs SET status = 'failed', updated_at = ? WHERE session_id = ?`,
       Date.now(),
-      sessionId
+      this.sessionId
     );
-    this.setState({ ...this.state, status: "failed" });
     this.emit(frame);
-    void this.scheduleCleanup();
-  }
-
-  /**
-   * Frees the session's storage an hour after the run ends.
-   *
-   * Sessions are single-use and the id is minted fresh per attempt, so without
-   * this every generation would leave a Durable Object holding its frame log —
-   * including a full serialized graph per repair round — forever. An hour is
-   * long enough for a reconnect to still replay.
-   */
-  private async scheduleCleanup(): Promise<void> {
-    try {
-      await this.durableCtx.storage.setAlarm(Date.now() + RUN_RETENTION_MS);
-    } catch (error) {
-      console.error("[WorkflowGenerator] failed to schedule cleanup:", error);
-    }
-  }
-
-  async alarm(): Promise<void> {
-    // Cleanup was scheduled when a turn finished, but a session is no longer
-    // over just because a run is: a critique moves it back to `running`, and
-    // `awaiting` is someone still reading. Deleting under either would take
-    // the session out from under a live user.
-    const status = this.state?.sessionId
-      ? this.currentRun(this.state.sessionId)?.status
-      : undefined;
-
-    if (status === "running" || status === "awaiting") {
-      await this.scheduleCleanup();
-      return;
-    }
-
-    await this.durableCtx.storage.deleteAll();
+    void this.host.scheduleGenerationCleanup();
   }
 
   /**
@@ -1194,14 +1207,14 @@ export class WorkflowGeneratorAgent extends Agent<
    * serving one is a deployment nobody chose.
    */
   private async callModel(call: GenerateCall) {
-    return createModelRouter(this.env)(call);
+    return createModelRouter(this.host.env)(call);
   }
 
   /**
    * Restores the trigger bindings hydration blanked, making the workflow live.
    *
-   * The values go back exactly as they were captured, through the same save
-   * path every other write takes — `syncTriggers` then registers the trigger
+   * The values go back exactly as they were captured, through the host's save
+   * path like every other write — `syncTriggers` then registers the trigger
    * with `active: true`, which is the arming. Idempotent: restoring an input
    * that already holds the value writes the same workflow again.
    */
@@ -1209,11 +1222,11 @@ export class WorkflowGeneratorAgent extends Agent<
     workflowId: string,
     disarmed: DisarmedInput[]
   ): Promise<void> {
-    const organizationId = this.state?.organizationId;
+    const organizationId = this.host.genState.organizationId;
     if (!organizationId) return;
 
     try {
-      const store = new WorkflowStore(this.env);
+      const store = new WorkflowStore(this.host.env);
       const stored = await store.getWithData(workflowId, organizationId);
       if (!stored) {
         this.emit({
@@ -1247,7 +1260,7 @@ export class WorkflowGeneratorAgent extends Agent<
         };
       });
 
-      await store.save({
+      await this.host.saveWorkflowRecord({
         id: workflowId,
         name: stored.name,
         description: stored.data.description,
@@ -1256,7 +1269,7 @@ export class WorkflowGeneratorAgent extends Agent<
         organizationId,
         nodes,
         edges: stored.data.edges,
-        apiHost: this.state?.apiHost,
+        apiHost: this.host.genState.apiHost,
         createdAt: stored.createdAt,
       });
 
@@ -1276,10 +1289,12 @@ export class WorkflowGeneratorAgent extends Agent<
   /**
    * Persists the graph and its examples.
    *
-   * `existingId` makes this an update, which is how a repaired run replaces what
-   * it already stored. `createdAt` is pinned to the first save because the D1
-   * write is an upsert that would otherwise stamp the row as newly created every
-   * time the generator corrects itself.
+   * `existingId` makes this an update, which is how a repaired run replaces
+   * what it already stored; a first save uses the object's own name — the id
+   * the session was opened with is the id the workflow lives under. `createdAt`
+   * is pinned to the first save because the D1 write is an upsert that would
+   * otherwise stamp the row as newly created every time the generator corrects
+   * itself.
    */
   private async saveWorkflow(
     workflow: Workflow,
@@ -1288,12 +1303,11 @@ export class WorkflowGeneratorAgent extends Agent<
     organizationId: string,
     existingId?: string
   ): Promise<string> {
-    const workflowId = existingId ?? crypto.randomUUID();
-    const store = new WorkflowStore(this.env);
+    const workflowId = existingId ?? this.sessionId;
 
     if (!existingId) this.createdAt = new Date();
 
-    await store.save({
+    await this.host.saveWorkflowRecord({
       id: workflowId,
       name: workflow.name || "Generated Workflow",
       description: workflow.description,
@@ -1302,7 +1316,7 @@ export class WorkflowGeneratorAgent extends Agent<
       organizationId,
       nodes: workflow.nodes,
       edges: workflow.edges,
-      apiHost: this.state?.apiHost,
+      apiHost: this.host.genState.apiHost,
       ...(this.createdAt && { createdAt: this.createdAt }),
     });
 
@@ -1310,7 +1324,7 @@ export class WorkflowGeneratorAgent extends Agent<
     // can edit and re-run them without touching it. Best-effort: a generated
     // workflow that saved but has no examples is still usable.
     try {
-      await new ExampleStore(this.env).save(workflowId, examples);
+      await new ExampleStore(this.host.env).save(workflowId, examples);
     } catch (error) {
       console.error("Failed to save the generated examples:", error);
     }
@@ -1318,7 +1332,7 @@ export class WorkflowGeneratorAgent extends Agent<
     // Only on first save: the stage records that a workflow was created, and a
     // repair round does not create a second one.
     if (!existingId) {
-      const db = createDatabase(this.env.DB);
+      const db = createDatabase(this.host.env.DB);
       try {
         await stampOnboardingStage(db, userId, "workflowCreated");
       } catch (error) {
@@ -1362,7 +1376,7 @@ export class WorkflowGeneratorAgent extends Agent<
       ...resolveOrganizationBillingOptions(billingInfo),
       parameters,
       ...(inputOverrides && { inputOverrides }),
-      env: this.env,
+      env: this.host.env,
     });
 
     return execution;

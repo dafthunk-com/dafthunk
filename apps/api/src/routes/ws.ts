@@ -19,8 +19,10 @@ wsRoutes.get("/:workflowId", jwtMiddleware, async (c) => {
   // getAgentByName initializes the partyserver name before returning the stub
   const stub = await getAgentByName(c.env.WORKFLOW_AGENT, workflowId);
 
-  // Forward the WS upgrade request with userId header
+  // Forward the WS upgrade request with userId header. The protocol tag is
+  // `set`, not appended, so a client cannot claim the generation protocol.
   const headers = new Headers(c.req.raw.headers);
+  headers.set("X-Agent-Protocol", "editor");
   headers.set("X-User-Id", userId);
   const newReq = new Request(c.req.url, {
     method: c.req.method,
