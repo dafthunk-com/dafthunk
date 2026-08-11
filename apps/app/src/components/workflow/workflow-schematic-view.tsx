@@ -19,7 +19,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { convertToReactFlowEdges } from "@/services/workflow-service";
 import { cn } from "@/utils/utils";
 
-import { FitToScreenButton, OverviewToggleButton } from "./workflow-canvas";
+import {
+  FIT_VIEW_OPTIONS,
+  FitToScreenButton,
+  OverviewToggleButton,
+} from "./workflow-canvas";
 import { WorkflowProvider } from "./workflow-context";
 import { WorkflowEdge } from "./workflow-edge";
 import { WorkflowNode } from "./workflow-node";
@@ -64,6 +68,7 @@ export function WorkflowSchematicView({
   execution,
   running = false,
   nodeTypes,
+  view,
   className,
 }: {
   workflow: Workflow;
@@ -73,13 +78,20 @@ export function WorkflowSchematicView({
   running?: boolean;
   /** For the trigger/responder accent color; omitting renders all-blue. */
   nodeTypes?: NodeType[];
+  /**
+   * Controlled zoom level. When provided, the page owns the view axis and
+   * the embedded toggle disappears; when absent, the view keeps its own
+   * toggle and defaults to overview (the brief page's arrangement).
+   */
+  view?: "overview" | "wiring";
   className?: string;
 }) {
   const [instance, setInstance] = useState<ReactFlowInstance<
     ReactFlowNode<WorkflowNodeType>,
     ReactFlowEdge<WorkflowEdgeType>
   > | null>(null);
-  const [overview, setOverview] = useState(true);
+  const [internalOverview, setInternalOverview] = useState(true);
+  const overview = view !== undefined ? view === "overview" : internalOverview;
 
   const nodes = useMemo<ReactFlowNode<WorkflowNodeType>[]>(() => {
     const verdicts = new Map<string, NodeExecution>(
@@ -121,7 +133,7 @@ export function WorkflowSchematicView({
     if (!instance) return;
     const frame = requestAnimationFrame(() =>
       requestAnimationFrame(() => {
-        instance.fitView({ padding: 0.1, maxZoom: 1, duration: 300 });
+        instance.fitView({ ...FIT_VIEW_OPTIONS, duration: 300 });
       })
     );
     return () => cancelAnimationFrame(frame);
@@ -145,7 +157,7 @@ export function WorkflowSchematicView({
               edgeTypes={viewEdgeTypes}
               onInit={setInstance}
               fitView
-              fitViewOptions={{ padding: 0.1, maxZoom: 1 }}
+              fitViewOptions={FIT_VIEW_OPTIONS}
               minZoom={0.05}
               maxZoom={4}
               nodesDraggable={false}
@@ -174,16 +186,19 @@ export function WorkflowSchematicView({
             </ReactFlow>
           </div>
 
-          {/* The editor's view controls, in the editor's corner. */}
+          {/* The editor's view controls, in the editor's corner. The toggle
+              yields when the page owns the view axis. */}
           <div className="absolute left-4 top-4 z-10">
             <ActionBarGroup vertical>
-              <OverviewToggleButton
-                overview={overview}
-                onClick={() => setOverview((current) => !current)}
-              />
+              {view === undefined && (
+                <OverviewToggleButton
+                  overview={overview}
+                  onClick={() => setInternalOverview((current) => !current)}
+                />
+              )}
               <FitToScreenButton
                 onClick={() =>
-                  instance?.fitView({ padding: 0.1, maxZoom: 1, duration: 200 })
+                  instance?.fitView({ ...FIT_VIEW_OPTIONS, duration: 200 })
                 }
               />
             </ActionBarGroup>

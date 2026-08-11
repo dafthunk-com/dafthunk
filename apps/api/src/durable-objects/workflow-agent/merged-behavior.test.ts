@@ -3,8 +3,10 @@ import type { GeneratorServerMessage, ServerMessage } from "@dafthunk/types";
 import { eq } from "drizzle-orm";
 import { beforeAll, describe, expect, it } from "vitest";
 
+import type { Bindings } from "../../context";
 import { createDatabase } from "../../db";
 import { memberships, organizations, users, workflows } from "../../db/schema";
+import { ExampleStore } from "../../stores/example-store";
 import { getAgentByName } from "../agent-utils";
 import {
   applyMigrations,
@@ -63,7 +65,11 @@ function connectEditor(workflowId: string) {
 }
 
 /** A minimal record the host save path accepts. */
-function record(workflowId: string, name: string) {
+function record(
+  workflowId: string,
+  name: string,
+  overrides: Partial<{ runtime: string; organizationId: string }> = {}
+) {
   return {
     id: workflowId,
     name,
@@ -72,6 +78,7 @@ function record(workflowId: string, name: string) {
     organizationId: ORG,
     nodes: [],
     edges: [],
+    ...overrides,
   };
 }
 
@@ -292,17 +299,143 @@ describe("the connect guard", () => {
     await expect(waitForClose(probe.socket)).resolves.toBe(1008);
   });
 
-  it("refuses a generation connect against a workflow the session did not build", async () => {
-    const id = "merged-hijack-same-org";
+  it("adopts a same-org workflow that has no generation history", async () => {
+    const id = "merged-adopt";
     const stub = await getAgentByName(NAMESPACE, id);
-    // The workflow exists in this org, but there is no generation run behind
-    // it — an editor-made workflow. Conversing about it is a future feature
-    // with deliberate seeding, not something a pasted URL should trigger.
+    // An editor-made workflow: exists in this org, no generation run behind
+    // it. Connecting takes it over — a settled run row is seeded so the
+    // conversation can pick the workflow up as if it had built it.
     await runInDurableObject(stub, async (instance: WorkflowAgent) => {
       await instance.saveWorkflowRecord(record(id, "Editor Made"));
     });
 
-    const probe = await connectGeneration(id, ORG);
-    await expect(waitForClose(probe.socket)).resolves.toBe(1008);
+    const session = await connectGeneration(id, ORG);
+    const frame = await waitFor(session.frames, (f) => f.type === "session");
+    expect(frame).toMatchObject({
+      type: "session",
+      status: "done",
+      workflowId: id,
+      prompt: "Editor Made",
+    });
+
+    const row = await runInDurableObject(
+      stub,
+      async (_instance: WorkflowAgent, state: DurableObjectState) =>
+        state.storage.sql
+          .exec(
+            `SELECT status, workflow_id, adopted, prompt FROM gen_runs WHERE session_id = ?`,
+            id
+          )
+          .one()
+    );
+    expect(row).toMatchObject({
+      status: "done",
+      workflow_id: id,
+      adopted: 1,
+      prompt: "Editor Made",
+    });
+  });
+
+  it("lets an adopted session take a critique turn", async () => {
+    const id = "merged-adopt-critique";
+    // What this pins: a conversation-less critique claims the turn and runs,
+    // instead of returning silently the way it used to. The org is deleted
+    // between adoption and critique so `prepare()` fails at its very first
+    // read — deterministically, and long before anything could reach a model
+    // (the local .dev.vars can hold live AI Gateway credentials, so a test
+    // that lets prepare() succeed would make a billed call).
+    const db = createDatabase(testEnv.DB);
+    await db
+      .insert(organizations)
+      .values({ id: "org-doomed", name: "Doomed" })
+      .onConflictDoNothing();
+
+    const stub = await getAgentByName(NAMESPACE, id);
+    await runInDurableObject(stub, async (instance: WorkflowAgent) => {
+      await instance.saveWorkflowRecord(
+        record(id, "Adopted", { organizationId: "org-doomed" })
+      );
+    });
+
+    const session = await connectGeneration(id, "org-doomed");
+    await waitFor(session.frames, (f) => f.type === "session");
+
+    await db.delete(organizations).where(eq(organizations.id, "org-doomed"));
+
+    session.socket.send(
+      JSON.stringify({ type: "critique", note: "make it shorter" })
+    );
+
+    const error = await waitFor(session.frames, (f) => f.type === "error");
+    expect(error).toMatchObject({ type: "error", code: "INTERNAL" });
+  });
+
+  it("preserves runtime and curated examples on an adopted update", async () => {
+    const id = "merged-adopt-preserves";
+    const stub = await getAgentByName(NAMESPACE, id);
+    const exampleStore = new ExampleStore(testEnv as unknown as Bindings);
+
+    await runInDurableObject(stub, async (instance: WorkflowAgent) => {
+      await instance.saveWorkflowRecord(
+        record(id, "Worker Runtime", { runtime: "worker" })
+      );
+    });
+
+    // Curated examples, saved before any generation session existed.
+    await exampleStore.save(id, [
+      {
+        id: "ex-curated",
+        name: "Curated",
+        isDefault: true,
+        nodeValues: {},
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+
+    // Adopt (creates the adopted run row), then drive the private save path
+    // the pipeline uses for an update-in-place.
+    const session = await connectGeneration(id, ORG);
+    await waitFor(session.frames, (f) => f.type === "session");
+
+    await runInDurableObject(stub, async (instance: WorkflowAgent) => {
+      const generation = (
+        instance as unknown as {
+          generation: {
+            saveWorkflow(
+              workflow: unknown,
+              examples: unknown[],
+              userId: string,
+              organizationId: string,
+              existingId?: string
+            ): Promise<string>;
+          };
+        }
+      ).generation;
+      await generation.saveWorkflow(
+        {
+          id,
+          name: "Rewritten",
+          trigger: "manual",
+          nodes: [],
+          edges: [],
+        },
+        [{ name: "Generated sample", nodeValues: {} }],
+        USER,
+        ORG,
+        id
+      );
+    });
+
+    const [row] = await createDatabase(testEnv.DB)
+      .select({ runtime: workflows.runtime, name: workflows.name })
+      .from(workflows)
+      .where(eq(workflows.id, id));
+    // The rewrite landed, but the row keeps the runtime someone chose...
+    expect(row).toMatchObject({ runtime: "worker", name: "Rewritten" });
+
+    // ...and the curated examples were not overwritten by the model's.
+    const examples = await exampleStore.list(id);
+    expect(examples.map((e) => e.name)).toEqual(["Curated"]);
   });
 });

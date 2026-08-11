@@ -7,6 +7,7 @@ import type {
 } from "@dafthunk/types";
 import { describe, expect, it, vi } from "vitest";
 
+import { workflowToDraft } from "./adopt";
 import { selectCandidates } from "./catalog-selection";
 import { withheldProviders, withheldResources } from "./eligibility";
 import { FIXTURE_NODE_TYPES } from "./fixtures";
@@ -16,6 +17,7 @@ import {
   isRunImprovement,
   runGenerationPipeline,
 } from "./pipeline";
+import { buildUserPrompt } from "./prompts";
 import { firstFailure } from "./trace";
 
 /** A draft whose only fault is a json -> string edge, the archetypal mistake. */
@@ -1112,5 +1114,205 @@ describe("creating workspace components", () => {
     // The database input stays unset; without a creator the run cannot avoid
     // the missing-input failure, but it must never invent a resource.
     expect(result.createdResources).toEqual([]);
+  });
+});
+
+describe("the resume path", () => {
+  /** A stored workflow the way adoption sees one: real ids, literal inputs. */
+  function storedWorkflow(overrides: Partial<Workflow> = {}): Workflow {
+    return {
+      id: "wf-existing",
+      name: "Adopted",
+      description: "echoes a greeting",
+      trigger: "manual",
+      nodes: [
+        {
+          id: "text-input-aaa",
+          name: "Greeting",
+          type: "text-input",
+          position: { x: 0, y: 0 },
+          inputs: [
+            { name: "value", type: "string", value: "hello" },
+          ] as Workflow["nodes"][number]["inputs"],
+          outputs: [],
+        },
+        {
+          id: "output-text-bbb",
+          name: "Result",
+          type: "output-text",
+          position: { x: 0, y: 0 },
+          inputs: [
+            { name: "value", type: "string" },
+          ] as Workflow["nodes"][number]["inputs"],
+          outputs: [],
+        },
+      ],
+      edges: [
+        {
+          source: "text-input-aaa",
+          sourceOutput: "value",
+          target: "output-text-bbb",
+          targetInput: "value",
+        },
+      ],
+      ...overrides,
+    };
+  }
+
+  /**
+   * The synthetic conversation adoption fabricates for a first critique.
+   * Deliberately without `system`: the pipeline composes one from `prompt`,
+   * which is what keeps the advertised catalog and the hydration catalog
+   * the same set.
+   */
+  function adoptedResume(workflow: Workflow, note: string) {
+    return {
+      messages: [
+        {
+          role: "user" as const,
+          content: buildUserPrompt(`${workflow.name}: ${workflow.description}`),
+        },
+        {
+          role: "assistant" as const,
+          content: JSON.stringify(workflowToDraft(workflow)),
+        },
+      ],
+      note,
+      workflowId: workflow.id,
+    };
+  }
+
+  it("resumes an adopted conversation and saves under the existing id", async () => {
+    const stored = storedWorkflow();
+    const revised = workflowToDraft(stored);
+    revised.nodes[0].inputs = { value: "goodbye" };
+
+    const { deps, frames, saved, savedUnder, callLLM } = harness(
+      [llmResult(revised)],
+      {
+        prompt: "Adopted: echoes a greeting",
+        resume: adoptedResume(stored, "change the greeting to goodbye"),
+      }
+    );
+
+    const result = await runGenerationPipeline(deps);
+
+    expect(result.outcome).toBe("ok");
+    expect(savedUnder[0]).toBe("wf-existing");
+    // The corrected literal survived hydration into the saved graph.
+    expect(
+      saved[0].nodes
+        .find((n) => n.id === "text-input-aaa")
+        ?.inputs.find((i) => i.name === "value")?.value
+    ).toBe("goodbye");
+    // One call, carrying a pipeline-composed system prompt (the resume has
+    // none) and the critique note.
+    expect(callLLM).toHaveBeenCalledTimes(1);
+    // The harness mock declares no parameters, so the received call is
+    // recovered through unknown.
+    const [call] = callLLM.mock.calls[0] as unknown as [
+      { system: string; messages: Array<{ role: string; content: string }> },
+    ];
+    expect(call.system).toContain("text-input");
+    expect(call.messages.at(-1)?.content).toContain(
+      "change the greeting to goodbye"
+    );
+    // A resume corrects; it does not re-plan or re-select.
+    const phaseList = phases(frames);
+    expect(phaseList[0]).toBe("repairing");
+    expect(phaseList).not.toContain("selecting");
+    expect(phaseList).not.toContain("generating");
+  });
+
+  it("replays a stored system prompt verbatim when the resume carries one", async () => {
+    const stored = storedWorkflow();
+    const { deps, callLLM } = harness([llmResult(workflowToDraft(stored))], {
+      prompt: "",
+      resume: {
+        ...adoptedResume(stored, "keep it as it is"),
+        system: "THE STORED SYSTEM PROMPT",
+      },
+    });
+
+    await runGenerationPipeline(deps);
+
+    const [call] = callLLM.mock.calls[0] as unknown as [{ system: string }];
+    expect(call.system).toBe("THE STORED SYSTEM PROMPT");
+  });
+
+  it("brings a scheduled adoption back dormant, arming values captured", async () => {
+    const stored = storedWorkflow({
+      trigger: "scheduled",
+      nodes: [
+        {
+          id: "receive-scheduled-trigger-xyz",
+          name: "Every morning",
+          type: "receive-scheduled-trigger",
+          position: { x: 0, y: 0 },
+          inputs: [
+            { name: "scheduleExpression", type: "string", value: "0 8 * * *" },
+          ] as Workflow["nodes"][number]["inputs"],
+          outputs: [],
+        },
+        {
+          id: "to-string-1",
+          name: "Stamp",
+          type: "to-string",
+          position: { x: 0, y: 0 },
+          inputs: [
+            { name: "value", type: "any" },
+          ] as Workflow["nodes"][number]["inputs"],
+          outputs: [],
+        },
+        {
+          id: "output-text-bbb",
+          name: "Result",
+          type: "output-text",
+          position: { x: 0, y: 0 },
+          inputs: [
+            { name: "value", type: "string" },
+          ] as Workflow["nodes"][number]["inputs"],
+          outputs: [],
+        },
+      ],
+      edges: [
+        {
+          source: "receive-scheduled-trigger-xyz",
+          sourceOutput: "timestamp",
+          target: "to-string-1",
+          targetInput: "value",
+        },
+        {
+          source: "to-string-1",
+          sourceOutput: "result",
+          target: "output-text-bbb",
+          targetInput: "value",
+        },
+      ],
+    });
+
+    // The model echoes the adopted draft back unchanged — the smallest
+    // possible critique response.
+    const echoed = workflowToDraft(stored);
+
+    const { deps, frames } = harness([llmResult(echoed)], {
+      prompt: "",
+      resume: adoptedResume(stored, "keep it as it is"),
+    });
+
+    const result = await runGenerationPipeline(deps);
+
+    expect(result.outcome).toBe("ok");
+    // The rebuild disarms: the cron line is captured for the arm turn, and
+    // the saved frame says so — this is what the rail's paused-notice reads.
+    expect(result.disarmed).toEqual([
+      {
+        nodeId: "trigger",
+        inputName: "scheduleExpression",
+        value: "0 8 * * *",
+      },
+    ]);
+    const savedFrame = frames.find((f) => f.type === "saved");
+    expect(savedFrame).toMatchObject({ type: "saved", dormant: true });
   });
 });

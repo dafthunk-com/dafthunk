@@ -57,6 +57,7 @@ import {
 } from "@dafthunk/utils";
 import { eq } from "drizzle-orm";
 import type { Connection, ConnectionContext } from "partyserver";
+import { workflowToDraft } from "../../agents/workflow-generator/adopt";
 import { generateBrief } from "../../agents/workflow-generator/brief";
 import {
   GENERATOR_MODELS,
@@ -77,6 +78,7 @@ import type {
   TierUsage,
 } from "../../agents/workflow-generator/pipeline";
 import { runGenerationPipeline } from "../../agents/workflow-generator/pipeline";
+import { buildUserPrompt } from "../../agents/workflow-generator/prompts";
 import type { Bindings } from "../../context";
 import {
   createDatabase,
@@ -225,6 +227,10 @@ export class GenerationSession {
       `brief TEXT`,
       // The trigger bindings hydration blanked, so `arm` can restore them.
       `disarmed TEXT`,
+      // Set when this session took over a workflow it did not build — an
+      // adopted workflow keeps its curated examples, a generated one gets
+      // the model's.
+      `adopted INTEGER NOT NULL DEFAULT 0`,
     ]) {
       try {
         this.sql.exec(`ALTER TABLE gen_runs ADD COLUMN ${column}`);
@@ -240,7 +246,7 @@ export class GenerationSession {
     this.ensureSchema();
     const rows = this.sql
       .exec(
-        `SELECT status, prompt, cancelled, updated_at, turn, brief, workflow_id, execution_id, disarmed FROM gen_runs WHERE session_id = ?`,
+        `SELECT status, prompt, cancelled, updated_at, turn, brief, workflow_id, execution_id, disarmed, adopted FROM gen_runs WHERE session_id = ?`,
         this.sessionId
       )
       .toArray() as Array<{
@@ -253,6 +259,7 @@ export class GenerationSession {
       workflow_id: string | null;
       execution_id: string | null;
       disarmed: string | null;
+      adopted: number;
     }>;
     return rows[0];
   }
@@ -473,18 +480,31 @@ export class GenerationSession {
     }
 
     // The client mints the id this object is keyed by, and the save path
-    // upserts by id — so a connect against an id that already names a workflow
-    // this session did not build would let the pipeline overwrite it. Refuse
-    // both directions with the same words: a cross-org probe must not learn
-    // that the id exists.
-    const run = this.currentRun();
+    // upserts by id — so ownership is settled here, at the door. Another
+    // org's workflow is refused without learning the id exists. This org's
+    // workflow with no generation history is ADOPTED: a settled run row is
+    // seeded so the conversation can pick the workflow up mid-life, exactly
+    // as if this session had built it. The conversation itself is fabricated
+    // lazily, on the first critique — connecting must stay cheap.
+    let run = this.currentRun();
     try {
       const owner = await new WorkflowStore(this.host.env).owningOrganization(
         this.sessionId
       );
-      if (owner && (owner !== organizationId || run?.workflow_id == null)) {
+      if (owner && owner.organizationId !== organizationId) {
         connection.close(1008, "Session unavailable");
         return;
+      }
+      if (owner && !run) {
+        this.sql.exec(
+          `INSERT INTO gen_runs (session_id, status, prompt, workflow_id, turn, adopted, updated_at)
+           VALUES (?, 'done', ?, ?, 0, 1, ?)`,
+          this.sessionId,
+          owner.name,
+          this.sessionId,
+          Date.now()
+        );
+        run = this.currentRun();
       }
     } catch (error) {
       console.error("[WorkflowGenerator] ownership check failed:", error);
@@ -583,22 +603,18 @@ export class GenerationSession {
       }
       case "critique": {
         const stored = this.currentRun();
-        const conversation = this.latestConversation();
-        // Nothing to correct without a workflow and the conversation that
-        // built it — an older session whose storage predates `gen_turns`
-        // simply cannot take a critique.
-        if (!stored?.workflow_id || !conversation) return;
+        // Nothing to correct without a workflow behind the session. A missing
+        // conversation is no longer a refusal: an adopted workflow gets one
+        // fabricated on its first critique.
+        if (!stored?.workflow_id) return;
 
-        const turn = this.claimTurn({ from: ["done"] });
+        // `failed` is claimable too: a turn that crashed leaves the workflow
+        // standing, and the Describe rail has no "start over" — a critique
+        // must be able to pick the session back up.
+        const turn = this.claimTurn({ from: ["done", "failed"] });
         if (turn !== undefined) {
           this.host.waitUntil(
-            this.runPipeline(turn, {
-              resume: {
-                ...conversation,
-                note: parsed.note,
-                workflowId: stored.workflow_id,
-              },
-            })
+            this.runCritique(turn, parsed.note, stored.workflow_id)
           );
         }
         return;
@@ -861,6 +877,8 @@ export class GenerationSession {
       );
     }
 
+    const nodeTypes = registry.getNodeTypes() as NodeType[];
+
     return {
       userId,
       organizationId,
@@ -868,7 +886,15 @@ export class GenerationSession {
       ownerEmail,
       orgResources,
       modelCatalog,
-      nodeTypes: registry.getNodeTypes() as NodeType[],
+      nodeTypes,
+      // Built once per turn, here, because every turn's prompt needs it and
+      // three call sites had already drifted into keeping identical copies.
+      grounding: buildGroundingContext({
+        nodeTypes,
+        orgResources,
+        emailDomain: this.host.env.EMAIL_DOMAIN,
+        modelCatalog,
+      }),
       connectedProviders: new Set(
         integrations.map((integration) => integration.provider)
       ) as ReadonlySet<string>,
@@ -919,12 +945,7 @@ export class GenerationSession {
         connectedProviders: context.connectedProviders,
         // The sentence can only name what the workspace really has — this is
         // where the org's own components reach the brief's judgement.
-        grounding: buildGroundingContext({
-          nodeTypes: context.nodeTypes,
-          orgResources: context.orgResources,
-          emailDomain: this.host.env.EMAIL_DOMAIN,
-          modelCatalog: context.modelCatalog,
-        }),
+        grounding: context.grounding,
         callLLM: (call: GenerateCall) => this.callModel(call),
       });
 
@@ -1001,6 +1022,72 @@ export class GenerationSession {
   }
 
   /**
+   * Corrects what the session's workflow currently is, in conversation.
+   *
+   * A session that built its workflow resumes the conversation that produced
+   * it. An adopted session has no such conversation, so its first critique
+   * fabricates the one the pipeline would have left behind — the request as
+   * a user message, the workflow itself (projected into the model's own
+   * dialect) as the last assistant draft. From then on it IS the
+   * conversation: the turn's end stores the real exchange, and a crash
+   * before that simply re-fabricates next time.
+   */
+  private async runCritique(
+    turn: number,
+    note: string,
+    workflowId: string
+  ): Promise<void> {
+    const conversation = this.latestConversation();
+    if (conversation) {
+      await this.runPipeline(turn, {
+        resume: { ...conversation, note, workflowId },
+      });
+      return;
+    }
+
+    const organizationId = this.host.genState.organizationId;
+    if (!organizationId) return;
+
+    const stored = await new WorkflowStore(this.host.env).getWithData(
+      workflowId,
+      organizationId
+    );
+    if (!stored) {
+      this.fail({
+        type: "error",
+        code: "INTERNAL",
+        message: "I couldn't read that workflow to change it.",
+        recoverable: false,
+      });
+      return;
+    }
+
+    // The stand-in for the request nobody typed — the name and description
+    // are the closest thing to intent the workflow carries. As the prompt of
+    // a resume without a stored system, it seeds candidate selection and the
+    // few-shots inside the pipeline itself, so the catalog the model is
+    // offered and the one hydration resolves against are the same set. It
+    // also bounds what this first critique can name; later critiques replay
+    // the conversation this turn stores.
+    const query = stored.data.description
+      ? `${stored.name}: ${stored.data.description}`
+      : stored.name;
+    const draft = workflowToDraft({ ...stored.data, name: stored.name });
+
+    await this.runPipeline(turn, {
+      prompt: query,
+      resume: {
+        messages: [
+          { role: "user", content: buildUserPrompt(query) },
+          { role: "assistant", content: JSON.stringify(draft) },
+        ],
+        note,
+        workflowId,
+      },
+    });
+  }
+
+  /**
    * Builds, saves and runs — from a raw prompt, an accepted brief, or a
    * critique of what was already built.
    */
@@ -1011,7 +1098,7 @@ export class GenerationSession {
       brief?: Brief;
       answers?: BriefAnswers;
       resume?: {
-        system: string;
+        system?: string;
         messages: Array<{ role: "user" | "assistant"; content: string }>;
         note: string;
         workflowId: string;
@@ -1100,12 +1187,7 @@ export class GenerationSession {
           createDatabase(this.host.env.DB),
           organizationId
         ),
-        grounding: buildGroundingContext({
-          nodeTypes: context.nodeTypes,
-          orgResources: context.orgResources,
-          emailDomain: this.host.env.EMAIL_DOMAIN,
-          modelCatalog: context.modelCatalog,
-        }),
+        grounding: context.grounding,
         modelCatalog: context.modelCatalog,
         ownerEmail: context.ownerEmail,
         apiHost: this.host.genState.apiHost,
@@ -1307,26 +1389,47 @@ export class GenerationSession {
 
     if (!existingId) this.createdAt = new Date();
 
+    // An update-in-place keeps what the row already says about itself: the
+    // runtime someone chose and the original creation date. Hardcoding the
+    // runtime silently converted adopted "worker" workflows, and the
+    // in-memory createdAt does not survive a DO eviction, which restamped
+    // the row on every critique of an older session. Read fresh per save —
+    // a point read is nothing next to the turn's model calls, and a cache
+    // here would serve a runtime the editor changed between critiques.
+    const existing = existingId
+      ? await new WorkflowStore(this.host.env)
+          .get(existingId, organizationId)
+          .catch((error) => {
+            console.error("[WorkflowGenerator] could not read the row:", error);
+            return undefined;
+          })
+      : undefined;
+    const createdAt = existing?.createdAt ?? this.createdAt;
+
     await this.host.saveWorkflowRecord({
       id: workflowId,
       name: workflow.name || "Generated Workflow",
       description: workflow.description,
       trigger: workflow.trigger,
-      runtime: "workflow",
+      runtime: existing?.runtime ?? "workflow",
       organizationId,
       nodes: workflow.nodes,
       edges: workflow.edges,
       apiHost: this.host.genState.apiHost,
-      ...(this.createdAt && { createdAt: this.createdAt }),
+      ...(createdAt && { createdAt }),
     });
 
     // The test inputs the model wrote are saved beside the graph, so the user
     // can edit and re-run them without touching it. Best-effort: a generated
-    // workflow that saved but has no examples is still usable.
-    try {
-      await new ExampleStore(this.host.env).save(workflowId, examples);
-    } catch (error) {
-      console.error("Failed to save the generated examples:", error);
+    // workflow that saved but has no examples is still usable. An ADOPTED
+    // workflow's examples are the user's own document, curated before this
+    // session existed — those are never overwritten.
+    if (this.currentRun()?.adopted !== 1) {
+      try {
+        await new ExampleStore(this.host.env).save(workflowId, examples);
+      } catch (error) {
+        console.error("Failed to save the generated examples:", error);
+      }
     }
 
     // Only on first save: the stage records that a workflow was created, and a

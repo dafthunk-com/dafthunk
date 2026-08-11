@@ -159,7 +159,14 @@ export interface PipelineDependencies {
    * corrected workflow rather than a second one beside the wrong one.
    */
   resume?: {
-    system: string;
+    /**
+     * The system prompt of the turn being resumed, replayed verbatim.
+     * Absent for an adopted workflow's first critique — there is no stored
+     * turn, so the pipeline composes a fresh prompt from `prompt` exactly as
+     * it would for a generation. That keeps prompt assembly in one place and
+     * keeps the advertised catalog and the hydration catalog the same set.
+     */
+    system?: string;
     messages: Array<{ role: "user" | "assistant"; content: string }>;
     note: string;
     workflowId: string;
@@ -535,16 +542,16 @@ export async function runGenerationPipeline(
       });
     }
 
-    const system = deps.resume
-      ? deps.resume.system
-      : buildSystemPrompt({
-          catalog: candidates,
-          nodeTypes: deps.nodeTypes,
-          withheld,
-          query: deps.prompt,
-          destination: deps.destination,
-          grounding: deps.grounding,
-        });
+    const system =
+      deps.resume?.system ??
+      buildSystemPrompt({
+        catalog: candidates,
+        nodeTypes: deps.nodeTypes,
+        withheld,
+        query: deps.prompt,
+        destination: deps.destination,
+        grounding: deps.grounding,
+      });
 
     // A resumed turn replays the conversation that produced the workflow and
     // appends the note, so the model corrects what it built rather than

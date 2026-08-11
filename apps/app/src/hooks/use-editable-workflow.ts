@@ -106,6 +106,13 @@ export function useEditableWorkflow({
     trigger: string;
     runtime?: WorkflowRuntime;
   } | null>(null);
+  // The raw server graph, as the last init/update frame delivered it —
+  // including the broadcast after a generation save. `WorkflowState` extends
+  // `Workflow`, so this feeds the Describe mode's schematic directly,
+  // without a round trip through the React Flow projection.
+  const [workflowState, setWorkflowState] = useState<WorkflowState | null>(
+    null
+  );
 
   const { organization } = useAuth();
 
@@ -189,6 +196,8 @@ export function useEditableWorkflow({
       }
 
       const applyRemoteState = (state: WorkflowState) => {
+        setWorkflowState(state);
+
         // Store workflow metadata
         if (state.id && state.trigger) {
           setWorkflowMetadata({
@@ -383,6 +392,7 @@ export function useEditableWorkflow({
     connectionError,
     isWSConnected,
     workflowMetadata,
+    workflowState,
     handleNodesChange,
     handleEdgesChange,
     executeWorkflow,

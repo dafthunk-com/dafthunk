@@ -10,7 +10,7 @@ import type {
   Node as ReactFlowNode,
 } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -51,7 +51,7 @@ import { useKeyboardShortcuts } from "./use-keyboard-shortcuts";
 import { useResizableSidebar } from "./use-resizable-sidebar";
 import { useWorkflowExecutionState } from "./use-workflow-execution-state";
 import { useWorkflowState } from "./use-workflow-state";
-import { WorkflowCanvas } from "./workflow-canvas";
+import { FIT_VIEW_OPTIONS, WorkflowCanvas } from "./workflow-canvas";
 import { WorkflowProvider } from "./workflow-context";
 import { WorkflowErrorBoundary } from "./workflow-error-boundary";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
@@ -78,7 +78,7 @@ type WorkflowBuilderMode = "edit" | "readonly" | "preview";
  *                page draws while generating, so a freshly built workflow can
  *                open as the thing the user just watched.
  */
-type WorkflowBuilderView = "detail" | "overview";
+export type WorkflowBuilderView = "detail" | "overview";
 
 export interface WorkflowBuilderProps {
   workflowId: string;
@@ -97,7 +97,16 @@ export interface WorkflowBuilderProps {
   ) => void | (() => void | Promise<void>);
   initialWorkflowExecution?: WorkflowExecution;
   mode?: WorkflowBuilderMode;
-  initialView?: WorkflowBuilderView;
+  /**
+   * Controlled view. When provided, the page owns the view axis: the internal
+   * toggle disappears, and view changes the builder itself wants (a
+   * double-click on a pill) are reported through `onViewChange` instead of
+   * applied. When absent, the builder owns the axis and starts in detail.
+   */
+  view?: WorkflowBuilderView;
+  onViewChange?: (view: WorkflowBuilderView) => void;
+  /** Caller-supplied control centered over the canvas (not the page). */
+  topCenterSlot?: React.ReactNode;
   disabledFeedback?: boolean;
   createObjectUrl: (objectReference: ObjectReference) => string;
   expandedOutputs?: boolean;
@@ -134,7 +143,9 @@ export function WorkflowBuilder({
   executeWorkflow,
   initialWorkflowExecution,
   mode = "edit",
-  initialView = "detail",
+  view,
+  onViewChange,
+  topCenterSlot,
   disabledFeedback = false,
   createObjectUrl,
   expandedOutputs = false,
@@ -148,7 +159,7 @@ export function WorkflowBuilder({
   isEnabled,
   isTogglingEnabled,
   onToggleEnabled,
-  fitViewPadding = 0.25,
+  fitViewPadding = FIT_VIEW_OPTIONS.padding,
 }: WorkflowBuilderProps) {
   const readOnly = mode !== "edit";
   const interactive = mode !== "preview";
@@ -157,7 +168,9 @@ export function WorkflowBuilder({
   // Overview is a way of looking, not a mode of its own: it renders the graph
   // as schematic pills and suspends graph surgery while it is up, whatever the
   // builder mode. Editing only ever happens in the detail view.
-  const [overview, setOverview] = useState(initialView === "overview");
+  const viewControlled = view !== undefined;
+  const [internalOverview, setInternalOverview] = useState(false);
+  const overview = viewControlled ? view === "overview" : internalOverview;
   const editing = !readOnly && !overview;
 
   // Graph state & operations
@@ -246,27 +259,40 @@ export function WorkflowBuilder({
     reactFlowInstance?.fitView({
       padding: fitViewPadding,
       duration: 200,
-      maxZoom: 2,
+      maxZoom: FIT_VIEW_OPTIONS.maxZoom,
     });
   }, [reactFlowInstance, fitViewPadding]);
 
   // Switching views swaps every node's renderer, so the camera has to wait
   // two frames — one for React to commit the swap, one for React Flow to
   // re-measure the new renderers — before fitView can frame them honestly.
+  // An effect rather than part of setView, because a controlled view can
+  // change without setView ever being called (the page's own toggle).
+  const framedOverviewRef = useRef(overview);
+  useEffect(() => {
+    if (framedOverviewRef.current === overview) return;
+    framedOverviewRef.current = overview;
+    const frame = requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        reactFlowInstance?.fitView({
+          padding: fitViewPadding,
+          duration: 300,
+          maxZoom: FIT_VIEW_OPTIONS.maxZoom,
+        });
+      })
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [overview, reactFlowInstance, fitViewPadding]);
+
   const setView = useCallback(
     (next: boolean) => {
-      setOverview(next);
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => {
-          reactFlowInstance?.fitView({
-            padding: fitViewPadding,
-            duration: 300,
-            maxZoom: 2,
-          });
-        })
-      );
+      if (viewControlled) {
+        onViewChange?.(next ? "overview" : "detail");
+        return;
+      }
+      setInternalOverview(next);
     },
-    [reactFlowInstance, fitViewPadding]
+    [viewControlled, onViewChange]
   );
 
   const handleToggleOverview = useCallback(() => {
@@ -485,11 +511,17 @@ export function WorkflowBuilder({
                 hasClipboardData={hasClipboardData}
                 showControls={interactive}
                 runSlot={examplePicker}
+                topCenterSlot={topCenterSlot}
                 showBackground={showBackground}
                 fitViewPadding={fitViewPadding}
                 overview={overview}
+                // The embedded toggle yields when the page owns the view
+                // axis; a double-click on a pill still reports through
+                // onViewChange either way.
                 onToggleOverview={
-                  interactive ? handleToggleOverview : undefined
+                  interactive && !viewControlled
+                    ? handleToggleOverview
+                    : undefined
                 }
               />
             </WorkflowErrorBoundary>

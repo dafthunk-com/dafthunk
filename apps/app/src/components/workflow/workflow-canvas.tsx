@@ -166,6 +166,12 @@ export interface WorkflowCanvasProps {
   showControls?: boolean;
   /** Extra control rendered beside Run, e.g. the example picker. */
   runSlot?: React.ReactNode;
+  /**
+   * Caller-supplied control centered over the canvas — centered HERE rather
+   * than on the page, because the canvas shares its row with a sidebar and
+   * page-center lands visibly off the surface the control floats on.
+   */
+  topCenterSlot?: React.ReactNode;
   isValidConnection?: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
   disabled?: boolean;
   onFitToScreen?: (e: React.MouseEvent) => void;
@@ -309,6 +315,14 @@ function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
     </ActionBarButton>
   );
 }
+
+/**
+ * The one fit-to-screen framing, shared by every surface that shows a
+ * workflow graph. The editor and the schematic view used to disagree
+ * (maxZoom 2 vs 1), so flipping between Describe and Edit rescaled the
+ * graph — small workflows sat visibly smaller on the schematic side.
+ */
+export const FIT_VIEW_OPTIONS = { padding: 0.25, maxZoom: 2 } as const;
 
 /** Exported for the generator's embedded schematic view, like the toggle. */
 export function FitToScreenButton({
@@ -606,6 +620,7 @@ export function WorkflowCanvas({
   isSidebarVisible,
   showControls = true,
   runSlot,
+  topCenterSlot,
   isValidConnection,
   disabled = false,
   onFitToScreen,
@@ -619,7 +634,7 @@ export function WorkflowCanvas({
   onPasteFromClipboard,
   hasClipboardData = false,
   showBackground = true,
-  fitViewPadding = 0.25,
+  fitViewPadding = FIT_VIEW_OPTIONS.padding,
   overview = false,
   onToggleOverview,
 }: WorkflowCanvasProps) {
@@ -667,7 +682,7 @@ export function WorkflowCanvas({
         fitView
         fitViewOptions={{
           padding: fitViewPadding,
-          maxZoom: 2,
+          maxZoom: FIT_VIEW_OPTIONS.maxZoom,
         }}
         minZoom={0.05}
         maxZoom={4}
@@ -711,6 +726,12 @@ export function WorkflowCanvas({
             workflowStatus={workflowStatus}
             errorMessage={workflowErrorMessage}
           />
+        )}
+
+        {topCenterSlot && (
+          <div className="absolute top-4 left-1/2 z-50 -translate-x-1/2">
+            {topCenterSlot}
+          </div>
         )}
 
         {/* Action Bars */}

@@ -50,6 +50,10 @@ export const actionBarButtonBaseClassName = "h-10 px-3 rounded-none border-0";
 export const actionBarButtonOutlineClassName =
   "bg-white hover:bg-neutral-50 text-neutral-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200";
 
+/** The selected look for toggle-style buttons: the outline style, committed. */
+export const actionBarButtonActiveClassName =
+  "bg-neutral-100 text-neutral-900 hover:bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-800";
+
 export interface ActionBarButtonProps {
   onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
