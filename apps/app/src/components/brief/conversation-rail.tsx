@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
 import { ApprovalCard } from "@/components/brief/approval-card";
+import { thinkingTextClass } from "@/components/brief/brief-sentence";
 import { OutcomeView } from "@/components/brief/outcome-view";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -213,6 +214,37 @@ function StallNotice({ signature }: { signature: string }) {
       This is taking much longer than it should — it may be stuck. You can keep
       waiting, or start over; nothing has been lost either way.
     </p>
+  );
+}
+
+/**
+ * The live narration, typed character by character — the signature of a
+ * model streaming its words. Mounted keyed by its text, so every new label
+ * restarts the typing; the resting caret keeps blinking to say more is
+ * coming. The full text lives in a visually-hidden span so the enclosing
+ * live region announces whole sentences, never keystrokes.
+ */
+function TypedLabel({ text }: { text: string }) {
+  const [count, setCount] = useState(() =>
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? text.length
+      : 0
+  );
+
+  useEffect(() => {
+    if (count >= text.length) return;
+    const timer = setTimeout(() => setCount(count + 1), 18);
+    return () => clearTimeout(timer);
+  }, [count, text.length]);
+
+  return (
+    <span className="text-foreground">
+      <span className="sr-only">{text}</span>
+      <span aria-hidden>
+        {text.slice(0, count)}
+        <span className="wire-caret" />
+      </span>
+    </span>
   );
 }
 
@@ -517,16 +549,33 @@ export function ConversationRail({
 }: ConversationRailProps) {
   const screen = railScreen(state);
 
+  // While frames stream, the echoed sentence wears the phase-mapped thinking
+  // treatment — the model is visibly reading the words, not idling near them.
+  const thinking =
+    screen === "running"
+      ? thinkingTextClass(state.phase ?? "briefing")
+      : undefined;
+
   // The default sentence echo: the flow's spine, muted. Pages replace it when
   // they can render something richer.
   const sentenceEcho =
     sentence ??
     (state.sentence ? (
-      <p className="text-2xl leading-relaxed tracking-tight text-muted-foreground">
+      <p
+        className={cn(
+          "text-2xl leading-relaxed tracking-tight text-muted-foreground",
+          thinking
+        )}
+      >
         {state.sentence}
       </p>
     ) : state.prompt ? (
-      <p className="text-2xl tracking-tight text-muted-foreground">
+      <p
+        className={cn(
+          "text-2xl tracking-tight text-muted-foreground",
+          thinking
+        )}
+      >
         {state.prompt}
       </p>
     ) : null);
@@ -572,7 +621,11 @@ export function ConversationRail({
       );
 
     // ── Running ───────────────────────────────────────────────────────────
-    case "running":
+    case "running": {
+      const activeLabel = state.cancelling
+        ? "Finishing the current step, then stopping"
+        : (state.phaseLabel ?? PHASE_COPY[state.phase ?? "briefing"]);
+
       return (
         <>
           {sentenceEcho}
@@ -581,12 +634,12 @@ export function ConversationRail({
               step list arrives as clauses; a title is the earliest thing a
               person can check against what they meant. */}
           {state.plan && (
-            <div className="space-y-1 animate-in fade-in-0 duration-300 motion-reduce:animate-none">
+            <div className="space-y-1 animate-in fade-in-0 slide-in-from-bottom-2 duration-500 motion-reduce:animate-none">
               <h2 className="text-lg font-medium tracking-tight">
                 {state.plan.title}
               </h2>
               {state.plan.description && (
-                <p className="line-clamp-2 text-sm text-muted-foreground">
+                <p className="line-clamp-2 text-sm text-muted-foreground animate-in fade-in-0 duration-500 [animation-delay:200ms] [animation-fill-mode:backwards] motion-reduce:animate-none">
                   {state.plan.description}
                 </p>
               )}
@@ -601,27 +654,38 @@ export function ConversationRail({
 
           {/* A live region: this flow is mostly waiting, and a screen reader
               user otherwise submits a request and hears nothing for a minute.
-              Steps done accrue as a checked list — elapsed time becomes
-              visible progress — and the current line is the server's own
-              narration; the static map only fills gaps. */}
-          <div
-            role="status"
-            className="space-y-1.5 text-sm text-muted-foreground"
-          >
+              Visually it is the wire: each completed phase solders a node,
+              the link draws down toward the glowing tip, and the narration
+              types itself beside the tip — progress drawn as the thing being
+              built. The static phase map only fills gaps in the server's own
+              narration. */}
+          <div role="status" className="text-sm">
             {state.phaseTrail.map((label, index) => (
               <div
                 key={`${label}-${index}`}
-                className="flex items-center gap-3 animate-in fade-in-0 duration-200 motion-reduce:animate-none"
+                className="relative flex items-start gap-3 pb-3 animate-in fade-in-0 duration-300 motion-reduce:animate-none"
               >
-                <Check className="size-4 shrink-0" />
-                {label}
+                <span
+                  aria-hidden
+                  className="wire-link absolute left-[7px] top-3.5 bottom-0 w-0.5 rounded-full bg-border"
+                />
+                <span
+                  aria-hidden
+                  className="relative z-10 mt-0.5 flex size-4 shrink-0 items-center justify-center"
+                >
+                  <span className="wire-node size-2 rounded-full bg-muted-foreground/70" />
+                </span>
+                <span className="text-muted-foreground/75">{label}</span>
               </div>
             ))}
-            <div className="flex items-center gap-3">
-              <Loader2 className="size-4 animate-spin" />
-              {state.cancelling
-                ? "Finishing the current step, then stopping"
-                : (state.phaseLabel ?? PHASE_COPY[state.phase ?? "briefing"])}
+            <div className="flex items-start gap-3">
+              <span
+                aria-hidden
+                className="mt-0.5 flex size-4 shrink-0 items-center justify-center"
+              >
+                <span className="wire-tip size-2.5 rounded-full" />
+              </span>
+              <TypedLabel key={activeLabel} text={activeLabel} />
             </div>
           </div>
 
@@ -644,6 +708,7 @@ export function ConversationRail({
           </Button>
         </>
       );
+    }
 
     // ── Stopped on request, nothing kept ──────────────────────────────────
     case "cancelled":

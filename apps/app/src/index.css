@@ -469,3 +469,293 @@ html.dark .react-flow__attribution:hover {
 html.dark .react-flow__attribution a {
   color: #bbb !important;
 }
+
+/* ── The aurora behind /start ───────────────────────────────────────────────
+   Soft drifting color fields, the one colorful thing on an otherwise
+   monochrome page. Visible at rest (the glow is calm, not motion), while
+   the drift itself sits behind the motion preference. */
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  will-change: transform;
+}
+
+.aurora-violet {
+  background: radial-gradient(circle, hsl(265 90% 60% / 0.33), transparent 70%);
+}
+
+.aurora-cyan {
+  background: radial-gradient(circle, hsl(195 95% 55% / 0.3), transparent 70%);
+}
+
+.aurora-rose {
+  background: radial-gradient(circle, hsl(330 90% 62% / 0.26), transparent 70%);
+}
+
+.dark .aurora-violet {
+  background: radial-gradient(circle, hsl(265 90% 62% / 0.4), transparent 70%);
+}
+
+.dark .aurora-cyan {
+  background: radial-gradient(circle, hsl(195 95% 58% / 0.36), transparent 70%);
+}
+
+.dark .aurora-rose {
+  background: radial-gradient(circle, hsl(330 90% 64% / 0.3), transparent 70%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .aurora-drift-1 {
+    animation: aurora-drift-1 21s ease-in-out infinite alternate;
+  }
+
+  .aurora-drift-2 {
+    animation: aurora-drift-2 27s ease-in-out infinite alternate;
+  }
+
+  .aurora-drift-3 {
+    animation: aurora-drift-3 24s ease-in-out infinite alternate;
+  }
+
+  @keyframes aurora-drift-1 {
+    from {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+      transform: translate3d(14vw, 10vh, 0) scale(1.2);
+    }
+  }
+
+  @keyframes aurora-drift-2 {
+    from {
+      transform: translate3d(0, 0, 0) scale(1.1);
+    }
+    to {
+      transform: translate3d(-12vw, 14vh, 0) scale(0.9);
+    }
+  }
+
+  @keyframes aurora-drift-3 {
+    from {
+      transform: translate3d(0, 0, 0) scale(0.95);
+    }
+    to {
+      transform: translate3d(10vw, -12vh, 0) scale(1.15);
+    }
+  }
+}
+
+/* ── The readback arriving ──────────────────────────────────────────────────
+   The brief sentence cascades in word by word — the moment the request
+   visibly becomes something the model understood. Slots land last-in-place
+   with a pop and a ring flash that says "this part is yours to change".
+   Under reduced motion the sentence simply appears, whole. */
+@media (prefers-reduced-motion: no-preference) {
+  .brief-word {
+    display: inline-block;
+    animation: brief-word-in 0.5s cubic-bezier(0.2, 0.6, 0.2, 1) backwards;
+  }
+
+  @keyframes brief-word-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.35em);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: blur(0);
+    }
+  }
+
+  .brief-slot-land {
+    animation: brief-slot-land 0.6s cubic-bezier(0.2, 0.7, 0.3, 1.1) backwards;
+  }
+
+  @keyframes brief-slot-land {
+    0% {
+      opacity: 0;
+      transform: translateY(0.35em) scale(0.9);
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+    }
+    55% {
+      opacity: 1;
+      transform: scale(1.05);
+      box-shadow: 0 0 0 6px hsl(var(--primary) / 0.15);
+    }
+    100% {
+      opacity: 1;
+      transform: none;
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+    }
+  }
+}
+
+/* ── The model thinking, spelled in the user's own words ────────────────────
+   Worn by the brief flow while a build runs: the sentence and the live status
+   line carry the activity themselves instead of delegating it to a spinner.
+   Everything here is decoration over real text, so the whole block sits
+   behind the motion preference — under reduced motion each class is inert
+   and the words simply keep their normal color. */
+@media (prefers-reduced-motion: no-preference) {
+  /* A highlight band sweeping through muted text, reading left to right.
+     The theme is `@theme inline`, so no --color-* variables exist at
+     runtime — everything below reaches for the raw :root channels. */
+  .thinking-sweep {
+    background-image: linear-gradient(
+      100deg,
+      hsl(var(--muted-foreground)) 42%,
+      hsl(var(--foreground)) 50%,
+      hsl(var(--muted-foreground)) 58%
+    );
+    background-size: 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: thinking-sweep 2.4s linear infinite;
+  }
+
+  /* A brightening wipe, left to right — the proofreader's read-through. */
+  .thinking-fill {
+    background-image: linear-gradient(
+      90deg,
+      hsl(var(--foreground)) 45%,
+      hsl(var(--muted-foreground)) 55%
+    );
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: thinking-fill 2.8s ease-in-out infinite;
+  }
+
+  /* Both travel by sliding an oversized gradient from right-aligned to
+     left-aligned; the off-screen margin gives a beat between passes. */
+  @keyframes thinking-sweep {
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: 0% 0;
+    }
+  }
+
+  @keyframes thinking-fill {
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: 0% 0;
+    }
+  }
+
+  /* Slots weighed one after another while the pieces are being chosen. */
+  .thinking-slot {
+    animation: thinking-slot 1.8s ease-in-out infinite;
+    animation-delay: calc(var(--slot-index, 0) * 350ms);
+  }
+
+  @keyframes thinking-slot {
+    0%,
+    100% {
+      background-color: hsl(var(--muted));
+    }
+    50% {
+      background-color: hsl(var(--primary) / 0.18);
+    }
+  }
+}
+
+/* ── The wire ───────────────────────────────────────────────────────────────
+   Build progress drawn as the thing being built: each finished phase solders
+   a node onto a vertical wire, the link draws down toward a glowing tip, and
+   the narration types itself beside it. The tip and the caret are the only
+   foreground elements that borrow the aurora's colors — color always means
+   "happening now". The tip glows even under reduced motion (color is not
+   motion); the soldering, drawing, pulsing, and typing all sit behind the
+   preference. */
+.wire-tip {
+  background: linear-gradient(135deg, hsl(265 90% 60%), hsl(195 95% 55%));
+  box-shadow:
+    0 0 10px hsl(265 90% 60% / 0.5),
+    0 0 20px hsl(195 95% 55% / 0.35);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wire-tip {
+    animation: wire-tip 1.8s ease-in-out infinite;
+  }
+
+  @keyframes wire-tip {
+    0%,
+    100% {
+      transform: scale(0.9);
+      box-shadow:
+        0 0 6px hsl(265 90% 60% / 0.45),
+        0 0 14px hsl(195 95% 55% / 0.3);
+    }
+    50% {
+      transform: scale(1.15);
+      box-shadow:
+        0 0 14px hsl(265 90% 60% / 0.7),
+        0 0 26px hsl(195 95% 55% / 0.5);
+    }
+  }
+
+  /* The solder: a completed node lands with a pop and a cooling ring. */
+  .wire-node {
+    animation: wire-node 0.5s cubic-bezier(0.2, 0.7, 0.3, 1.1) backwards;
+  }
+
+  @keyframes wire-node {
+    0% {
+      opacity: 0;
+      transform: scale(0.4);
+      box-shadow: 0 0 0 0 hsl(265 90% 60% / 0.5);
+    }
+    45% {
+      opacity: 1;
+      transform: scale(1.3);
+      box-shadow: 0 0 0 5px hsl(265 90% 60% / 0.18);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+      box-shadow: 0 0 0 0 hsl(265 90% 60% / 0);
+    }
+  }
+
+  /* The link draws downward once its node has landed. */
+  .wire-link {
+    transform-origin: top;
+    animation: wire-link 0.35s ease-out 120ms backwards;
+  }
+
+  @keyframes wire-link {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  .wire-caret {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 2px;
+    vertical-align: -0.1em;
+    border-radius: 1px;
+    background: linear-gradient(180deg, hsl(265 90% 60%), hsl(195 95% 55%));
+    animation: wire-caret 1.1s steps(2, start) infinite;
+  }
+
+  @keyframes wire-caret {
+    50% {
+      opacity: 0;
+    }
+  }
+}

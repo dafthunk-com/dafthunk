@@ -1,12 +1,10 @@
-import type { BriefAnswers, BriefBlank } from "@dafthunk/types";
+import type { BriefAnswers } from "@dafthunk/types";
 import {
   renderBriefSentence,
-  resolveBlank,
   resolveDestination,
   unansweredAssumptions,
 } from "@dafthunk/utils";
 import ArrowRight from "lucide-react/icons/arrow-right";
-import Logs from "lucide-react/icons/logs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 
@@ -21,23 +19,13 @@ import {
   SessionSkeleton,
 } from "@/components/brief/conversation-rail";
 import {
-  ConversationShell,
-  EmptyCanvas,
-} from "@/components/brief/conversation-shell";
-import {
-  ActionBarButton,
-  ActionBarGroup,
-  actionBarButtonOutlineClassName,
-} from "@/components/ui/action-bar";
+  type AuroraLevel,
+  ThinkingAurora,
+} from "@/components/brief/thinking-aurora";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { WorkflowSchematicView } from "@/components/workflow/workflow-schematic-view";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { useWorkflowBrief } from "@/hooks/use-workflow-brief";
-import { markOutcomeSeen, markWorkflowKept } from "@/services/profile-service";
-import { useNodeTypes } from "@/services/type-service";
-import { cn } from "@/utils/utils";
+import { markWorkflowKept } from "@/services/profile-service";
 
 /**
  * Complete jobs, not capabilities.
@@ -52,21 +40,6 @@ const EXAMPLES = [
   "When someone fills in my contact form, reply and post it to Discord",
   "Turn a blog post into a short summary and email it to me",
 ];
-
-/**
- * The value of a blank, as a person would say it.
- *
- * A choice blank's answer is an option id; the sentence shows its label, so
- * anything we write back to the server about that answer has to use the label
- * too — a critique reading `use "opt-2"` is our bookkeeping leaking into their
- * correction.
- */
-function blankValueLabel(blank: BriefBlank, value: string): string {
-  if (blank.type === "choice") {
-    return blank.options.find((option) => option.id === value)?.label ?? value;
-  }
-  return value;
-}
 
 /** The last brief session, so the second visit to /start has a memory. */
 interface LastSession {
@@ -100,6 +73,48 @@ function writeLastSession(orgId: string, entry: LastSession): void {
   }
 }
 
+/**
+ * A single reading-width column, centered, lit from behind.
+ *
+ * No stage, no canvas: everything visual about the build lives on the
+ * workflow page now, and a split screen whose right half is permanently
+ * empty would only say that something is missing. Here the sentence is the
+ * whole page — and the aurora behind it is atmosphere, not information:
+ * ambient while the person holds the pen, blooming while the model does.
+ * Every screen returns this same component at the same tree position, which
+ * is what lets the aurora persist and crossfade between levels instead of
+ * cutting.
+ */
+function Centered({
+  aurora = "off",
+  banner,
+  children,
+}: {
+  aurora?: AuroraLevel;
+  banner?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      <ThinkingAurora level={aurora} />
+      <div className="relative mx-auto w-full max-w-2xl space-y-6 px-6 py-16">
+        {banner}
+        {children}
+      </div>
+    </>
+  );
+}
+
+/**
+ * The front door, and only the front door.
+ *
+ * /start owns the making of a first version: the request, the brief
+ * readback, and the early build. The moment a first version of the workflow
+ * exists, the stage moves to the workflow page's Describe mode — the same
+ * rail, the same canvas — and everything after the save (the approval gate,
+ * the trial run, the outcome, the arm card) plays there. One place per
+ * screen, and the workflow's own page is where the workflow lives.
+ */
 export function BriefPage() {
   const { sessionId } = useParams<{ sessionId?: string }>();
   const navigate = useNavigate();
@@ -138,28 +153,30 @@ export function BriefPage() {
     reset,
   } = useWorkflowBrief(orgId, { sessionId, onSessionStarted });
 
-  // Only for the schematic's trigger/responder accent — SWR-cached, so this
-  // is the same fetch the editor makes when "Open it" is followed.
-  const { nodeTypes } = useNodeTypes({ revalidateOnFocus: false });
-
   const [request, setRequest] = useState("");
   const [answers, setAnswers] = useState<BriefAnswers>({});
   const [openBlankId, setOpenBlankId] = useState<string | null>(null);
-  // Kept after the box is cleared so the wait can show what was asked for.
-  // A repair round takes long enough that "Fixing something up" over the
-  // original sentence gives no way to tell whether the note was even received.
-  const [pendingNote, setPendingNote] = useState("");
 
-  // Stamped once per session, when a result is actually on screen. Best-effort
-  // and deliberately unawaited: this is observability, and a failed stamp must
-  // never be something the user notices.
-  const stampedOutcome = useRef(false);
-  const hasOutcome = Boolean(state.execution && state.workflow);
+  // ── The handoff ─────────────────────────────────────────────────────────
+  // The first `saved` frame is the workflow coming into existence, and it is
+  // the moment this page's job ends: navigate to the workflow page, whose
+  // Describe mode attaches to the same session and replays it — the running
+  // screen continues there, then the approval gate, the outcome, the arm.
+  // The same effect also redirects a revisited settled session (its
+  // `session` frame carries the workflowId), which is why /start needs no
+  // "already built" screen of its own.
+  const handedOff = useRef(false);
   useEffect(() => {
-    if (!hasOutcome || stampedOutcome.current) return;
-    stampedOutcome.current = true;
-    void markOutcomeSeen().catch(() => {});
-  }, [hasOutcome]);
+    if (!state.workflowId || handedOff.current) return;
+    handedOff.current = true;
+    // The arrival replaces the old "Open it" click; the stamp rides along.
+    void markWorkflowKept().catch(() => {});
+    navigate(
+      getOrgUrl(`workflows/${state.workflowId}?mode=describe&view=overview`),
+      { replace: true }
+    );
+  }, [state.workflowId, navigate, getOrgUrl]);
+
   const openBlank = state.brief?.blanks.find(
     (blank) => blank.id === openBlankId
   );
@@ -185,22 +202,8 @@ export function BriefPage() {
     setRequest("");
     setAnswers({});
     setOpenBlankId(null);
-    setPendingNote("");
     navigate(getOrgUrl("start"), { replace: true });
   };
-
-  // The graph as it currently stands, for every screen that shows the stage
-  // plain — no run pulse, no outcome overlays. One definition, so the
-  // approval gate, a lost connection, and a failure can never disagree about
-  // what "the picture" is.
-  const graphCanvas =
-    state.workflow && state.workflow.nodes.length > 0 ? (
-      <WorkflowSchematicView
-        workflow={state.workflow}
-        nodeTypes={nodeTypes}
-        className="h-full"
-      />
-    ) : undefined;
 
   const submitRequest = (prompt: string) => {
     lastPromptRef.current = prompt;
@@ -209,21 +212,7 @@ export function BriefPage() {
     ask(prompt);
   };
 
-  // The one critique entry point: sends the note and keeps it on screen as
-  // the "Changing:" receipt while the rebuild runs.
-  const critiqueAndRecord = (note: string) => {
-    critique(note);
-    setPendingNote(note);
-  };
-
-  const railActions = {
-    critique: critiqueAndRecord,
-    approve,
-    decline,
-    cancel,
-    arm,
-    reconnect,
-  };
+  const railActions = { critique, approve, decline, cancel, arm, reconnect };
   const screen = railScreen(state);
 
   // ── Fetching a named session ────────────────────────────────────────────
@@ -232,9 +221,9 @@ export function BriefPage() {
   // first-run hero over ten minutes of history.
   if (sessionId && !state.sessionLoaded) {
     return (
-      <ConversationShell>
+      <Centered aurora="ambient">
         <SessionSkeleton />
-      </ConversationShell>
+      </Centered>
     );
   }
 
@@ -243,7 +232,7 @@ export function BriefPage() {
     return (
       // Whatever was built stays on the stage while the socket is down —
       // blanking the picture would say "lost" when nothing is.
-      <ConversationShell canvas={graphCanvas}>
+      <Centered>
         <ConversationRail
           state={state}
           actions={railActions}
@@ -251,7 +240,7 @@ export function BriefPage() {
           voice="creation"
           onStartOver={startOver}
         />
-      </ConversationShell>
+      </Centered>
     );
   }
 
@@ -263,7 +252,7 @@ export function BriefPage() {
       !sessionId && orgId ? readLastSession(orgId) : undefined;
 
     return (
-      <ConversationShell banner={banner}>
+      <Centered aurora="ambient" banner={banner}>
         {lastSession && (
           <p className="text-sm text-muted-foreground">
             Still building "
@@ -282,7 +271,7 @@ export function BriefPage() {
         {/* A bookmarked session that was reclaimed: it never built anything,
             so there is nothing to point at — and silence here read as the
             page having eaten it. Sessions that did build carry their pointer
-            in the session frame and land on the built-workflow screen. */}
+            in the session frame and redirect to the workflow page. */}
         {sessionId && (
           <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
             This session has ended. If it built a workflow, you'll find it under
@@ -300,7 +289,12 @@ export function BriefPage() {
             submitRequest(request);
           }}
         >
-          <Textarea
+          {/* Not a boxed form field: the request is typed in the exact style
+              the brief sentence reads back in, so the words never change
+              costume between being written and being read. The caret and the
+              placeholder are the whole affordance — a border here would say
+              "form" on a page whose interface is a sentence. */}
+          <textarea
             autoFocus
             rows={2}
             value={request}
@@ -316,7 +310,7 @@ export function BriefPage() {
             // Not one of the example chips: the same sentence twice on one
             // screen reads as a bug, and a fourth complete job teaches more.
             placeholder="Watch Hacker News for mentions of my product and email me a daily digest"
-            className="text-base"
+            className="field-sizing-content w-full resize-none bg-transparent text-2xl leading-relaxed tracking-tight caret-primary outline-none placeholder:text-muted-foreground/50"
           />
           <div className="flex flex-wrap gap-2">
             {EXAMPLES.map((example) => (
@@ -334,14 +328,14 @@ export function BriefPage() {
             Continue
           </Button>
         </form>
-      </ConversationShell>
+      </Centered>
     );
   }
 
   // ── Too thin to read back ───────────────────────────────────────────────
   if (screen === "suggestions" && state.suggestions) {
     return (
-      <ConversationShell banner={banner}>
+      <Centered aurora="ambient" banner={banner}>
         {/* "Did you mean" is a claim to have understood. Only make it when the
             suggestions actually scored against what they wrote — otherwise
             these are examples, and calling them a guess reads as nonsense. */}
@@ -374,47 +368,14 @@ export function BriefPage() {
         <Button variant="ghost" onClick={startOver}>
           Let me rephrase
         </Button>
-      </ConversationShell>
-    );
-  }
-
-  // ── Waiting on permission to act ────────────────────────────────────────
-  if (screen === "approval") {
-    // Consent anchored to the thing consented to: the user's own sentence
-    // stays on screen, with the phrase that leaves the platform marked.
-    const destinationBlankId = state.brief?.blanks.find(
-      (blank) => blank.role === "destination"
-    )?.id;
-
-    return (
-      <ConversationShell banner={banner} canvas={graphCanvas}>
-        <ConversationRail
-          state={state}
-          actions={railActions}
-          getOrgUrl={getOrgUrl}
-          voice="creation"
-          onStartOver={startOver}
-          sentence={
-            sentenceAgrees && state.brief ? (
-              <BriefSentence
-                brief={state.brief}
-                answers={answers}
-                openBlankId={null}
-                onOpenBlank={() => {}}
-                disabled
-                highlightBlankId={destinationBlankId}
-              />
-            ) : undefined
-          }
-        />
-      </ConversationShell>
+      </Centered>
     );
   }
 
   // ── Brief ───────────────────────────────────────────────────────────────
   if (screen === "brief" && state.brief) {
     return (
-      <ConversationShell banner={banner}>
+      <Centered aurora="ambient" banner={banner}>
         <BriefSentence
           brief={state.brief}
           answers={answers}
@@ -477,55 +438,28 @@ export function BriefPage() {
             </Button>
           </div>
         </div>
-      </ConversationShell>
+      </Centered>
     );
   }
 
-  // ── Running ─────────────────────────────────────────────────────────────
+  // ── Running, pre-save ───────────────────────────────────────────────────
+  // Only the early phases play here — briefing through saving. The first
+  // `saved` frame triggers the handoff above, and the rest of the build
+  // continues on the workflow page.
   if (screen === "running") {
     return (
-      <ConversationShell
-        banner={banner}
-        // The build, watchable, at the size it deserves. Until the first
-        // graph frame lands, the plan's own steps hold the stage as a sketch
-        // — the picture's textual predecessor, standing where the picture
-        // will — then the graph replaces them in place.
-        canvas={
-          state.workflow && state.workflow.nodes.length > 0 ? (
-            <WorkflowSchematicView
-              workflow={state.workflow}
-              running={state.phase === "running"}
-              nodeTypes={nodeTypes}
-              className="h-full"
-            />
-          ) : state.plan && state.plan.steps.length > 0 ? (
-            <EmptyCanvas>
-              <ol className="w-72 max-w-full space-y-2">
-                {state.plan.steps.map((step, index) => (
-                  <li
-                    key={`${step}-${index}`}
-                    className="rounded-md border bg-card/60 px-2.5 py-2 text-xs text-muted-foreground shadow-xs animate-in fade-in-0 duration-500 [animation-fill-mode:backwards] motion-reduce:animate-none"
-                    style={{ animationDelay: `${index * 120}ms` }}
-                  >
-                    {step}
-                  </li>
-                ))}
-              </ol>
-            </EmptyCanvas>
-          ) : undefined
-        }
-      >
+      <Centered aurora="active" banner={banner}>
         <ConversationRail
           state={state}
           actions={railActions}
           getOrgUrl={getOrgUrl}
           voice="creation"
           onStartOver={startOver}
-          pendingNote={pendingNote}
           // The same sentence element as the brief screen, muted — the flow's
           // spine persists instead of being replaced by an unrelated <p>.
           // Only when it agrees with what the server echoed; the echo wins
-          // otherwise (the rail's default).
+          // otherwise (the rail's default). The phase rides along so the
+          // sentence shows the model working through it.
           sentence={
             sentenceAgrees && state.brief ? (
               <BriefSentence
@@ -534,22 +468,25 @@ export function BriefPage() {
                 openBlankId={null}
                 onOpenBlank={() => {}}
                 disabled
+                phase={state.phase ?? "briefing"}
               />
             ) : !state.sentence && request ? (
-              <p className="text-2xl tracking-tight text-muted-foreground">
+              // Pre-brief, the raw request is all there is — the sweep says
+              // it is being read, which is exactly what is happening.
+              <p className="thinking-sweep text-2xl tracking-tight text-muted-foreground">
                 {request}
               </p>
             ) : undefined
           }
         />
-      </ConversationShell>
+      </Centered>
     );
   }
 
   // ── Stopped on request ──────────────────────────────────────────────────
   if (screen === "cancelled") {
     return (
-      <ConversationShell banner={banner}>
+      <Centered banner={banner}>
         <ConversationRail
           state={state}
           actions={railActions}
@@ -557,56 +494,16 @@ export function BriefPage() {
           voice="creation"
           onStartOver={startOver}
         />
-      </ConversationShell>
+      </Centered>
     );
   }
 
-  // ── A finished session, revisited after its replay log was pruned ───────
-  // The run row outlives the frames, and the session frame carries its
-  // pointer — so a visitor arriving past the hour gets the workflow's front
-  // door rather than the outcome scaffolding rendered around nothing.
-  if (screen === "pointer") {
-    return (
-      <ConversationShell banner={banner}>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          This one's already built
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {state.prompt
-            ? `The workflow from "${state.prompt}" is saved.`
-            : "The workflow this session built is saved."}{" "}
-          {state.status === "failed" &&
-            "Its last run hit trouble, so look it over before relying on it."}
-        </p>
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            onClick={() =>
-              navigate(
-                getOrgUrl(
-                  `workflows/${state.workflowId}?mode=describe&view=overview${
-                    state.executionId ? `&executionId=${state.executionId}` : ""
-                  }`
-                )
-              )
-            }
-          >
-            Open it
-            <ArrowRight className="ml-2 size-4" />
-          </Button>
-          <Button variant="ghost" onClick={startOver}>
-            Start over
-          </Button>
-        </div>
-      </ConversationShell>
-    );
-  }
-
-  // ── Failed outright ─────────────────────────────────────────────────────
+  // ── Failed before anything was saved ────────────────────────────────────
   if (screen === "failed") {
     return (
       // What got built before it failed is context for "that did not
       // work", not something to hide.
-      <ConversationShell banner={banner} canvas={graphCanvas}>
+      <Centered banner={banner}>
         <ConversationRail
           state={state}
           actions={railActions}
@@ -614,167 +511,17 @@ export function BriefPage() {
           voice="creation"
           onStartOver={startOver}
         />
-      </ConversationShell>
+      </Centered>
     );
   }
 
-  // ── Outcome ─────────────────────────────────────────────────────────────
-  const assumptions = state.brief
-    ? unansweredAssumptions(state.brief, answers)
-    : [];
-
-  // "every morning", recovered from the brief's own trigger blank, so the
-  // commitment button can carry the schedule instead of a feature name.
-  const triggerBlank = state.brief?.blanks.find(
-    (blank) => blank.role === "trigger"
-  );
-  const triggerPhrase = triggerBlank
-    ? resolveBlank(triggerBlank, answers)
-    : undefined;
-
+  // ── Everything else lives on the workflow page ──────────────────────────
+  // The remaining screens — approval, outcome, the settled pointer — all
+  // imply a saved workflow, so the handoff effect above is already
+  // navigating. This renders for at most a frame.
   return (
-    <ConversationShell
-      banner={banner}
-      // What ran, stamped with how each step fared — the finish of the scene
-      // the running screen played, still on the canvas where it played.
-      canvas={
-        state.workflow &&
-        state.workflow.nodes.length > 0 && (
-          <div className="relative h-full animate-in fade-in-0 duration-300 [animation-delay:120ms] [animation-fill-mode:backwards] motion-reduce:animate-none">
-            {/* Bottom-left: where the editor keeps its status bar, and this
-                is status — what the thing is, how many steps it has. */}
-            <p className="absolute bottom-4 left-4 z-10 text-xs text-muted-foreground">
-              "{state.workflow.name}" · {state.workflow.nodes.length} steps
-            </p>
-            {/* Actions on the artifact live on the artifact, icon-for-icon
-                the editor's own chrome, in the corner the editor keeps its
-                controls — following them lands on the same canvas with more
-                buttons, not on a different page. The rail keeps the
-                conversation: fixing, committing, starting over. */}
-            {(state.workflowId || state.executionId) && (
-              <TooltipProvider>
-                <div className="absolute right-4 top-4 z-10">
-                  <ActionBarGroup>
-                    {state.workflowId && (
-                      <ActionBarButton
-                        onClick={() => {
-                          void markWorkflowKept().catch(() => {});
-                          navigate(
-                            getOrgUrl(
-                              `workflows/${state.workflowId}?mode=describe&view=overview${
-                                state.executionId
-                                  ? `&executionId=${state.executionId}`
-                                  : ""
-                              }`
-                            )
-                          );
-                        }}
-                        className={cn(
-                          actionBarButtonOutlineClassName,
-                          "text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-                        )}
-                        tooltipSide="bottom"
-                        tooltip="Open it in the editor"
-                      >
-                        <ArrowRight className="size-4!" />
-                      </ActionBarButton>
-                    )}
-                    {state.executionId && (
-                      <ActionBarButton
-                        onClick={() =>
-                          navigate(getOrgUrl(`executions/${state.executionId}`))
-                        }
-                        className={actionBarButtonOutlineClassName}
-                        tooltipSide="bottom"
-                        tooltip="See the full run"
-                      >
-                        <Logs className="size-4!" />
-                      </ActionBarButton>
-                    )}
-                  </ActionBarGroup>
-                </div>
-              </TooltipProvider>
-            )}
-            <WorkflowSchematicView
-              workflow={state.workflow}
-              execution={state.execution}
-              nodeTypes={nodeTypes}
-              className="h-full"
-            />
-          </div>
-        )
-      }
-    >
-      <ConversationRail
-        state={state}
-        actions={railActions}
-        getOrgUrl={getOrgUrl}
-        voice="creation"
-        onStartOver={startOver}
-        pendingNote={pendingNote}
-        armLabel={
-          triggerPhrase ? `Start running it ${triggerPhrase}` : undefined
-        }
-        outcomeExtras={
-          <>
-            {assumptions.length > 0 && (
-              <div className="space-y-1 border-t pt-4">
-                {assumptions.map((assumption) => (
-                  <p
-                    key={assumption.blankId}
-                    className="text-xs text-muted-foreground"
-                  >
-                    I assumed: {assumption.question}{" "}
-                    <button
-                      type="button"
-                      className="underline underline-offset-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      aria-controls={`brief-blank-${assumption.blankId}`}
-                      aria-expanded={openBlankId === assumption.blankId}
-                      onClick={() =>
-                        setOpenBlankId(
-                          openBlankId === assumption.blankId
-                            ? null
-                            : assumption.blankId
-                        )
-                      }
-                    >
-                      {assumption.assumed}
-                    </button>
-                  </p>
-                ))}
-              </div>
-            )}
-
-            {/* Changing an assumption after the run is an edit-intent, not a
-                resolve: the server only accepts `resolve` while the brief is
-                awaiting, so the answer rides the critique turn as a
-                deterministic note. Same card, same gesture the brief screen
-                taught — it just costs a rebuild, and the "Changing:" receipt
-                says so while it runs. */}
-            {openBlank && (
-              <BriefBlankCard
-                key={openBlank.id}
-                blank={openBlank}
-                value={answers[openBlank.id]}
-                onAnswer={(value) => {
-                  const current = answers[openBlank.id] ?? openBlank.assumed;
-                  if (value === current) return;
-                  const note = `Change "${openBlank.question}": use "${blankValueLabel(
-                    openBlank,
-                    value
-                  )}" instead of "${blankValueLabel(openBlank, current)}".`;
-                  setAnswers((previous) => ({
-                    ...previous,
-                    [openBlank.id]: value,
-                  }));
-                  critiqueAndRecord(note);
-                }}
-                onDismiss={() => setOpenBlankId(null)}
-              />
-            )}
-          </>
-        }
-      />
-    </ConversationShell>
+    <Centered banner={banner}>
+      <SessionSkeleton />
+    </Centered>
   );
 }
