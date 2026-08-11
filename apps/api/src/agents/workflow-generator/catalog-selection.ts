@@ -25,16 +25,19 @@ import { scoreNodeTypes } from "./node-search";
 export interface CandidateSelection {
   candidates: NodeType[];
   withheld: Ineligible[];
+  /**
+   * Offered candidates whose provider is not connected yet. Their steps
+   * rehearse on stand-in data until the account is linked; the prompt and
+   * the outcome screen both need to say so.
+   */
+  unconnected: Array<{ type: string; provider: string }>;
 }
 
-/**
- * Selects the node types shown to the model: keyword-ranked matches, plus a
- * guaranteed floor of glue and output nodes, plus the curated AI stand-ins.
- */
-export function selectCandidates(
-  query: string,
-  nodeTypes: NodeType[],
-  connectedProviders: ReadonlySet<string>,
+export interface SelectCandidatesOptions {
+  /** OAuth providers the org has actually connected. */
+  connectedProviders: ReadonlySet<string>;
+  /** Providers this deployment can offer OAuth for; absent = all of them. */
+  availableProviders?: ReadonlySet<string>;
   /**
    * Node types that realize the promised destination.
    *
@@ -44,17 +47,39 @@ export function selectCandidates(
    * the request never mentioned (an unstated "email it to me" is the whole
    * reason the brief exists), so it scores nothing and would be cut.
    */
-  required: readonly string[] = [],
+  required?: readonly string[];
   /** Resource types whose nodes may be offered: owned, or creatable. */
-  offerable: ReadonlySet<string> = new Set(),
+  offerable?: ReadonlySet<string>;
   /** Live Workers AI catalog; enriches pseudo-node descriptions when present. */
-  modelCatalog?: CloudflareModelInfo[]
+  modelCatalog?: CloudflareModelInfo[];
+}
+
+/**
+ * Selects the node types shown to the model: keyword-ranked matches, plus a
+ * guaranteed floor of glue and output nodes, plus the curated AI stand-ins.
+ */
+export function selectCandidates(
+  query: string,
+  nodeTypes: NodeType[],
+  options: SelectCandidatesOptions
 ): CandidateSelection {
-  const withPseudo = [...nodeTypes, ...pseudoNodeTypes(modelCatalog)];
-  const { eligible, byType, withheld } = filterEligible(withPseudo, {
+  const {
     connectedProviders,
-    offerableResources: offerable,
-  });
+    availableProviders,
+    required = [],
+    offerable = new Set<string>(),
+    modelCatalog,
+  } = options;
+
+  const withPseudo = [...nodeTypes, ...pseudoNodeTypes(modelCatalog)];
+  const { eligible, byType, withheld, unconnected } = filterEligible(
+    withPseudo,
+    {
+      connectedProviders,
+      availableProviders,
+      offerableResources: offerable,
+    }
+  );
 
   /**
    * Which unusable nodes the request was actually reaching for.
@@ -97,5 +122,11 @@ export function selectCandidates(
     if (nodeType) chosen.set(type, nodeType);
   }
 
-  return { candidates: [...chosen.values()], withheld };
+  return {
+    candidates: [...chosen.values()],
+    withheld,
+    // Only what was actually offered: an unconnected node that did not make
+    // the cut would put a "connect X" note on a graph with no X in it.
+    unconnected: unconnected.filter((entry) => chosen.has(entry.type)),
+  };
 }

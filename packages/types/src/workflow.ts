@@ -418,6 +418,11 @@ export interface WorkflowExecution {
   definitionHash?: string;
   /** Git commit SHA of the deployed runtime code */
   runtimeVersion?: string;
+  /**
+   * True when this run was a rehearsal: outward writes were stubbed so
+   * nothing left the platform. Absent on real runs.
+   */
+  rehearsal?: true;
 }
 
 // Request and Response types

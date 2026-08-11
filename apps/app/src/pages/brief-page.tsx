@@ -140,18 +140,8 @@ export function BriefPage() {
     [navigate, getOrgUrl, orgId]
   );
 
-  const {
-    state,
-    ask,
-    resolve,
-    critique,
-    approve,
-    decline,
-    cancel,
-    reconnect,
-    arm,
-    reset,
-  } = useWorkflowBrief(orgId, { sessionId, onSessionStarted });
+  const { state, ask, resolve, critique, cancel, reconnect, arm, reset } =
+    useWorkflowBrief(orgId, { sessionId, onSessionStarted });
 
   const [request, setRequest] = useState("");
   const [answers, setAnswers] = useState<BriefAnswers>({});
@@ -161,7 +151,7 @@ export function BriefPage() {
   // The first `saved` frame is the workflow coming into existence, and it is
   // the moment this page's job ends: navigate to the workflow page, whose
   // Describe mode attaches to the same session and replays it — the running
-  // screen continues there, then the approval gate, the outcome, the arm.
+  // screen continues there, then the outcome, then the arm.
   // The same effect also redirects a revisited settled session (its
   // `session` frame carries the workflowId), which is why /start needs no
   // "already built" screen of its own.
@@ -212,7 +202,7 @@ export function BriefPage() {
     ask(prompt);
   };
 
-  const railActions = { critique, approve, decline, cancel, arm, reconnect };
+  const railActions = { critique, cancel, arm, reconnect };
   const screen = railScreen(state);
 
   // ── Fetching a named session ────────────────────────────────────────────
@@ -426,10 +416,9 @@ export function BriefPage() {
             </p>
           )}
           <div className="flex flex-wrap items-center gap-3">
-            <Button
-              onClick={() => resolve(answers)}
-              disabled={chosenDestination?.requiresConnection}
-            >
+            {/* Never disabled for a missing connection: the trial rehearses
+                unconnected steps, so building first is always safe. */}
+            <Button onClick={() => resolve(answers)}>
               Build it
               <ArrowRight className="ml-2 size-4" />
             </Button>

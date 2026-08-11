@@ -8,7 +8,7 @@ interface UseResizableSidebarProps {
   initialVisible: boolean;
 }
 
-interface UseResizableSidebarReturn {
+export interface UseResizableSidebarReturn {
   isSidebarVisible: boolean;
   sidebarWidth: number;
   isResizing: boolean;
@@ -17,6 +17,13 @@ interface UseResizableSidebarReturn {
   handleResizeStart: (e: React.MouseEvent) => void;
 }
 
+/**
+ * State for a panel hugging its container's right edge: width dragged from a
+ * handle on its left, visibility flipped from a toggle. A caller that owns
+ * one instance and hands it to several surfaces gives them all the same
+ * panel — the workflow page does this so Describe and Edit share one
+ * sidebar, whose width and collapsed state survive the mode flip.
+ */
 export function useResizableSidebar({
   initialVisible,
 }: UseResizableSidebarProps): UseResizableSidebarReturn {
@@ -24,10 +31,10 @@ export function useResizableSidebar({
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
 
-  // Right edge of the container the sidebar sits in, captured when the drag
-  // starts. Measuring against this rather than `window.innerWidth` keeps the
-  // handle under the cursor when the app is not flush with the viewport edge.
-  const containerRightRef = useRef(0);
+  // The container edge the panel hugs, captured when the drag starts.
+  // Measuring against this rather than `window.innerWidth` keeps the handle
+  // under the cursor when the app is not flush with the viewport edge.
+  const containerEdgeRef = useRef(0);
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarVisible((prev) => !prev);
@@ -36,9 +43,8 @@ export function useResizableSidebar({
   const handleResizeStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     const container = e.currentTarget.parentElement;
-    containerRightRef.current = container
-      ? container.getBoundingClientRect().right
-      : window.innerWidth;
+    const rect = container?.getBoundingClientRect();
+    containerEdgeRef.current = rect ? rect.right : window.innerWidth;
     setIsResizing(true);
   }, []);
 
@@ -46,7 +52,7 @@ export function useResizableSidebar({
     if (!isResizing) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = containerRightRef.current - e.clientX;
+      const newWidth = containerEdgeRef.current - e.clientX;
       setSidebarWidth(Math.min(Math.max(newWidth, MIN_WIDTH), MAX_WIDTH));
     };
 

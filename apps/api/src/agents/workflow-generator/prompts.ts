@@ -154,10 +154,15 @@ function describeWithheld(withheld: Ineligible[]): string {
   const notes: string[] = [];
   if (providers.length) {
     notes.push(
-      `These services are NOT connected in this workspace: ${providers.join(", ")}. If the request needs one, build the workflow up to that point, end that branch in an "output-text" node named after the intended action, and say so in "description". Never pretend the step happened.`
+      `These services are NOT available on this deployment: ${providers.join(", ")}. If the request needs one, build the workflow up to that point, end that branch in an "output-text" node named after the intended action, and say so in "description". Never pretend the step happened.`
     );
   }
   return notes.join("\n");
+}
+
+function describeUnconnected(providers: string[]): string {
+  if (!providers.length) return "";
+  return `These services are in the catalog but their account is not connected yet: ${providers.join(", ")}. Use their nodes when the request calls for them — the user will connect the account afterwards, and until then the trial run rehearses those steps with stand-in data instead of touching a real account. Do not substitute an "output-text" node for them and do not pretend the account is connected.`;
 }
 
 export interface SystemPromptInput {
@@ -165,6 +170,8 @@ export interface SystemPromptInput {
   /** Full registry, used to describe the trigger nodes the server injects. */
   nodeTypes: NodeType[];
   withheld: Ineligible[];
+  /** Providers offered without a connected account; their steps rehearse. */
+  unconnectedProviders?: string[];
   query: string;
   /** What the workspace owns, so the graph can lean on real components. */
   grounding?: GroundingContext;
@@ -278,6 +285,7 @@ The shape, for a workflow whose input node is "article":
 
 ${input.grounding ? `${projectGroundingForSynthesis(input.grounding)}\n` : ""}
 ${describeWithheld(input.withheld)}
+${describeUnconnected(input.unconnectedProviders ?? [])}
 
 # Available node types
 
@@ -324,32 +332,6 @@ export function buildCritiquePrompt(note: string): string {
 "${note}"
 
 Change the workflow so that is true. Everything they did not mention is fine — change as little as possible. If the test inputs in "examples" are what made it look wrong, fix those instead of the graph.
-
-Return the COMPLETE corrected JSON object, not a patch and not only the changed parts.`;
-}
-
-/**
- * Correction after the user refused to let the workflow run.
- *
- * Distinct from a critique because the trigger is different: they have not
- * seen a result, they have seen what the workflow was about to *do* and said
- * no. So the instruction is about the act, and the reason usually names a
- * destination, a recipient or an audience that should not have been there.
- */
-export function buildDeclinePrompt(reason: string): string {
-  return `The workflow was built and saved but NOT run. Before running it, the person who asked for it was shown the steps that would act outside Dafthunk — sending, posting or messaging — and they refused. They say:
-
-"${reason}"
-
-Change the workflow so that objection no longer applies.
-
-The correction is a REMOVAL, not an addition. Adding an output node beside the step they objected to does not answer them — the step they refused is still there and would still run. Delete it.
-
-- Objecting to it being sent or posted at all: delete that node and every edge into it, and end the workflow at an output node instead.
-- Objecting to where it goes: delete that node and put the destination they named in its place. Do not keep both.
-- Objecting to what it would say: keep the destination and change the steps that produce the text.
-
-Everything they did not mention is fine — change as little as possible.
 
 Return the COMPLETE corrected JSON object, not a patch and not only the changed parts.`;
 }

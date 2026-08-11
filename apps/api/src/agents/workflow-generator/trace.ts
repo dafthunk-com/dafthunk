@@ -25,7 +25,6 @@ export type TraceEntry =
   | HydrateTrace
   | ValidateTrace
   | SaveTrace
-  | ApproveTrace
   | RunTrace;
 
 /**
@@ -52,10 +51,15 @@ export interface SelectTrace {
   /** Capabilities the request reached for and could not have. */
   withheldProviders: string[];
   withheldResources: string[];
+  /**
+   * Providers offered without a connected account — their steps rehearse.
+   * Here to make catalog dilution measurable across runs.
+   */
+  unconnectedProviders?: string[];
 }
 
-/** Which prompt produced a draft, since the four have different failure modes. */
-export type DraftKind = "initial" | "repair" | "decline" | "run-repair";
+/** Which prompt produced a draft, since the three have different failure modes. */
+export type DraftKind = "initial" | "repair" | "run-repair";
 
 export interface DraftTrace {
   stage: "draft";
@@ -106,17 +110,6 @@ export interface SaveTrace {
   nodes: number;
   edges: number;
   examples: number;
-}
-
-export interface ApproveTrace {
-  stage: "approve";
-  ok: boolean;
-  round: number;
-  /** The node types that would have acted outside Dafthunk. */
-  actions: string[];
-  approved: boolean;
-  /** Whether a refusal was successfully reworked into something else. */
-  reworked?: boolean;
 }
 
 export interface RunTrace {
@@ -175,10 +168,6 @@ export function summarize(entry: TraceEntry): string {
       }`;
     case "save":
       return `save: ${entry.nodes} nodes, ${entry.edges} edges, ${entry.examples} examples`;
-    case "approve":
-      return `approve[${entry.round}]: ${entry.actions.join(", ")} -> ${
-        entry.approved ? "approved" : "declined"
-      }`;
     case "run":
       return `run[${entry.attempt}]: ${entry.status}${
         entry.failed.length

@@ -188,7 +188,7 @@ export function WorkflowSchematicView({
 
           {/* The editor's view controls, in the editor's corner. The toggle
               yields when the page owns the view axis. */}
-          <div className="absolute left-4 top-4 z-10">
+          <div className="absolute left-4 top-4 z-10 flex flex-col items-start gap-2">
             <ActionBarGroup vertical>
               {view === undefined && (
                 <OverviewToggleButton

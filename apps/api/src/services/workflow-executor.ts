@@ -34,6 +34,11 @@ export interface WorkflowExecutorOptions {
   parameters?: WorkflowExecutorParameters;
   /** Per-run node input values, keyed nodeId → inputName. */
   inputOverrides?: InputOverrides;
+  /**
+   * Run as a rehearsal: outward writes are stubbed so nothing leaves the
+   * platform. Worker runtime only — the durable path never rehearses.
+   */
+  rehearsal?: boolean;
   env: Bindings;
 }
 
@@ -81,8 +86,16 @@ export class WorkflowExecutor {
       unlimitedUsage,
       parameters,
       inputOverrides,
+      rehearsal,
       env,
     } = options;
+
+    // A rehearsal must return its execution inline (the caller shows the
+    // result) and must never run durably — reaching here with the durable
+    // runtime is a programming error, not a user condition.
+    if (rehearsal && workflow.runtime !== "worker") {
+      throw new Error("Rehearsal executions require the worker runtime");
+    }
 
     // Best-effort onboarding stamp: capture "this user attempted an execution"
     // regardless of whether it ultimately succeeds. The ok-stamp happens after
@@ -112,6 +125,7 @@ export class WorkflowExecutor {
       // Per-run input values, carried beside the workflow rather than written
       // into it so the definition hash stays stable across runs.
       ...(inputOverrides && { inputOverrides }),
+      ...(rehearsal && { rehearsal: true }),
     };
 
     // Build type-specific execution parameters
@@ -173,7 +187,10 @@ export class WorkflowExecutor {
     // Use WorkerRuntime for "worker" runtime (synchronous execution)
     // Use Cloudflare Workflows for "workflow" runtime (durable execution, default)
     if (workflow.runtime === "worker") {
-      const workerRuntime = createWorkerRuntime(env);
+      const workerRuntime = createWorkerRuntime(
+        env,
+        rehearsal ? { rehearsal: true } : undefined
+      );
       const execution = await workerRuntime.execute(finalExecutionParams);
       console.log(
         `[Execution] ${execution.id} workflow=${workflow.id} runtime=worker trigger=${workflow.trigger}`

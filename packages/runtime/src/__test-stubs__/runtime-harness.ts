@@ -230,6 +230,9 @@ export class RecordingExecutionStore implements ExecutionStore {
       nodeExecutions: record.nodeExecutions,
       startedAt: record.startedAt,
       endedAt: record.endedAt,
+      // Mirrors the production store: the flag round-trips onto the
+      // execution the caller gets back.
+      ...(record.rehearsal ? { rehearsal: true as const } : {}),
     } as Awaited<ReturnType<ExecutionStore["save"]>>;
   }
 

@@ -48,6 +48,7 @@ import { cn } from "@/utils/utils";
 import { ExecutionEmailDialog } from "./execution-email-dialog";
 import { HttpRequestConfigDialog } from "./http-request-config-dialog";
 import { useKeyboardShortcuts } from "./use-keyboard-shortcuts";
+import type { UseResizableSidebarReturn } from "./use-resizable-sidebar";
 import { useResizableSidebar } from "./use-resizable-sidebar";
 import { useWorkflowExecutionState } from "./use-workflow-execution-state";
 import { useWorkflowState } from "./use-workflow-state";
@@ -123,6 +124,12 @@ export interface WorkflowBuilderProps {
     parameters?: Record<string, unknown>;
   }) => void;
   showSidebar?: boolean;
+  /**
+   * A caller-owned sidebar to render into instead of the builder's own —
+   * the workflow page passes the panel it shares with Describe mode, so the
+   * sidebar's width and collapsed state survive the mode flip.
+   */
+  sidebar?: UseResizableSidebarReturn;
   showBackground?: boolean;
   isEnabled?: boolean;
   isTogglingEnabled?: boolean;
@@ -155,6 +162,7 @@ export function WorkflowBuilder({
   orgId,
   wsExecuteWorkflow,
   showSidebar,
+  sidebar: externalSidebar,
   showBackground = true,
   isEnabled,
   isTogglingEnabled,
@@ -233,8 +241,12 @@ export function WorkflowBuilder({
     deselectAll,
   });
 
-  // Sidebar
-  const sidebar = useResizableSidebar({ initialVisible: sidebarEnabled });
+  // Sidebar — the internal hook is always called (hooks can't be
+  // conditional) but yields to a caller-owned panel when one is provided.
+  const internalSidebar = useResizableSidebar({
+    initialVisible: sidebarEnabled,
+  });
+  const sidebar = externalSidebar ?? internalSidebar;
 
   // Keyboard shortcuts (Cmd+C/X/V/D + Cmd+Enter)
   const handleActionButtonClick =

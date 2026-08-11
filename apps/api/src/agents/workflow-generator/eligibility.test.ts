@@ -83,12 +83,32 @@ describe("org resources and eligibility", () => {
     expect(typesOf(eligible).has("model-x")).toBe(true);
   });
 
+  it("offers an unconnected provider's node and tracks the gap", () => {
+    const { eligible, withheld, unconnected } = filterEligible(
+      FIXTURE_NODE_TYPES,
+      { connectedProviders: new Set() }
+    );
+
+    // Unconnected is no longer a reason to withhold: the node is offered and
+    // its step rehearses until the account is linked — but the gap is
+    // recorded so the outcome screen can offer the connection.
+    expect(typesOf(eligible).has("share-post-x")).toBe(true);
+    expect(reasonFor(withheld, "share-post-x")).toBeUndefined();
+    expect(unconnected).toContainEqual({
+      type: "share-post-x",
+      provider: "x",
+    });
+  });
+
   it("keeps the two withholding reasons apart", () => {
     const { withheld } = filterEligible(FIXTURE_NODE_TYPES, {
       connectedProviders: new Set(),
+      // No OAuth config for X on this deployment — withheld outright, since
+      // there is nothing the user could connect.
+      availableProviders: new Set(["slack", "wordpress"]),
     });
 
-    // An unconnected OAuth provider and a missing workspace resource have
+    // An unavailable OAuth provider and a missing workspace resource have
     // different fixes, so they are recorded differently.
     expect(reasonFor(withheld, "share-post-x")).toMatchObject({
       reason: "integration",

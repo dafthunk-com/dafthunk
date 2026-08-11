@@ -50,7 +50,7 @@ describe("railScreen", () => {
         state({
           status: "running",
           connection: "lost",
-          pendingActions: [{}] as BriefState["pendingActions"],
+          brief: { blanks: [] } as unknown as BriefState["brief"],
         })
       )
     ).toBe("lost");
@@ -60,20 +60,6 @@ describe("railScreen", () => {
     expect(
       railScreen(state({ status: "done", connection: "lost", replayed: true }))
     ).toBe("outcome");
-  });
-
-  it("the approval gate beats the brief readback", () => {
-    // A held run is also `awaiting` and still has a brief attached — the
-    // brief screen would otherwise win and the question would never be asked.
-    expect(
-      railScreen(
-        state({
-          status: "awaiting",
-          brief: { blanks: [] } as unknown as BriefState["brief"],
-          pendingActions: [{}] as BriefState["pendingActions"],
-        })
-      )
-    ).toBe("approval");
   });
 
   it("running", () => {

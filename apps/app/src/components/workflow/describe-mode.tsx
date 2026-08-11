@@ -1,5 +1,9 @@
 import type { NodeType, WorkflowState } from "@dafthunk/types";
-import { useState } from "react";
+import Logs from "lucide-react/icons/logs";
+import PanelRightClose from "lucide-react/icons/panel-right-close";
+import PanelRightOpen from "lucide-react/icons/panel-right-open";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 
 import {
   ConnectionBanner,
@@ -13,15 +17,31 @@ import {
   ConversationShell,
   EmptyCanvas,
 } from "@/components/brief/conversation-shell";
+import {
+  ActionBarButton,
+  ActionBarGroup,
+  actionBarButtonOutlineClassName,
+} from "@/components/ui/action-bar";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import type { UseResizableSidebarReturn } from "@/components/workflow/use-resizable-sidebar";
 import { WorkflowSchematicView } from "@/components/workflow/workflow-schematic-view";
 import type { useWorkflowBrief } from "@/hooks/use-workflow-brief";
+import { markOutcomeSeen } from "@/services/profile-service";
 
 /**
- * The workflow page's Describe mode: the same stage the brief page plays —
- * conversation rail on the left, schematic on the right — turned toward
- * revision. You say what should be different; the agent rebuilds the
- * workflow; the canvas plays the build and stamps the trial run. Its
- * counterpart is Edit mode, where the same workflow is changed by hand.
+ * The workflow page's Describe mode: the schematic on the canvas, the
+ * conversation in the right sidebar — the same panel that holds the
+ * properties inspector in Edit mode, toggled to different contents. This is
+ * where every post-save screen of a generation session plays — /start hands
+ * off here the moment a first version exists, so the approval gate, the
+ * trial run, the outcome and the arm card all render on the workflow's own
+ * page, whether the session was born on /start or adopted an existing
+ * workflow.
+ *
+ * The voice follows provenance: a session whose state carries a brief is
+ * the creation arc (its arm card says "It isn't running on its own yet");
+ * an adopted session has no brief and speaks revision ("This change paused
+ * its trigger").
  *
  * The canvas prefers the generation stream's own graph frames (they animate
  * the build in progress) and falls back to the editor socket's live state —
@@ -38,6 +58,7 @@ export function DescribeMode({
   workflowName,
   nodeTypes,
   view,
+  panel,
   controls,
   getOrgUrl,
 }: {
@@ -48,11 +69,14 @@ export function DescribeMode({
   nodeTypes?: NodeType[];
   /** The page-owned zoom level, shared with Edit mode. */
   view: "overview" | "wiring";
+  /** The page-owned sidebar, shared with Edit mode: same width, same state. */
+  panel: UseResizableSidebarReturn;
   /** The page's axis switches, centered over this mode's canvas pane. */
   controls?: React.ReactNode;
   getOrgUrl: (path: string) => string;
 }) {
-  const { state, critique, approve, decline, cancel, reconnect, arm } = brief;
+  const navigate = useNavigate();
+  const { state, critique, cancel, reconnect, arm } = brief;
   // Kept after the box is cleared so the wait can show what was asked for.
   const [pendingNote, setPendingNote] = useState("");
 
@@ -63,6 +87,21 @@ export function DescribeMode({
     setPendingNote(note);
   };
 
+  // Whose arc this session is: a brief means it was born in conversation.
+  const voice = state.brief ? "creation" : "revision";
+
+  // Stamped once per session, when a result is actually on screen — moved
+  // here with the outcome itself. Best-effort and deliberately unawaited:
+  // this is observability, and a failed stamp must never be something the
+  // user notices.
+  const stampedOutcome = useRef(false);
+  const hasOutcome = Boolean(state.execution && state.workflow);
+  useEffect(() => {
+    if (!hasOutcome || stampedOutcome.current) return;
+    stampedOutcome.current = true;
+    void markOutcomeSeen().catch(() => {});
+  }, [hasOutcome]);
+
   const screen = railScreen(state);
 
   const workflow =
@@ -72,7 +111,7 @@ export function DescribeMode({
 
   // The canvas pane always exists here so the page's axis switches have a
   // surface to center on — centered on the pane, not the page, because the
-  // rail shifts the pane's midpoint well right of the viewport's.
+  // sidebar shifts the pane's midpoint left of the viewport's.
   const canvas = (
     <div className="relative h-full">
       {workflow && workflow.nodes.length > 0 ? (
@@ -92,13 +131,54 @@ export function DescribeMode({
           {controls}
         </div>
       )}
+      {/* The corner the editor keeps its controls: the trial run's full log
+          one click away, and the panel toggle — the same button, icons and
+          words as Edit mode's, because it collapses the same sidebar.
+          Desktop-only by construction: on small screens the rail is the
+          page, not a panel. */}
+      <TooltipProvider>
+        <div className="absolute right-4 top-4 z-10 flex items-center gap-3">
+          {state.executionId && (
+            <ActionBarGroup>
+              <ActionBarButton
+                onClick={() =>
+                  navigate(getOrgUrl(`executions/${state.executionId}`))
+                }
+                className={actionBarButtonOutlineClassName}
+                tooltipSide="bottom"
+                tooltip="See the full run"
+              >
+                <Logs className="size-4!" />
+              </ActionBarButton>
+            </ActionBarGroup>
+          )}
+          <div className="hidden lg:block">
+            <ActionBarGroup>
+              <ActionBarButton
+                onClick={panel.toggleSidebar}
+                className={actionBarButtonOutlineClassName}
+                tooltipSide="bottom"
+                tooltip={
+                  panel.isSidebarVisible ? "Hide Sidebar" : "Show Sidebar"
+                }
+              >
+                {panel.isSidebarVisible ? (
+                  <PanelRightClose className="size-4!" />
+                ) : (
+                  <PanelRightOpen className="size-4!" />
+                )}
+              </ActionBarButton>
+            </ActionBarGroup>
+          </div>
+        </div>
+      </TooltipProvider>
     </div>
   );
 
   const banner = <ConnectionBanner state={state} onReconnect={reconnect} />;
 
   return (
-    <ConversationShell banner={banner} canvas={canvas}>
+    <ConversationShell banner={banner} canvas={canvas} rail={panel}>
       {!state.sessionLoaded ? (
         <SessionSkeleton />
       ) : isRailScreen(screen) ? (
@@ -106,14 +186,12 @@ export function DescribeMode({
           state={state}
           actions={{
             critique: critiqueAndRecord,
-            approve,
-            decline,
             cancel,
             arm,
             reconnect,
           }}
           getOrgUrl={getOrgUrl}
-          voice="revision"
+          voice={voice}
           pendingNote={pendingNote}
         />
       ) : screen === "brief" ? (

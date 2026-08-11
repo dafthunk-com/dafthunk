@@ -30,6 +30,12 @@ import {
 export interface OutcomeViewProps {
   workflow: Workflow;
   execution: WorkflowExecution;
+  /**
+   * Nodes whose outward effect was rehearsed rather than performed. Their
+   * delivery line switches to the past conditional — the payload shown is
+   * exactly what was composed, and nothing left Dafthunk.
+   */
+  rehearsedNodeIds?: ReadonlySet<string>;
 }
 
 /**
@@ -76,7 +82,11 @@ function asText(value: unknown): string | undefined {
   return undefined;
 }
 
-export function OutcomeView({ workflow, execution }: OutcomeViewProps) {
+export function OutcomeView({
+  workflow,
+  execution,
+  rehearsedNodeIds,
+}: OutcomeViewProps) {
   const { createObjectUrl } = useObjectService();
   const terminals = terminalNodeIds(workflow);
 
@@ -153,38 +163,43 @@ export function OutcomeView({ workflow, execution }: OutcomeViewProps) {
           screen has to say so first — a delivery node's own output is a receipt
           (`recipientCount`, a message id), and rendering that in place of the
           answer is how a working digest was reported to the user as "1". */}
-      {deliveries.map(({ node, values }) => (
-        <div key={node.id} className="space-y-2">
-          <p className="flex items-center gap-1.5 text-sm font-medium">
-            <Check className="size-4 shrink-0" />
-            {deliveredPhrase(node)}
-          </p>
-
-          {values.length > 0 ? (
-            <div className="space-y-3 border-l-2 pl-3">
-              {values.map((value) => (
-                <div key={value.name} className="space-y-1">
-                  {values.length > 1 && (
-                    <p className="text-xs font-medium text-muted-foreground">
-                      {labelFor(value.name)}
-                    </p>
-                  )}
-                  <p className="whitespace-pre-wrap text-base leading-relaxed">
-                    {value.text}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            // Every input was computed from something the preview does not
-            // carry, or was binary. Better to say the delivery happened and
-            // stop than to imply it was empty.
-            <p className="text-sm text-muted-foreground">
-              The content is in the workflow's run.
+      {deliveries.map(({ node, values }) => {
+        const rehearsed = rehearsedNodeIds?.has(node.id) ?? false;
+        return (
+          <div key={node.id} className="space-y-2">
+            <p className="flex items-center gap-1.5 text-sm font-medium">
+              <Check className="size-4 shrink-0" />
+              {deliveredPhrase(node, rehearsed)}
             </p>
-          )}
-        </div>
-      ))}
+
+            {values.length > 0 ? (
+              <div className="space-y-3 border-l-2 pl-3">
+                {values.map((value) => (
+                  <div key={value.name} className="space-y-1">
+                    {values.length > 1 && (
+                      <p className="text-xs font-medium text-muted-foreground">
+                        {labelFor(value.name)}
+                      </p>
+                    )}
+                    <p className="whitespace-pre-wrap text-base leading-relaxed">
+                      {value.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // Every input was computed from something the preview does not
+              // carry, or was binary. Better to say what happened and stop
+              // than to imply the delivery was empty.
+              <p className="text-sm text-muted-foreground">
+                {rehearsed
+                  ? "What it would send is written by the earlier steps at run time."
+                  : "The content is in the workflow's run."}
+              </p>
+            )}
+          </div>
+        );
+      })}
 
       {shown.map(({ key, output, label, value }) => {
         const text = asText(value);

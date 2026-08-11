@@ -290,16 +290,6 @@ export class WorkflowGeneratorWebSocket {
     this.send({ type: "critique", note });
   }
 
-  /** Allow the outward steps to run. */
-  approve(): void {
-    this.send({ type: "approve" });
-  }
-
-  /** Refuse the run. An empty reason means "keep it saved, unrun". */
-  decline(reason: string): void {
-    this.send({ type: "decline", reason });
-  }
-
   /** Turn the finished workflow on — restore its blanked trigger bindings. */
   arm(): void {
     this.send({ type: "arm" });

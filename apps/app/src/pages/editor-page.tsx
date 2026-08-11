@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/action-bar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DescribeMode } from "@/components/workflow/describe-mode";
+import { useResizableSidebar } from "@/components/workflow/use-resizable-sidebar";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import type {
@@ -132,11 +133,14 @@ export function EditorPage() {
     sessionId: describeVisited && id ? id : undefined,
   });
 
-  // Hand edits mid-turn would be clobbered by the turn's save, and a parked
-  // approval question must be answered where it was asked.
-  const generationBusy =
-    brief.state.status === "running" ||
-    (brief.state.pendingActions?.length ?? 0) > 0;
+  // Hand edits mid-turn would be clobbered by the turn's save.
+  const generationBusy = brief.state.status === "running";
+
+  // One sidebar for both modes: Describe fills it with the conversation,
+  // Edit with the properties inspector. Owning the panel here is what makes
+  // the flip stable — same edge, same width, same collapsed state, only the
+  // contents change.
+  const panel = useResizableSidebar({ initialVisible: true });
 
   // ── View ────────────────────────────────────────────────────────────────
   // The other axis, owned here so both surfaces show the same zoom and a
@@ -151,8 +155,8 @@ export function EditorPage() {
     [setParam]
   );
 
-  // The trial run's execution id rides the handoff so a flip to Edit mode
-  // still gets the verdict stamps.
+  // Old links may still carry an execution id; the live path is the
+  // session's own trial result below.
   const { execution: handedOffExecution } = useExecution(
     searchParams.get("executionId")
   );
@@ -174,6 +178,26 @@ export function EditorPage() {
       ),
     };
   }, [handedOffExecution]);
+
+  // The session's own trial result, mapped the same way — a flip to Edit
+  // right after a build gets its verdict stamps from the session itself,
+  // with no execution id in the URL.
+  const sessionBuilderExecution = useMemo<WorkflowExecution | undefined>(() => {
+    const execution = brief.state.execution;
+    if (!execution) return undefined;
+    return {
+      id: execution.id,
+      status: execution.status as WorkflowExecution["status"],
+      nodeExecutions: (execution.nodeExecutions || []).map(
+        (nodeExecution): WorkflowNodeExecution => ({
+          nodeId: nodeExecution.nodeId,
+          status: nodeExecution.status as WorkflowNodeExecution["status"],
+          outputs: nodeExecution.outputs || {},
+          error: nodeExecution.error,
+        })
+      ),
+    };
+  }, [brief.state.execution]);
 
   const [httpWorkflowMetadata, setHttpWorkflowMetadata] =
     useState<WorkflowWithMetadata | null>(null);
@@ -410,6 +434,7 @@ export function EditorPage() {
           workflowName={httpWorkflowMetadata?.name || workflowMetadata?.name}
           nodeTypes={nodeTypes}
           view={view}
+          panel={panel}
           controls={axisControls}
           getOrgUrl={getOrgUrl}
         />
@@ -433,7 +458,9 @@ export function EditorPage() {
                 onEdgesChange={handleEdgesChange}
                 executeWorkflow={executeWorkflowWrapper}
                 initialWorkflowExecution={
-                  latestExecution || handedOffBuilderExecution
+                  latestExecution ||
+                  handedOffBuilderExecution ||
+                  sessionBuilderExecution
                 }
                 view={view === "overview" ? "overview" : "detail"}
                 onViewChange={(next) =>
@@ -448,6 +475,7 @@ export function EditorPage() {
                 onWorkflowUpdate={handleWorkflowUpdate}
                 orgId={orgId}
                 wsExecuteWorkflow={wsExecuteWorkflow}
+                sidebar={panel}
                 isEnabled={isEnabled}
                 isTogglingEnabled={isTogglingEnabled}
                 onToggleEnabled={handleToggleEnabled}

@@ -235,11 +235,19 @@ export interface BoundResource {
   name: string;
 }
 
+/** A connected account this hydration wired in, one entry per provider. */
+export interface BoundIntegration {
+  provider: string;
+  name: string;
+}
+
 export interface HydrateResult {
   workflow: Workflow;
   errors: EnrichedValidationError[];
   /** Empty unless `orgResources` was supplied and something needed binding. */
   boundResources: BoundResource[];
+  /** Empty unless `integrations` was supplied and a provider node matched. */
+  boundIntegrations: BoundIntegration[];
   /**
    * The trigger bindings blanked before save, in restore order. Non-empty
    * means the saved workflow is dormant: it will not fire on its own until
@@ -275,6 +283,16 @@ export interface HydrateOptions {
    * `disarmed` and is restored by the `arm` turn rather than firing on save.
    */
   bindings?: Partial<Record<OrgResourceType, OrgResource>>;
+  /**
+   * Connected integrations by provider, for `integration` inputs.
+   *
+   * Like `orgResources`, the model never sees these ids. An input the model
+   * (or an adopted workflow) already set is left alone; an empty one is bound
+   * to the org's account for its declared provider. A provider absent from
+   * the map stays unbound — the rehearsal stubs that node, and the outcome
+   * screen offers to connect it.
+   */
+  integrations?: ReadonlyMap<string, { id: string; name: string }>;
 }
 
 /**
@@ -290,7 +308,7 @@ export function hydrateGeneratedWorkflow(
   candidates: NodeType[],
   options: HydrateOptions = {}
 ): HydrateResult {
-  const { ownerEmail, orgResources, bindings } = options;
+  const { ownerEmail, orgResources, bindings, integrations } = options;
   const errors: EnrichedValidationError[] = [];
   const byType = new Map(nodeTypes.map((nt) => [nt.type, nt]));
 
@@ -314,6 +332,7 @@ export function hydrateGeneratedWorkflow(
         },
       ],
       boundResources: [],
+      boundIntegrations: [],
       disarmed: [],
     };
   }
@@ -443,6 +462,30 @@ export function hydrateGeneratedWorkflow(
     }
   }
 
+  // Bind connected integrations onto `integration` inputs the model left
+  // empty. Same principle as `ownerEmail`: the model never sees who is
+  // connected, so the binding can only happen here — and a value already
+  // present (an adopted workflow's explicit account choice) always wins.
+  const boundIntegrations: BoundIntegration[] = [];
+  if (integrations) {
+    const seen = new Set<string>();
+    for (const node of nodes) {
+      for (const input of node.inputs) {
+        if (input.type !== "integration" || input.value !== undefined) continue;
+        const integration = integrations.get(input.provider);
+        if (!integration) continue;
+        input.value = integration.id;
+        if (!seen.has(input.provider)) {
+          seen.add(input.provider);
+          boundIntegrations.push({
+            provider: input.provider,
+            name: integration.name,
+          });
+        }
+      }
+    }
+  }
+
   // Disarm last. A bound mailbox or queue on the trigger node moves into
   // `disarmed`, so the save is inert and the `arm` turn writes it back when
   // the person turns the workflow on. Mid-graph arming-typed inputs are left
@@ -516,6 +559,7 @@ export function hydrateGeneratedWorkflow(
     },
     errors,
     boundResources,
+    boundIntegrations,
     disarmed,
   };
 }

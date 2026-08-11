@@ -21,6 +21,8 @@ export interface ExecutionRow {
   updatedAt: Date;
   usage: number;
   definitionHash?: string;
+  /** True when this run was a rehearsal — outward writes were stubbed. */
+  rehearsal?: boolean;
 }
 
 /**
@@ -42,6 +44,8 @@ export interface SaveExecutionRecord {
   workflowDefinition?: Workflow;
   definitionHash?: string;
   runtimeVersion?: string;
+  /** True when this run was a rehearsal — outward writes were stubbed. */
+  rehearsal?: boolean;
 }
 
 /**

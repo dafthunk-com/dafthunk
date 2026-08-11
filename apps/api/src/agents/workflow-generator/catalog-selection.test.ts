@@ -141,11 +141,9 @@ describe("the catalog offers what a correct answer needs", () => {
         ),
       ];
 
-      const { candidates } = selectCandidates(
-        testCase.prompt,
-        CATALOG,
-        CONNECTED
-      );
+      const { candidates } = selectCandidates(testCase.prompt, CATALOG, {
+        connectedProviders: CONNECTED,
+      });
       const offered = new Set(candidates.map((candidate) => candidate.type));
 
       expect(
@@ -166,11 +164,9 @@ describe("the catalog offers what a correct answer needs", () => {
 describe("the catalog floor holds for every evaluation case", () => {
   for (const testCase of EVALUATION_CASES) {
     it(`offers a generator and an output for "${testCase.id}"`, () => {
-      const { candidates } = selectCandidates(
-        testCase.prompt,
-        CATALOG,
-        new Set()
-      );
+      const { candidates } = selectCandidates(testCase.prompt, CATALOG, {
+        connectedProviders: new Set(),
+      });
       const offered = new Set(candidates.map((candidate) => candidate.type));
 
       expect(offered.has("agent-claude-sonnet-4")).toBe(true);
@@ -185,11 +181,9 @@ describe("selection stays within its budget", () => {
     // unbounded system prompt — and the cap is what keeps a generation's input
     // cost predictable.
     for (const testCase of BENCHMARK_CASES) {
-      const { candidates } = selectCandidates(
-        testCase.prompt,
-        CATALOG,
-        CONNECTED
-      );
+      const { candidates } = selectCandidates(testCase.prompt, CATALOG, {
+        connectedProviders: CONNECTED,
+      });
       expect(candidates.length).toBeLessThanOrEqual(100);
     }
   });

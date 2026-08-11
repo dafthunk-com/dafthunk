@@ -121,4 +121,12 @@ describe("previewExecution", () => {
     expect(preview.nodeExecutions[0].status).toBe("error");
     expect(preview.nodeExecutions[0].error).toBe("node blew up");
   });
+
+  it("carries the rehearsal stamp through the trim", () => {
+    const preview = previewExecution(
+      executionWith({ summary: "hi" }, { rehearsal: true })
+    );
+
+    expect(preview.rehearsal).toBe(true);
+  });
 });

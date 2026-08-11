@@ -21,8 +21,6 @@ export type GenerationPhase =
   | "validating"
   | "repairing"
   | "saving"
-  /** Stopped, waiting for a person to allow the outward steps. */
-  | "approving"
   | "running"
   | "complete";
 
@@ -47,8 +45,6 @@ export type GenerationErrorCode =
   | "STALLED"
   | "CANCELLED"
   | "LLM_FAILED"
-  /** A destination the user chose needs an account linked before it can build. */
-  | "NEEDS_CONNECTION"
   | "INTERNAL";
 
 /** Validation finding, as surfaced to the UI. */
@@ -67,30 +63,29 @@ export interface GenerationPlan {
   steps: string[];
 }
 
-/**
- * One thing the workflow would do outside Dafthunk if it ran.
- *
- * The trial run executes the real graph against real credentials, so a
- * generated workflow ending in "post it" posts. That is not something to
- * discover afterwards, and it is not something a progress log can carry — it
- * has to stop and ask. This is what the asking screen renders.
- */
-export interface OutwardAction {
+/** One node whose outward effect was rehearsed rather than performed. */
+export interface RehearsedNode {
   nodeId: string;
-  /** The node's display name, as it appears in the editor. */
-  name: string;
-  nodeType: string;
-  /** The linked account it would act on, when it acts on one. */
+  /** The linked account it would have acted on, when it acts on one. */
   provider?: string;
-  /** One line, in the user's terms: "Post to X". */
-  summary: string;
+}
+
+/**
+ * How the trial run was kept safe.
+ *
+ * The trial run always executes in rehearsal mode: outward writes are
+ * replaced with stubs that compose everything and send nothing, and a node
+ * whose integration is not bound runs on stand-in data. Nothing listed here
+ * left Dafthunk — which is exactly what the outcome screen has to say, in
+ * the past conditional, next to the values that would have gone out.
+ */
+export interface RehearsalReport {
+  nodes: RehearsedNode[];
   /**
-   * The concrete values that would leave the platform, where they are known
-   * before the run. Empty when every input is computed by an earlier step —
-   * which is itself worth showing, since it means we cannot promise what the
-   * text will say.
+   * Providers whose steps ran on stand-in data because no account is linked.
+   * Each one is a "connect it to make this live" call to action.
    */
-  details: Array<{ label: string; value: string }>;
+  unconnectedProviders: string[];
 }
 
 /**
@@ -102,7 +97,7 @@ export interface OutwardAction {
  * frames it does not understand — it must ignore them rather than treat them
  * as an error, and the server does the same in the other direction.
  */
-export const GENERATOR_PROTOCOL_VERSION = 1;
+export const GENERATOR_PROTOCOL_VERSION = 2;
 
 export type GeneratorClientMessage =
   /** Read a request back as a brief, and wait. */
@@ -111,15 +106,6 @@ export type GeneratorClientMessage =
   | { type: "resolve"; turn: number; answers: BriefAnswers }
   /** "What should be different?" — another pass on what was just built. */
   | { type: "critique"; note: string }
-  /** Go ahead and run it, outward steps and all. */
-  | { type: "approve" }
-  /**
-   * Do not run it. An empty reason is a complete answer — saved, unrun. A
-   * non-empty one is the most precise statement of intent the user will ever
-   * give us, because they are reacting to something concrete rather than
-   * describing it from memory, and it is spent on a correction.
-   */
-  | { type: "decline"; reason: string }
   /**
    * Turn the finished workflow on. Generated workflows are saved dormant —
    * their trigger bindings are blanked so nothing starts consuming the org's
@@ -204,18 +190,20 @@ export type GeneratorServerMessage =
   /** The dormant trigger was restored; the workflow now runs on its own. */
   | { type: "armed"; workflowId: string }
   /**
-   * The run is paused because running would act outside Dafthunk. The session
-   * sits here until an `approve` or `decline` arrives — nothing is sent, posted
-   * or committed in the meantime.
-   */
-  | { type: "approval_required"; actions: OutwardAction[] }
-  /**
    * The trial run. `sampleName` is set when the run was driven by a generated
    * example rather than by anything the user supplied — which is almost always,
    * and which the outcome screen has to say out loud. Output produced from
    * invented input is unintelligible when presented as the user's own result.
+   *
+   * `rehearsal` is set when the graph contains outward or unbound steps that
+   * were stubbed for this run. Absent means everything ran for real.
    */
-  | { type: "run_result"; execution: WorkflowExecution; sampleName?: string }
+  | {
+      type: "run_result";
+      execution: WorkflowExecution;
+      sampleName?: string;
+      rehearsal?: RehearsalReport;
+    }
   | {
       type: "done";
       workflowId?: string;

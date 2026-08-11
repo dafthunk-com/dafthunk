@@ -104,17 +104,6 @@ export const MAX_REPAIR_ATTEMPTS = 2;
 export const MAX_RUN_REPAIR_ATTEMPTS = 1;
 
 /**
- * Times the outward-steps question may be re-asked after a refusal.
- *
- * Each round costs a model call and another wait, and a person who has said no
- * twice is not being served by a third prompt. When they run out with outward
- * steps still in the graph, the workflow is saved unrun — refusing to act is
- * always an available answer, so the loop has a safe end rather than a
- * fallback that acts.
- */
-export const MAX_APPROVAL_ROUNDS = 2;
-
-/**
  * Gaps put to the user before the first run.
  *
  * Two, because elicitation competes with the thing it is for. Every question

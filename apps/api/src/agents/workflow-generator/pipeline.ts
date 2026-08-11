@@ -1,4 +1,5 @@
 import type { InputOverrides } from "@dafthunk/runtime";
+import { integrationProvider, isOutward } from "@dafthunk/runtime";
 import type {
   BriefDestination,
   CloudflareModelInfo,
@@ -6,7 +7,8 @@ import type {
   GenerationValidationIssue,
   GeneratorServerMessage,
   NodeType,
-  OutwardAction,
+  RehearsalReport,
+  RehearsedNode,
   Workflow,
   WorkflowExample,
   WorkflowExecution,
@@ -19,11 +21,7 @@ import {
 } from "../../utils/example-inputs";
 import { selectCandidates } from "./catalog-selection";
 import type { ModelTier } from "./config";
-import {
-  MAX_APPROVAL_ROUNDS,
-  MAX_REPAIR_ATTEMPTS,
-  MAX_RUN_REPAIR_ATTEMPTS,
-} from "./config";
+import { MAX_REPAIR_ATTEMPTS, MAX_RUN_REPAIR_ATTEMPTS } from "./config";
 import type {
   DraftExample,
   DraftNode,
@@ -44,11 +42,9 @@ import {
   describeMissingResource,
   offerableResources,
 } from "./org-resources";
-import { outwardActions } from "./outward-actions";
 import { parseJsonObject } from "./parse-json";
 import {
   buildCritiquePrompt,
-  buildDeclinePrompt,
   buildEarlyPlanPrompt,
   buildRepairPrompt,
   buildRunRepairPrompt,
@@ -57,6 +53,7 @@ import {
   EARLY_PLAN_SCHEMA,
   EARLY_PLAN_SYSTEM,
 } from "./prompts";
+import { providerLabel } from "./provider-labels";
 import type { CreateResourceFn } from "./resource-resolver";
 import { createResourceResolver } from "./resource-resolver";
 import type { DraftKind, TraceEntry } from "./trace";
@@ -95,6 +92,20 @@ export interface PipelineDependencies {
   /** Live registry types; never a hardcoded snapshot. */
   nodeTypes: NodeType[];
   connectedProviders: ReadonlySet<string>;
+  /**
+   * Providers this deployment can offer OAuth for. A provider that is
+   * available but unconnected is still offered (its steps rehearse until the
+   * account is linked); one absent here is withheld outright. Absent means
+   * every provider is available.
+   */
+  availableProviders?: ReadonlySet<string>;
+  /**
+   * Connected integrations by provider — auto-bound onto `integration`
+   * inputs at hydration, so a generated Gmail node arrives wired to the
+   * account the org already linked. Providers absent here stay unbound: the
+   * rehearsal stubs those nodes and the outcome offers to connect them.
+   */
+  integrationsByProvider?: ReadonlyMap<string, { id: string; name: string }>;
   /** What the org owns, for node inputs holding a resource id. */
   orgResources?: OrgResources;
   /** The same facts assembled for prompts: entity purposes + instances. */
@@ -132,23 +143,21 @@ export interface PipelineDependencies {
     examples: WorkflowExample[],
     workflowId?: string
   ) => Promise<string>;
+  /**
+   * The trial run. Always called with `{ rehearsal: true }`: outward writes
+   * are stubbed at the registry level so nothing leaves the platform. The
+   * flag is stated here, at the seam, rather than defaulted inside any one
+   * implementer — a harness that wires its own executor must see it and
+   * forward it, or it would silently run live.
+   */
   run: (
     workflow: Workflow,
     workflowId: string,
     parameters: WorkflowExecutorParameters,
-    inputOverrides?: InputOverrides
+    inputOverrides?: InputOverrides,
+    options?: { rehearsal: boolean }
   ) => Promise<WorkflowExecution>;
   isCancelled?: () => boolean;
-  /**
-   * Asks before doing anything that leaves the platform.
-   *
-   * The trial run is a real execution, so a graph ending in "post it" posts.
-   * Absent, the run proceeds unasked — which is right for the developer path
-   * and for tests, and wrong for anyone else, so the DO always supplies it.
-   */
-  requestApproval?: (
-    actions: OutwardAction[]
-  ) => Promise<{ approved: boolean; reason?: string }>;
   /**
    * Continue an earlier generation instead of starting one.
    *
@@ -421,14 +430,22 @@ export async function runGenerationPipeline(
     // ── Select ────────────────────────────────────────────────────────────
     // Candidate types are needed either way: hydration resolves the model's
     // type names against them, including on a resumed turn.
-    const { candidates, withheld } = selectCandidates(
+    const { candidates, withheld, unconnected } = selectCandidates(
       deps.prompt,
       deps.nodeTypes,
-      deps.connectedProviders,
-      deps.destination?.nodeTypes ?? [],
-      deps.orgResources ? offerableResources(deps.orgResources) : new Set(),
-      deps.modelCatalog
+      {
+        connectedProviders: deps.connectedProviders,
+        availableProviders: deps.availableProviders,
+        required: deps.destination?.nodeTypes ?? [],
+        offerable: deps.orgResources
+          ? offerableResources(deps.orgResources)
+          : new Set(),
+        modelCatalog: deps.modelCatalog,
+      }
     );
+    const unconnectedProviders = [
+      ...new Set(unconnected.map((entry) => entry.provider)),
+    ];
 
     {
       const offeredTypes = candidates.map((candidate) => candidate.type);
@@ -449,6 +466,9 @@ export async function runGenerationPipeline(
         missingRequired,
         withheldProviders: withheldProviders(withheld),
         withheldResources: withheldResources(withheld),
+        // Admitted despite no connected account — these steps will rehearse.
+        // In the trace to make catalog dilution measurable.
+        unconnectedProviders,
       });
     }
 
@@ -464,12 +484,14 @@ export async function runGenerationPipeline(
         message: `Considering ${candidates.length} of ${deps.nodeTypes.length} node types.`,
       });
 
+      // Only providers this deployment cannot offer at all end up here now —
+      // an unconnected-but-available provider is offered and rehearsed
+      // instead, with its own note after the graph is saved.
       for (const provider of withheldProviders(withheld)) {
         deps.emit({
           type: "log",
           level: "warn",
-          message: `This looks like it wanted ${provider}, which is not connected in this workspace — so those steps are left out.`,
-          link: "integrations",
+          message: `This looks like it wanted ${providerLabel(provider)}, which is not available on this deployment — so those steps are left out.`,
           // Safe to put in front of the user now that `withheldProviders` only
           // returns providers the request actually scored against. It used to
           // return every provider in the catalogue, which buried the one that
@@ -530,6 +552,7 @@ export async function runGenerationPipeline(
           deps.destination?.kind === "email" ? deps.ownerEmail : undefined,
         orgResources: deps.orgResources,
         bindings: resolution.bindings,
+        integrations: deps.integrationsByProvider,
       });
     };
 
@@ -548,6 +571,7 @@ export async function runGenerationPipeline(
         catalog: candidates,
         nodeTypes: deps.nodeTypes,
         withheld,
+        unconnectedProviders,
         query: deps.prompt,
         destination: deps.destination,
         grounding: deps.grounding,
@@ -704,6 +728,17 @@ export async function runGenerationPipeline(
         type: "log",
         level: "info",
         message: boundResourceNote(bound.type, { id: "", name: bound.name }),
+        important: true,
+      });
+    }
+
+    // Same visibility rule for accounts: a workflow wired to somebody's real
+    // Gmail must say so before anything else happens.
+    for (const bound of hydrated.boundIntegrations) {
+      deps.emit({
+        type: "log",
+        level: "info",
+        message: `Used your connected ${providerLabel(bound.provider)} account "${bound.name}".`,
         important: true,
       });
     }
@@ -901,7 +936,11 @@ export async function runGenerationPipeline(
       workflow: Workflow,
       example: WorkflowExample | undefined
     ): Promise<WorkflowExecution> => {
-      deps.emit({ type: "phase", phase: "running", label: "Trying it once" });
+      deps.emit({
+        type: "phase",
+        phase: "running",
+        label: "Trying it once, safely",
+      });
       if (example) {
         deps.emit({
           type: "log",
@@ -916,151 +955,65 @@ export async function runGenerationPipeline(
         buildTriggerParameters(workflow.trigger, example?.trigger, {
           apiHost: deps.apiHost,
         }),
-        example ? buildInputOverrides(example, workflow) : undefined
+        example ? buildInputOverrides(example, workflow) : undefined,
+        // Always a rehearsal. This is what lets the run below happen unasked:
+        // outward writes are stubbed at the registry level, so a graph ending
+        // in "post it" composes the post and sends nothing.
+        { rehearsal: true }
       );
     };
 
-    // ── Ask before acting outside Dafthunk ────────────────────────────────
-    // Everything above this line is reversible: a saved workflow that nobody
-    // ran has changed nothing in the world. The run below is the first step
-    // that cannot be taken back, so it is the last point at which asking is
-    // still worth anything.
     /**
-     * Asks, reworks, and asks again about whatever the rework produced.
+     * What the rehearsal will stub, read from the graph itself.
      *
-     * A loop rather than a single question because the model does not reliably
-     * do what the refusal asked: told "don't post it, just show me", it has
-     * been observed *adding* an output node and leaving the post in place. One
-     * pass would then save a workflow that still posts, under a screen saying
-     * the user declined — the worst of both. So the corrected graph is put
-     * through the same gate, and the loop only ends on a real answer.
+     * Derived statically rather than collected from the run because it
+     * mirrors the registry's own rule exactly: an outward node is always
+     * stubbed, and a node whose required integration input carries no id is
+     * stubbed with fixtures. Integration inputs are hidden and never fed by
+     * edges, so what is on the node is what the run will see.
      */
-    let approvedToRun = true;
+    const rehearsalReport = (
+      workflow: Workflow
+    ): RehearsalReport | undefined => {
+      const byType = new Map(deps.nodeTypes.map((nt) => [nt.type, nt]));
+      const nodes: RehearsedNode[] = [];
+      const unconnected = new Set<string>();
 
-    if (deps.requestApproval) {
-      for (let round = 0; round <= MAX_APPROVAL_ROUNDS; round++) {
-        const actions = outwardActions(savedWorkflow, deps.nodeTypes);
-        if (actions.length === 0) break;
+      for (const node of workflow.nodes) {
+        const nodeType = byType.get(node.type);
+        if (!nodeType) continue;
 
-        // Out of rounds with outward steps still in the graph. Not running is
-        // the only safe end: the user has refused every version they saw.
-        if (round === MAX_APPROVAL_ROUNDS) {
-          approvedToRun = false;
-          deps.emit({
-            type: "log",
-            level: "warn",
-            message:
-              "It still ends by sending something, so I left it saved and unrun.",
-            important: true,
-          });
-          break;
+        const unbound = node.inputs.filter(
+          (input) =>
+            input.type === "integration" && input.required && !input.value
+        );
+        for (const input of unbound) {
+          if (input.type === "integration") unconnected.add(input.provider);
         }
 
-        deps.emit({
-          type: "phase",
-          phase: "approving",
-          label: "Waiting for you",
-        });
-
-        const decision = await deps.requestApproval(actions);
-        checkCancelled();
-
-        const asked = {
-          round,
-          actions: actions.map((action) => action.nodeType),
-        };
-
-        if (decision.approved) {
-          note({ stage: "approve", ok: true, ...asked, approved: true });
-          break;
+        if (isOutward(nodeType) || unbound.length > 0) {
+          const provider = integrationProvider(nodeType);
+          nodes.push({ nodeId: node.id, ...(provider ? { provider } : {}) });
         }
-
-        approvedToRun = false;
-
-        // Their reason is the most precise thing they have said all session —
-        // they are reacting to something concrete instead of describing it
-        // from memory. So it is spent on a correction rather than logged.
-        const reason = decision.reason?.trim();
-        if (!reason) {
-          note({ stage: "approve", ok: true, ...asked, approved: false });
-          break;
-        }
-
-        deps.emit({
-          type: "phase",
-          phase: "repairing",
-          label: "Changing it so it does not do that",
-        });
-
-        const reworked = await revise("decline", buildDeclinePrompt(reason));
-        if (reworked) await repairUntilValid();
-
-        const usable = reworked && !hasFatal(errors);
-        note({
-          stage: "approve",
-          // A refusal we could not act on is a stage that did not do its job:
-          // they asked for a change and got the graph they declined.
-          ok: usable,
-          ...asked,
-          approved: false,
-          reworked: usable,
-        });
-
-        // Only replace what is stored if the correction is actually usable. A
-        // revision that does not validate — or that came back unreadable — is
-        // worse than the graph they declined, which at least opens in the
-        // editor.
-        if (!usable) {
-          deps.emit({
-            type: "log",
-            level: "warn",
-            message:
-              "I could not rework it from that, so the version you declined is what was saved — unrun.",
-            // Without this the note is filtered out of the screen, leaving
-            // "I changed it and left it unrun" with nothing to explain why
-            // the change they asked for is not there.
-            important: true,
-          });
-          break;
-        }
-
-        savedWorkflow = hydrated.workflow;
-        savedDisarmed = hydrated.disarmed;
-        examples = buildGeneratedExamples(draft, savedWorkflow);
-        await deps.save(savedWorkflow, examples, workflowId);
-        deps.emit({ type: "graph", workflow: savedWorkflow, attempt });
-
-        // Round again: if the rework still acts outward, the next pass asks
-        // about it rather than assuming the refusal was honoured.
-        approvedToRun = true;
       }
-    }
 
-    if (!approvedToRun) {
-      // Saying this plainly is the whole point. A screen that showed a result
-      // here would mean the refusal did nothing.
+      if (nodes.length === 0) return undefined;
+      return { nodes, unconnectedProviders: [...unconnected] };
+    };
+
+    // Nothing needs asking anymore: the rehearsal is safe by construction.
+    // What remains owed to the user is the fact that some steps will only be
+    // rehearsed until an account is linked — said before the run, with the
+    // place to fix it.
+    const initialReport = rehearsalReport(savedWorkflow);
+    for (const provider of initialReport?.unconnectedProviders ?? []) {
       deps.emit({
         type: "log",
-        level: "info",
-        message: "Nothing was sent or posted — it was saved but not run.",
+        level: "warn",
+        message: `Uses a ${providerLabel(provider)} account that isn't connected yet — those steps run on stand-in data until you connect it.`,
+        link: "integrations",
         important: true,
       });
-
-      deps.onConversation?.(system, [
-        ...messages,
-        { role: "assistant", content: response.content },
-      ]);
-
-      deps.emit({ type: "phase", phase: "complete", label: "Saved, not run" });
-      deps.emit({ type: "done", workflowId, outcome: "partial" });
-
-      return {
-        outcome: "partial",
-        workflowId: savedId,
-        workflow: savedWorkflow,
-        disarmed: savedDisarmed,
-        ...totals(),
-      };
     }
 
     /** What a run did, in the terms a failure is diagnosed in. */
@@ -1099,6 +1052,7 @@ export async function runGenerationPipeline(
       ...(firstSample && exampleDrove(savedWorkflow, firstSample)
         ? { sampleName: firstSample.name }
         : {}),
+      ...(initialReport ? { rehearsal: initialReport } : {}),
     });
 
     // ── Repair a failed run ───────────────────────────────────────────────
@@ -1173,12 +1127,14 @@ export async function runGenerationPipeline(
       execution = candidateExecution;
       await deps.save(savedWorkflow, examples, workflowId);
       const adoptedSample = examples[0];
+      const adoptedReport = rehearsalReport(savedWorkflow);
       deps.emit({
         type: "run_result",
         execution: previewExecution(execution),
         ...(adoptedSample && exampleDrove(savedWorkflow, adoptedSample)
           ? { sampleName: adoptedSample.name }
           : {}),
+        ...(adoptedReport ? { rehearsal: adoptedReport } : {}),
       });
     }
 

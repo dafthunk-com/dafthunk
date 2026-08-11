@@ -9,11 +9,20 @@
 import { WorkerRuntime } from "@dafthunk/runtime";
 
 import type { Bindings } from "../context";
-import { buildDependencies } from "./cloudflare-runtime-dependencies";
+import {
+  type BuildDependenciesOptions,
+  buildDependencies,
+} from "./cloudflare-runtime-dependencies";
 
 export { WorkerRuntime } from "@dafthunk/runtime";
 
-export function createWorkerRuntime(env: Bindings): WorkerRuntime<Bindings> {
+export function createWorkerRuntime(
+  env: Bindings,
+  options?: BuildDependenciesOptions
+): WorkerRuntime<Bindings> {
   const noopMonitoring = { async sendUpdate() {} };
-  return new WorkerRuntime(env, buildDependencies(env, noopMonitoring));
+  return new WorkerRuntime(
+    env,
+    buildDependencies(env, noopMonitoring, options)
+  );
 }

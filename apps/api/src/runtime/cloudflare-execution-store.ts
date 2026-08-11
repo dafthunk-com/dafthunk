@@ -31,6 +31,7 @@ interface AnalyticsRow {
   blob4: string;
   blob5: string;
   blob6: string;
+  blob7: string;
   double1: number;
   double2: number;
   double3: number;
@@ -71,6 +72,7 @@ export class CloudflareExecutionStore implements ExecutionStore {
       workflowDefinition: record.workflowDefinition,
       definitionHash: record.definitionHash,
       runtimeVersion: record.runtimeVersion,
+      ...(record.rehearsal ? { rehearsal: true as const } : {}),
     };
 
     // Save metadata to Analytics Engine
@@ -169,6 +171,7 @@ export class CloudflareExecutionStore implements ExecutionStore {
           record.status,
           (record.error || "").substring(0, 2000), // truncate to fit in blob
           record.workflowName,
+          record.rehearsal ? "rehearsal" : "",
         ],
         doubles: [durationMs, startedAtMs, endedAtMs, usage],
       };
@@ -288,6 +291,7 @@ export class CloudflareExecutionStore implements ExecutionStore {
       createdAt: now,
       updatedAt: now,
       usage,
+      ...(executionData.rehearsal ? { rehearsal: true } : {}),
     };
   }
 
@@ -366,6 +370,7 @@ export class CloudflareExecutionStore implements ExecutionStore {
           createdAt: timestamp,
           updatedAt: timestamp,
           usage: row.double4 ?? 0,
+          ...(row.blob7 === "rehearsal" ? { rehearsal: true } : {}),
         };
       });
     } catch (error) {

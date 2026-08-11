@@ -82,6 +82,14 @@ export interface EligibilityContext {
   /** OAuth providers the org has actually connected. */
   connectedProviders: ReadonlySet<string>;
   /**
+   * OAuth providers this deployment can offer at all — the ones with client
+   * config. A provider that is available but unconnected is *offered* (its
+   * nodes rehearse on stand-in data until the account is linked); a provider
+   * missing from this set is withheld outright, because there is nothing the
+   * user could connect. Absent means every provider is available.
+   */
+  availableProviders?: ReadonlySet<string>;
+  /**
    * Resource types whose nodes may be offered: owned, or creatable on demand.
    * Absent means none, which is the old behaviour: withhold them all.
    */
@@ -185,9 +193,17 @@ export function filterEligible(
   /** Same entries as `eligible`, keyed by type for direct lookup. */
   byType: Map<string, NodeType>;
   withheld: Ineligible[];
+  /**
+   * Offered despite an unconnected provider. These nodes rehearse on
+   * stand-in data until the account is linked; the caller uses this list to
+   * say so instead of pretending the account exists.
+   */
+  unconnected: Array<{ type: string; provider: string }>;
 } {
   const eligible: NodeType[] = [];
   const withheld: Ineligible[] = [];
+  const unconnected: Array<{ type: string; provider: string }> = [];
+  const { availableProviders } = context;
 
   for (const nodeType of nodeTypes) {
     if (nodeType.trigger || nodeType.responder) continue;
@@ -195,14 +211,27 @@ export function filterEligible(
     if (isUnofferedModel(nodeType)) continue;
 
     const providers = requiredProviders(nodeType);
-    const missing = providers.find((p) => !context.connectedProviders.has(p));
-    if (missing) {
+
+    // A provider this deployment cannot offer OAuth for is withheld outright:
+    // there is nothing the user could connect to make the node run.
+    const unavailable = availableProviders
+      ? providers.find((p) => !availableProviders.has(p))
+      : undefined;
+    if (unavailable) {
       withheld.push({
         type: nodeType.type,
         reason: "integration",
-        provider: missing,
+        provider: unavailable,
       });
       continue;
+    }
+
+    // Unconnected is no longer a reason to withhold: the node is offered, the
+    // trial run rehearses it on stand-in data, and the outcome screen offers
+    // the connection. Tracked so every consumer can say that honestly.
+    const missing = providers.find((p) => !context.connectedProviders.has(p));
+    if (missing) {
+      unconnected.push({ type: nodeType.type, provider: missing });
     }
 
     const offerable = context.offerableResources ?? new Set<string>();
@@ -225,5 +254,6 @@ export function filterEligible(
     eligible,
     byType: new Map(eligible.map((nodeType) => [nodeType.type, nodeType])),
     withheld,
+    unconnected,
   };
 }

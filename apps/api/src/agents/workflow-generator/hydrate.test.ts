@@ -468,6 +468,74 @@ describe("binding org-owned resources", () => {
     expect(boundResources).toEqual([{ type: "queue", name: "Jobs" }]);
   });
 
+  it("binds the connected account onto an integration input", () => {
+    const { workflow, boundIntegrations } = hydrateGeneratedWorkflow(
+      draft({
+        title: "Post",
+        nodes: [{ id: "p", type: "share-post-x", inputs: { text: "hi" } }],
+      }),
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES,
+      { integrations: new Map([["x", { id: "int-1", name: "Work account" }]]) }
+    );
+
+    const bound = workflow.nodes[0]?.inputs.find(
+      (input) => input.name === "integrationId"
+    )?.value;
+    expect(bound).toBe("int-1");
+    // Reported: a workflow quietly wired to somebody's real account is the
+    // one binding they must be told about.
+    expect(boundIntegrations).toEqual([
+      { provider: "x", name: "Work account" },
+    ]);
+  });
+
+  it("never overwrites an integration id already on the node", () => {
+    const { workflow, boundIntegrations } = hydrateGeneratedWorkflow(
+      draft({
+        title: "Post",
+        nodes: [
+          {
+            id: "p",
+            type: "share-post-x",
+            inputs: { text: "hi", integrationId: "int-explicit" },
+          },
+        ],
+      }),
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES,
+      { integrations: new Map([["x", { id: "int-1", name: "Work account" }]]) }
+    );
+
+    const bound = workflow.nodes[0]?.inputs.find(
+      (input) => input.name === "integrationId"
+    )?.value;
+    // An adopted workflow's explicit account choice wins over the fallback.
+    expect(bound).toBe("int-explicit");
+    expect(boundIntegrations).toEqual([]);
+  });
+
+  it("leaves an unconnected provider unbound, with nothing reported", () => {
+    const { workflow, errors, boundIntegrations } = hydrateGeneratedWorkflow(
+      draft({
+        title: "Post",
+        nodes: [{ id: "p", type: "share-post-x", inputs: { text: "hi" } }],
+      }),
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES,
+      { integrations: new Map([["slack", { id: "s1", name: "Team" }]]) }
+    );
+
+    const bound = workflow.nodes[0]?.inputs.find(
+      (input) => input.name === "integrationId"
+    )?.value;
+    // Unbound is a valid state now: the rehearsal stubs the node, and the
+    // outcome screen offers the connection.
+    expect(bound).toBeUndefined();
+    expect(errors).toEqual([]);
+    expect(boundIntegrations).toEqual([]);
+  });
+
   it("moves an explicit trigger-node binding into `disarmed`, not the graph", () => {
     // Bound, but never armed behind the user's back: the mailbox lands in the
     // disarmed collection, the saved graph stays inert, and the `arm` turn is

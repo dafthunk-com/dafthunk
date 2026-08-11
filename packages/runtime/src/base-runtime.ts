@@ -41,6 +41,14 @@ export interface RuntimeParams extends TriggerContext {
   /** When true, all credit checks are bypassed (e.g., internal/test accounts). */
   readonly unlimitedUsage?: boolean;
   readonly inputOverrides?: InputOverrides;
+  /**
+   * A rehearsal run: outward writes are stubbed at the registry level so
+   * nothing leaves the platform. Carried beside the workflow — like
+   * `inputOverrides` — so the definition hash is untouched. The flag only
+   * marks the record; the stubbing itself is the registry the dependencies
+   * were built with.
+   */
+  readonly rehearsal?: boolean;
 }
 
 /** Everything derived once at the start of a run and used throughout it. */
@@ -186,6 +194,8 @@ export abstract class Runtime<Env = unknown> {
       nodeExecutions: [],
       startedAt: new Date(),
       endedAt: undefined,
+      // Stamped up front so streamed monitoring frames carry it too.
+      ...(params.rehearsal ? { rehearsal: true as const } : {}),
     } as WorkflowExecution;
 
     await this.notify(record);
@@ -563,6 +573,7 @@ export abstract class Runtime<Env = unknown> {
         workflowDefinition: context.workflow,
         definitionHash,
         runtimeVersion: this.deps.runtimeVersion,
+        rehearsal: params.rehearsal || undefined,
       })
     );
   }

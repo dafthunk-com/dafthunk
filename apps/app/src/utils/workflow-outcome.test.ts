@@ -166,6 +166,42 @@ describe("deliveredPhrase", () => {
       deliveredPhrase(node({ id: "x", type: "send-carrier-pigeon" }))
     ).toBe("Sent");
   });
+
+  it("switches to the past conditional for a rehearsed step", () => {
+    // The tense is the honesty: the payload on screen is exactly what was
+    // composed, and nothing actually left Dafthunk.
+    expect(deliveredPhrase(NOTIFY, true)).toBe("Would have emailed you");
+    expect(
+      deliveredPhrase(node({ id: "x", type: "send-carrier-pigeon" }), true)
+    ).toBe("Would have sent");
+  });
+});
+
+describe("a rehearsed delivery still shows its composed payload", () => {
+  it("recovers the values from a run whose delivery node was stubbed", () => {
+    // The stub returns synthetic receipts on the delivery node itself, but
+    // `deliveredValues` never reads those — the payload comes off the edges
+    // and the graph, both of which the rehearsal ran for real.
+    const stubbed = {
+      ...EXECUTION,
+      nodeExecutions: [
+        EXECUTION.nodeExecutions[0],
+        {
+          nodeId: "digest",
+          status: "completed",
+          outputs: { recipientCount: 0 },
+        },
+      ],
+    } as unknown as WorkflowExecution;
+
+    expect(deliveredValues(WORKFLOW, stubbed, NOTIFY)).toEqual([
+      { name: "subject", text: "Your Hacker News digest" },
+      { name: "text", text: "Story one: …\nStory two: …" },
+    ]);
+    // And the stub kept the declared receipt names, so the delivery
+    // classification is unchanged.
+    expect(isDeliveryNode(NOTIFY)).toBe(true);
+  });
 });
 
 describe("terminalNodeIds", () => {

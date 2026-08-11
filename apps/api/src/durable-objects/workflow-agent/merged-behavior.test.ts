@@ -108,11 +108,19 @@ describe("two protocols on one object", () => {
     await runInDurableObject(
       stub,
       async (instance: WorkflowAgent, state: DurableObjectState) => {
-        // A run parked on the approval question, whose continuation is gone —
-        // the one generation move that emits a frame without a model call.
+        // A settled run pointing at a workflow that no longer exists — `arm`
+        // then emits a warn frame without a model call and without touching
+        // the stored workflow, which is what keeps the editor side silent.
         state.storage.sql.exec(
-          `INSERT INTO gen_runs (session_id, status, prompt, turn, updated_at) VALUES (?, 'awaiting', 'test', 0, ?)`,
+          `INSERT INTO gen_runs (session_id, status, prompt, workflow_id, turn, disarmed, updated_at) VALUES (?, 'done', 'test', 'deleted-elsewhere', 0, ?, ?)`,
           id,
+          JSON.stringify([
+            {
+              nodeId: "n1",
+              inputName: "scheduleExpression",
+              value: "0 8 * * *",
+            },
+          ]),
           Date.now()
         );
         await instance.saveWorkflowRecord(record(id, "Isolation Workflow"));
@@ -123,9 +131,9 @@ describe("two protocols on one object", () => {
     await waitFor(editor.frames, (f) => f.type === "init");
     const editorFramesBefore = editor.frames.length;
 
-    // Generation emits an error frame (approve with no pending continuation).
-    generation.socket.send(JSON.stringify({ type: "approve" }));
-    await waitFor(generation.frames, (f) => f.type === "error");
+    // Generation emits its warn frame, entirely off the model path.
+    generation.socket.send(JSON.stringify({ type: "arm" }));
+    await waitFor(generation.frames, (f) => f.type === "log");
 
     // The editor client closes on any unknown frame type, so a single leaked
     // generator frame here is a killed session in production.
@@ -333,6 +341,42 @@ describe("the connect guard", () => {
       workflow_id: id,
       adopted: 1,
       prompt: "Editor Made",
+    });
+  });
+
+  it("settles a run orphaned at the retired approval gate", async () => {
+    const id = "merged-orphaned-awaiting";
+    const stub = await getAgentByName(NAMESPACE, id);
+
+    // First connect creates the generation tables…
+    const first = await connectGeneration(id);
+    await waitFor(first.frames, (f) => f.type === "session");
+    first.socket.close();
+
+    // …then the deploy-crossing state is seeded: parked at 'awaiting' by the
+    // old approval gate (no brief), with its workflow already saved. Nothing
+    // can resolve this anymore — the approve/decline verbs are gone.
+    await runInDurableObject(
+      stub,
+      async (instance: WorkflowAgent, state: DurableObjectState) => {
+        state.storage.sql.exec(
+          `INSERT INTO gen_runs (session_id, status, prompt, workflow_id, turn, updated_at) VALUES (?, 'awaiting', 'orphan', ?, 0, ?)`,
+          id,
+          id,
+          Date.now()
+        );
+        await instance.saveWorkflowRecord(record(id, "Orphan Workflow"));
+      }
+    );
+
+    // A returning visitor finds it settled by what it achieved: the workflow
+    // exists, so the session reads as done and a critique could claim it.
+    const second = await connectGeneration(id);
+    const frame = await waitFor(second.frames, (f) => f.type === "session");
+    expect(frame).toMatchObject({
+      type: "session",
+      status: "done",
+      workflowId: id,
     });
   });
 

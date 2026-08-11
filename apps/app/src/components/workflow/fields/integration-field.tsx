@@ -1,3 +1,6 @@
+import type { IntegrationProvider } from "@dafthunk/types";
+import { useLocation } from "react-router";
+
 import {
   Select,
   SelectContent,
@@ -5,7 +8,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useIntegrations } from "@/integrations";
+import {
+  getProviderLabel,
+  rememberOAuthReturn,
+  useIntegrationActions,
+  useIntegrations,
+} from "@/integrations";
 import { cn } from "@/utils/utils";
 
 import type { FieldProps } from "./types";
@@ -19,6 +27,8 @@ export function IntegrationField({
   value,
 }: FieldProps) {
   const { integrations, isLoading } = useIntegrations();
+  const { connectOAuth } = useIntegrationActions();
+  const location = useLocation();
 
   // Narrow the parameter type to access `provider`
   const provider = parameter.type === "integration" ? parameter.provider : "";
@@ -75,6 +85,20 @@ export function IntegrationField({
           ))}
         </SelectContent>
       </Select>
+      {/* The way out of an empty picker. Without this, "No integrations" is
+          a dead end three screens from the page that could fix it. */}
+      {!isLoading && provider && filtered?.length === 0 && (
+        <button
+          type="button"
+          className="mt-1 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+          onClick={() => {
+            rememberOAuthReturn(`${location.pathname}${location.search}`);
+            connectOAuth(provider as IntegrationProvider);
+          }}
+        >
+          Connect {getProviderLabel(provider as IntegrationProvider)}
+        </button>
+      )}
     </div>
   );
 }

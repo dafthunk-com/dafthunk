@@ -170,10 +170,17 @@ async function runSample(testCase: EvaluationCase): Promise<Sample> {
       emit: () => {},
       save: async () => "eval-workflow",
       // The real executor, because the whole point is what the nodes produce.
-      // Approval is deliberately not wired: with no provider connected there is
-      // nothing outward to approve, and a harness that could post would be a
-      // harness nobody dares run.
-      run: async (workflow, workflowId, parameters, inputOverrides) => {
+      // The pipeline always asks for a rehearsal, and the flag is forwarded
+      // faithfully: outward writes are stubbed at the registry level, which is
+      // what makes it safe to include provider-node prompts in the case set —
+      // this harness used to be one nobody dared point at a real account.
+      run: async (
+        workflow,
+        workflowId,
+        parameters,
+        inputOverrides,
+        options
+      ) => {
         const outcome = await WorkflowExecutor.execute({
           workflow: {
             id: workflowId,
@@ -189,6 +196,7 @@ async function runSample(testCase: EvaluationCase): Promise<Sample> {
           unlimitedUsage: true,
           parameters,
           ...(inputOverrides && { inputOverrides }),
+          ...(options?.rehearsal && { rehearsal: true }),
           env: bindings,
         });
         execution = outcome.execution;

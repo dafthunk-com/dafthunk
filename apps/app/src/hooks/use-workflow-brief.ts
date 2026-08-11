@@ -6,7 +6,7 @@ import type {
   GenerationPlan,
   GenerationStatus,
   GeneratorServerMessage,
-  OutwardAction,
+  RehearsalReport,
   Workflow,
   WorkflowExecution,
 } from "@dafthunk/types";
@@ -107,11 +107,11 @@ export interface BriefState {
   /** Name of the invented example the trial run was fed, when there was one. */
   sampleName?: string;
   /**
-   * The outward steps waiting on a decision. Present only while the run is
-   * held, and cleared the moment one is given — a stale list here would ask
-   * about steps that have already run.
+   * What the trial run stubbed instead of performing. Present when the graph
+   * has outward or unbound steps — the outcome screen turns it into "would
+   * have sent" phrasing and the connect calls to action.
    */
-  pendingActions?: OutwardAction[];
+  rehearsal?: RehearsalReport;
   outcome?: "ok" | "partial";
   error?: {
     message: string;
@@ -128,7 +128,7 @@ export interface BriefNote {
   link?: "integrations";
 }
 
-const INITIAL: BriefState = {
+export const INITIAL_BRIEF_STATE: BriefState = {
   status: "idle",
   sessionLoaded: false,
   replayed: false,
@@ -155,7 +155,10 @@ const SENDING_LABEL = "Sending…";
  * Every field is either overwritten or gated on `turn`, and the `session`
  * frame — which always precedes a replay — resets everything.
  */
-function reduce(state: BriefState, frame: GeneratorServerMessage): BriefState {
+export function reduce(
+  state: BriefState,
+  frame: GeneratorServerMessage
+): BriefState {
   const next = applyFrame(state, frame);
   // Any frame past the `session` reset proves the log had content.
   return frame.type === "session" || next.replayed
@@ -170,7 +173,7 @@ function applyFrame(
   switch (frame.type) {
     case "session":
       return {
-        ...INITIAL,
+        ...INITIAL_BRIEF_STATE,
         sessionLoaded: true,
         status: frame.status,
         phase: frame.phase,
@@ -216,6 +219,8 @@ function applyFrame(
         // workflow, and a link left pointing at the previous run would show the
         // result the user just asked to have changed.
         executionId: undefined,
+        // The report describes that run; the rebuild will carry its own.
+        rehearsal: undefined,
         outcome: undefined,
         // A new turn re-saves through hydration, which disarms again — an
         // earlier "it's on" would be a stale promise over a workflow the
@@ -245,9 +250,6 @@ function applyFrame(
         phaseLabel: frame.label,
         phaseTrail: trail.slice(-PHASE_TRAIL_LIMIT),
         status: frame.phase === "complete" ? state.status : "running",
-        // Any phase after the question means the question has been answered.
-        // Leaving the list up would keep asking about steps already taken.
-        ...(frame.phase === "approving" ? {} : { pendingActions: undefined }),
       };
     }
 
@@ -260,14 +262,12 @@ function applyFrame(
     case "armed":
       return { ...state, armed: true };
 
-    case "approval_required":
-      return { ...state, pendingActions: frame.actions, status: "awaiting" };
-
     case "run_result":
       return {
         ...state,
         execution: frame.execution,
         sampleName: frame.sampleName,
+        rehearsal: frame.rehearsal,
       };
 
     case "done":
@@ -332,7 +332,7 @@ export function useWorkflowBrief(
 ) {
   const { sessionId, onSessionStarted } = options;
 
-  const [state, setState] = useState<BriefState>(INITIAL);
+  const [state, setState] = useState<BriefState>(INITIAL_BRIEF_STATE);
   const socketRef = useRef<WorkflowGeneratorWebSocket | null>(null);
   const attachedRef = useRef<string | null>(null);
 
@@ -396,6 +396,7 @@ export function useWorkflowBrief(
         sentence: undefined,
         execution: undefined,
         executionId: undefined,
+        rehearsal: undefined,
         outcome: undefined,
         error: undefined,
       }));
@@ -440,32 +441,6 @@ export function useWorkflowBrief(
     socketRef.current?.critique(note);
   }, []);
 
-  /** Let the outward steps run. */
-  const approve = useCallback(() => {
-    setState((current) => ({
-      ...current,
-      status: "running",
-      phaseLabel: SENDING_LABEL,
-      pendingActions: undefined,
-    }));
-    socketRef.current?.approve();
-  }, []);
-
-  /**
-   * Refuse the run. An empty reason is a complete answer — "keep it saved,
-   * unrun" — and the pipeline treats it as exactly that; a non-empty one is
-   * spent on a correction instead.
-   */
-  const decline = useCallback((reason: string) => {
-    setState((current) => ({
-      ...current,
-      status: "running",
-      phaseLabel: SENDING_LABEL,
-      pendingActions: undefined,
-    }));
-    socketRef.current?.decline(reason);
-  }, []);
-
   /**
    * Ask the run to stop. Acknowledged locally at once: the pipeline polls its
    * cancel flag between model calls, so the real stop can be half a minute
@@ -493,7 +468,7 @@ export function useWorkflowBrief(
     socketRef.current?.disconnect();
     socketRef.current = null;
     attachedRef.current = null;
-    setState(INITIAL);
+    setState(INITIAL_BRIEF_STATE);
   }, []);
 
   return {
@@ -501,8 +476,6 @@ export function useWorkflowBrief(
     ask,
     resolve,
     critique,
-    approve,
-    decline,
     cancel,
     reconnect,
     arm,

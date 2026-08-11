@@ -91,6 +91,27 @@ const DELIVERED_PHRASES: Record<string, string> = {
 };
 
 /**
+ * Past conditional, for a step the trial only rehearsed. The tense is the
+ * honesty: the payload on screen is exactly what was composed, and nothing
+ * actually left Dafthunk.
+ */
+const REHEARSED_PHRASES: Record<string, string> = {
+  "notify-me": "Would have emailed you",
+  "send-email": "Would have sent this email",
+  "send-email-google-mail": "Would have sent from your Gmail",
+  "send-message-discord": "Would have posted to Discord",
+  "send-message-slack": "Would have posted to Slack",
+  "send-message-telegram": "Would have sent on Telegram",
+  "send-message-whatsapp": "Would have sent on WhatsApp",
+  "share-post-x": "Would have posted to X",
+  "share-post-linkedin": "Would have posted to LinkedIn",
+  "share-post-reddit": "Would have posted to Reddit",
+  "create-post-wordpress": "Would have published to WordPress",
+  "create-update-file-github": "Would have committed to GitHub",
+  "create-event-google-calendar": "Would have added to your calendar",
+};
+
+/**
  * What to say happened, for a node that delivered something.
  *
  * Deliberately not derived from the brief's destination label: those are
@@ -99,7 +120,8 @@ const DELIVERED_PHRASES: Record<string, string> = {
  * transformation gets right. An unknown type falls back to something true of
  * every entry here.
  */
-export function deliveredPhrase(node: Node): string {
+export function deliveredPhrase(node: Node, rehearsed = false): string {
+  if (rehearsed) return REHEARSED_PHRASES[node.type] ?? "Would have sent";
   return DELIVERED_PHRASES[node.type] ?? "Sent";
 }
 

@@ -157,19 +157,6 @@ export interface GenerationHost {
 export class GenerationSession {
   private schemaReady = false;
 
-  /**
-   * Resolver for a run parked on the outward-steps question.
-   *
-   * In memory only, and deliberately so: it is a continuation of a pipeline
-   * that is itself in memory, so persisting it would buy nothing — if this
-   * object is evicted the run is gone either way. The run's row is moved to
-   * `awaiting` while it waits, which is what keeps the stall clock off it.
-   */
-  private pendingApproval?: (decision: {
-    approved: boolean;
-    reason?: string;
-  }) => void;
-
   /** When this session first stored its workflow, so a re-save keeps the date. */
   private createdAt?: Date;
 
@@ -512,6 +499,23 @@ export class GenerationSession {
       return;
     }
 
+    // A run parked at `awaiting` with no brief was waiting on the old
+    // approval gate, whose continuation lived in memory and whose messages no
+    // longer exist — nothing can ever resolve it, and cleanup re-arms forever
+    // on `awaiting`. Settle it by what it actually achieved: a saved workflow
+    // means the session finished its real work. Brief-awaiting rows (brief
+    // non-null) are a person mid-conversation and are left alone.
+    if (run?.status === "awaiting" && !run.brief) {
+      const settled = run.workflow_id ? "done" : "failed";
+      this.sql.exec(
+        `UPDATE gen_runs SET status = ?, updated_at = ? WHERE session_id = ?`,
+        settled,
+        Date.now(),
+        this.sessionId
+      );
+      run = this.currentRun();
+    }
+
     this.host.patchState({
       userId,
       organizationId,
@@ -617,50 +621,6 @@ export class GenerationSession {
             this.runCritique(turn, parsed.note, stored.workflow_id)
           );
         }
-        return;
-      }
-      case "approve":
-      case "decline": {
-        const resolve = this.pendingApproval;
-        this.pendingApproval = undefined;
-
-        if (!resolve) {
-          this.ensureSchema();
-          const stored = this.currentRun();
-
-          // Parked, but the continuation is gone — this object restarted while
-          // it waited. Both buttons would otherwise do nothing at all, and the
-          // stall clock does not apply to `awaiting`, so the session would sit
-          // there forever. Say so instead. Nothing was run, which is the one
-          // reassurance actually worth giving here.
-          if (stored?.status === "awaiting") {
-            this.fail({
-              type: "error",
-              code: "STALLED",
-              message:
-                "This session expired while waiting, so nothing was sent or posted. Open the workflow to look at it, or start again.",
-              recoverable: true,
-            });
-            return;
-          }
-
-          // Otherwise a duplicate click, or a message against a pipeline that
-          // has already moved on. Ignoring is right — resolving twice would
-          // run the workflow a second time.
-          return;
-        }
-
-        this.ensureSchema();
-        this.sql.exec(
-          `UPDATE gen_runs SET status = 'running', updated_at = ? WHERE session_id = ?`,
-          Date.now(),
-          this.sessionId
-        );
-        resolve(
-          parsed.type === "approve"
-            ? { approved: true }
-            : { approved: false, reason: parsed.reason }
-        );
         return;
       }
       case "arm": {
@@ -879,6 +839,32 @@ export class GenerationSession {
 
     const nodeTypes = registry.getNodeTypes() as NodeType[];
 
+    // One integration per provider, for auto-binding onto generated nodes.
+    // Active beats expired (an expired one still binds — reconnecting heals
+    // it in place, and silently stubbing a step the user believes is live
+    // would be worse); revoked never binds. Newest wins within a rank, and
+    // the editor's integration field lets the user swap the choice.
+    const integrationsByProvider = new Map<
+      string,
+      { id: string; name: string }
+    >();
+    const rank = (status: string) => (status === "active" ? 0 : 1);
+    const usable = integrations
+      .filter((integration) => integration.status !== "revoked")
+      .sort(
+        (a, b) =>
+          rank(a.status) - rank(b.status) ||
+          b.createdAt.getTime() - a.createdAt.getTime()
+      );
+    for (const integration of usable) {
+      if (!integrationsByProvider.has(integration.provider)) {
+        integrationsByProvider.set(integration.provider, {
+          id: integration.id,
+          name: integration.name,
+        });
+      }
+    }
+
     return {
       userId,
       organizationId,
@@ -895,8 +881,13 @@ export class GenerationSession {
         emailDomain: this.host.env.EMAIL_DOMAIN,
         modelCatalog,
       }),
+      integrationsByProvider: integrationsByProvider as ReadonlyMap<
+        string,
+        { id: string; name: string }
+      >,
+      // Derived from the same map so "connected" and "bindable" cannot drift.
       connectedProviders: new Set(
-        integrations.map((integration) => integration.provider)
+        integrationsByProvider.keys()
       ) as ReadonlySet<string>,
       availableProviders: new Set(
         availableIntegrationProviders(this.host.env)
@@ -928,6 +919,7 @@ export class GenerationSession {
       // used to diverge: the brief filtered without resource knowledge.
       const { eligible } = filterEligible(context.nodeTypes, {
         connectedProviders: context.connectedProviders,
+        availableProviders: context.availableProviders,
         offerableResources: offerableResources(context.orgResources),
       });
 
@@ -1140,29 +1132,13 @@ export class GenerationSession {
         ? buildSynthesisPrompt(input.brief, answers, resourceBindings)
         : (input.prompt ?? "");
 
+      // An unconnected destination no longer blocks the build. The workflow
+      // is generated anyway, its provider steps rehearse on stand-in data,
+      // and the outcome screen carries the "connect it to make this live"
+      // call to action — a right-shaped draft beats an error frame.
       const destination = input.brief
         ? resolveDestination(input.brief, answers)
         : undefined;
-
-      // The brief may be minutes old and the user may have gone off to link an
-      // account in the meantime — so the connection is checked now, against
-      // what is true now, rather than trusted from when the sentence was
-      // written. Building on a stale answer would produce a workflow whose
-      // delivery node fails the moment it runs.
-      if (
-        destination?.requiresConnection &&
-        destination.provider &&
-        !context.connectedProviders.has(destination.provider)
-      ) {
-        this.storeBrief(input.brief ?? null);
-        this.emit({
-          type: "error",
-          code: "NEEDS_CONNECTION",
-          message: `Connect ${destination.provider} first — the workflow cannot ${destination.label} without it.`,
-          recoverable: true,
-        });
-        return;
-      }
 
       if (input.brief) {
         this.emit({
@@ -1181,6 +1157,8 @@ export class GenerationSession {
           this.storeConversation(turn, system, messages),
         nodeTypes: context.nodeTypes,
         connectedProviders: context.connectedProviders,
+        availableProviders: context.availableProviders,
+        integrationsByProvider: context.integrationsByProvider,
         orgResources: context.orgResources,
         resourceBindings,
         createResource: createResourceProvisioner(
@@ -1202,20 +1180,6 @@ export class GenerationSession {
           }
           this.emit(frame);
         },
-        requestApproval: (actions) => {
-          this.emit({ type: "approval_required", actions });
-          // Parked, not polled. The row goes to `awaiting` so the stall clock
-          // — which exists for hung model calls — does not fail a run that is
-          // simply waiting for a person to read it.
-          this.sql.exec(
-            `UPDATE gen_runs SET status = 'awaiting', updated_at = ? WHERE session_id = ?`,
-            Date.now(),
-            this.sessionId
-          );
-          return new Promise((resolve) => {
-            this.pendingApproval = resolve;
-          });
-        },
         callLLM: (call: GenerateCall) => this.callModel(call),
         save: (workflow, examples, workflowId) =>
           this.saveWorkflow(
@@ -1225,7 +1189,7 @@ export class GenerationSession {
             organizationId,
             workflowId
           ),
-        run: (workflow, workflowId, parameters, inputOverrides) =>
+        run: (workflow, workflowId, parameters, inputOverrides, options) =>
           this.runOnce(
             workflow,
             workflowId,
@@ -1233,7 +1197,8 @@ export class GenerationSession {
             organizationId,
             billingInfo,
             parameters,
-            inputOverrides
+            inputOverrides,
+            options
           ),
       });
 
@@ -1463,7 +1428,8 @@ export class GenerationSession {
       Awaited<ReturnType<typeof getOrganizationBillingInfo>>
     >,
     parameters: WorkflowExecutorParameters,
-    inputOverrides?: InputOverrides
+    inputOverrides?: InputOverrides,
+    options?: { rehearsal: boolean }
   ): Promise<WorkflowExecution> {
     const { execution } = await WorkflowExecutor.execute({
       workflow: {
@@ -1479,6 +1445,7 @@ export class GenerationSession {
       ...resolveOrganizationBillingOptions(billingInfo),
       parameters,
       ...(inputOverrides && { inputOverrides }),
+      ...(options?.rehearsal && { rehearsal: true }),
       env: this.host.env,
     });
 

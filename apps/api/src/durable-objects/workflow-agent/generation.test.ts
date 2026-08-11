@@ -141,6 +141,13 @@ describe("the multi-turn protocol", () => {
     socket.send(JSON.stringify({ type: "from-the-future", payload: 1 }));
     await settle();
 
+    // The other direction of the same tolerance: a client one deploy BEHIND
+    // may still send the retired approval verbs. They fall into the same
+    // default — ignored, session intact.
+    socket.send(JSON.stringify({ type: "approve" }));
+    socket.send(JSON.stringify({ type: "decline", reason: "no" }));
+    await settle();
+
     // Still usable: the session takes a real message afterwards.
     socket.send(JSON.stringify({ type: "ask", prompt: "summarize" }));
     await waitFor(frames, (frame) => frame.type === "error");

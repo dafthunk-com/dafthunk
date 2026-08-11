@@ -221,12 +221,22 @@ export function achievableDestinations(
       continue;
     }
 
+    // Provider nodes are offered even before the account is linked — the
+    // build rehearses those steps — so "usable" no longer implies
+    // "connected". The flag has to come from connection state itself, or the
+    // brief would promise a live destination the org cannot deliver yet.
+    const requiresConnection =
+      spec.provider !== undefined &&
+      input.connectedProviders !== undefined &&
+      !input.connectedProviders.has(spec.provider);
+
     destinations.push({
       id: spec.id,
       kind: spec.kind,
       ...(spec.provider ? { provider: spec.provider } : {}),
       label: spec.label,
       nodeTypes: usable,
+      ...(requiresConnection ? { requiresConnection: true } : {}),
     });
   }
 

@@ -123,7 +123,8 @@ function harness(
       _workflow: Workflow,
       _workflowId: string,
       _parameters: unknown,
-      inputOverrides?: InputOverrides
+      inputOverrides?: InputOverrides,
+      _options?: { rehearsal: boolean }
     ) => {
       ranWith.push(inputOverrides);
       return execution(statuses.shift() ?? "completed");
@@ -514,11 +515,14 @@ describe("the pipeline trace", () => {
   });
 
   it("flags a promised destination that never reached the catalog", async () => {
-    // `share-post-x` needs an account this org has not linked, so eligibility
-    // withholds it — and forcing it in as `required` must not smuggle it past.
-    // The generation is then doomed before the first token: the prompt names a
-    // delivery node whose ports the model cannot see.
+    // `share-post-x` needs an OAuth provider this deployment has no config
+    // for, so eligibility withholds it — and forcing it in as `required` must
+    // not smuggle it past. (Merely unconnected would no longer doom it: those
+    // nodes are offered and rehearsed.) The generation is then doomed before
+    // the first token: the prompt names a delivery node whose ports the model
+    // cannot see.
     const { deps } = harness([llmResult(DRAFT_WITH_EXAMPLES)], {
+      availableProviders: new Set(["slack", "wordpress"]),
       destination: {
         id: "x",
         kind: "integration" as const,
@@ -635,55 +639,55 @@ describe("isRunImprovement", () => {
 });
 
 describe("selectCandidates", () => {
-  it("withholds subscription nodes from a trial org", () => {
+  it("offers an integration node even when the provider is unconnected", () => {
+    const { candidates, withheld, unconnected } = selectCandidates(
+      "post a slack message",
+      FIXTURE_NODE_TYPES,
+      { connectedProviders: new Set() }
+    );
+
+    // The node is offered — its step rehearses until the account is linked —
+    // and the missing connection is tracked rather than silently absorbed.
+    expect(candidates.map((c) => c.type)).toContain("send-slack-message");
+    expect(withheld.some((w) => w.type === "send-slack-message")).toBe(false);
+    expect(unconnected).toContainEqual({
+      type: "send-slack-message",
+      provider: "slack",
+    });
+  });
+
+  it("withholds a provider the deployment cannot offer at all", () => {
     const { candidates, withheld } = selectCandidates(
       "post a slack message",
       FIXTURE_NODE_TYPES,
-      new Set()
+      {
+        connectedProviders: new Set(),
+        availableProviders: new Set(["wordpress", "x"]),
+      }
     );
 
+    // No OAuth config for Slack here: there is nothing the user could
+    // connect, so offering the node would only promise a dead step.
     expect(candidates.map((c) => c.type)).not.toContain("send-slack-message");
     expect(withheld.some((w) => w.type === "send-slack-message")).toBe(true);
   });
 
-  it("still withholds an integration node when the provider is unconnected", () => {
-    const { candidates } = selectCandidates(
+  it("stops tracking a provider once it is connected", () => {
+    const { candidates, unconnected } = selectCandidates(
       "post a slack message",
       FIXTURE_NODE_TYPES,
-      new Set()
-    );
-
-    expect(candidates.map((c) => c.type)).not.toContain("send-slack-message");
-  });
-
-  it("admits it once the org is pro and the provider is connected", () => {
-    const { candidates } = selectCandidates(
-      "post a slack message",
-      FIXTURE_NODE_TYPES,
-      new Set(["slack"])
+      { connectedProviders: new Set(["slack"]) }
     );
 
     expect(candidates.map((c) => c.type)).toContain("send-slack-message");
-  });
-
-  it("names the unconnected provider the request was reaching for", () => {
-    const { withheld } = selectCandidates(
-      "post a slack message",
-      FIXTURE_NODE_TYPES,
-      new Set()
-    );
-
-    // Only Slack. X and WordPress are also withheld and also share the token
-    // "post", but naming them here would tell someone who asked about Slack
-    // about two services they never mentioned.
-    expect(withheldProviders(withheld)).toEqual(["slack"]);
+    expect(unconnected.some((entry) => entry.provider === "slack")).toBe(false);
   });
 
   it("never offers trigger or responder nodes", () => {
     const { candidates } = selectCandidates(
       "when an email arrives",
       FIXTURE_NODE_TYPES,
-      new Set()
+      { connectedProviders: new Set() }
     );
 
     expect(candidates.map((c) => c.type)).not.toContain("receive-email");
@@ -694,7 +698,7 @@ describe("selectCandidates", () => {
     const { candidates } = selectCandidates(
       "do something unrelated",
       FIXTURE_NODE_TYPES,
-      new Set()
+      { connectedProviders: new Set() }
     );
 
     const types = candidates.map((c) => c.type);
@@ -793,8 +797,7 @@ describe("the delivery node reaches the catalog", () => {
     const { candidates } = selectCandidates(
       "post my blog updates somewhere",
       FIXTURE_NODE_TYPES,
-      new Set(),
-      ["send-email"]
+      { connectedProviders: new Set(), required: ["send-email"] }
     );
 
     expect(candidates.map((c) => c.type)).toContain("send-email");
@@ -804,20 +807,25 @@ describe("the delivery node reaches the catalog", () => {
     const { candidates } = selectCandidates(
       "post my blog updates somewhere",
       FIXTURE_NODE_TYPES,
-      new Set()
+      { connectedProviders: new Set() }
     );
 
     expect(candidates.map((c) => c.type)).not.toContain("send-email");
   });
 
-  it("still withholds a required type the org cannot execute", () => {
+  it("still withholds a required type the deployment cannot execute", () => {
     // Forcing a type into the catalog must not smuggle it past eligibility —
-    // this one needs an OAuth account that is not linked.
+    // this one needs an OAuth provider the deployment has no config for. An
+    // unconnected-but-available provider is different: that one is offered
+    // and rehearsed.
     const { candidates } = selectCandidates(
       "post it somewhere",
       FIXTURE_NODE_TYPES,
-      new Set(),
-      ["share-post-x"]
+      {
+        connectedProviders: new Set(),
+        availableProviders: new Set(["slack", "wordpress"]),
+        required: ["share-post-x"],
+      }
     );
 
     expect(candidates.map((c) => c.type)).not.toContain("share-post-x");
@@ -851,39 +859,52 @@ describe("telling the user what was withheld", () => {
   /**
    * The reported case: "check on a schedule for new posts on my blog…" built
    * something with no WordPress in it and said nothing about why. The nodes
-   * exist and the ranker finds them — they are withheld because the account is
-   * not connected, and that fact used to be dropped silently.
+   * exist and the ranker finds them — they used to be withheld because the
+   * account was not connected. Now they are offered and rehearsed, and the
+   * missing connection is tracked so the outcome can offer it.
    */
-  it("names an unconnected provider the request was reaching for", () => {
+  it("offers an unconnected provider the request was reaching for", () => {
+    const { candidates, unconnected } = selectCandidates(
+      "check on a schedule for new posts on my blog and email me a summary",
+      FIXTURE_NODE_TYPES,
+      { connectedProviders: new Set() }
+    );
+
+    expect(candidates.map((c) => c.type)).toContain("list-posts-wordpress");
+    expect(unconnected.some((e) => e.provider === "wordpress")).toBe(true);
+  });
+
+  it("still names a provider the deployment cannot offer", () => {
     const { withheld } = selectCandidates(
       "check on a schedule for new posts on my blog and email me a summary",
       FIXTURE_NODE_TYPES,
-      new Set(),
-      []
+      {
+        connectedProviders: new Set(),
+        availableProviders: new Set(["slack", "x"]),
+      }
     );
 
     expect(withheldProviders(withheld)).toContain("wordpress");
   });
 
   it("stays quiet about providers the request never reached for", () => {
-    const { withheld } = selectCandidates(
+    const { withheld, unconnected } = selectCandidates(
       "count the rows in my database",
       FIXTURE_NODE_TYPES,
-      new Set(),
-      []
+      { connectedProviders: new Set() }
     );
 
     // The noise this replaced: six "not connected" lines about services the
     // person had not mentioned, on a page that shows one column of prose.
     expect(withheldProviders(withheld)).toEqual([]);
+    expect(unconnected).toEqual([]);
   });
 
   it("names a workspace resource the request was reaching for", () => {
     const { withheld } = selectCandidates(
       "put a message on my queue",
       FIXTURE_NODE_TYPES,
-      new Set(),
-      []
+      { connectedProviders: new Set() }
     );
 
     expect(withheldResources(withheld)).toContain("queue");
@@ -936,6 +957,97 @@ describe("what run_result claims about sample data", () => {
     expect(
       result?.type === "run_result" ? result.sampleName : "present"
     ).toBeUndefined();
+  });
+});
+
+/** The compute graph, ending in a send — the shape the rehearsal exists for. */
+const SENDING_DRAFT = {
+  ...DRAFT_WITH_EXAMPLES,
+  nodes: [
+    ...DRAFT_WITH_EXAMPLES.nodes,
+    {
+      id: "mail",
+      type: "send-email",
+      inputs: { to: "someone@example.com", subject: "Digest" },
+    },
+  ],
+  edges: [
+    ...DRAFT_WITH_EXAMPLES.edges,
+    {
+      source: "conv",
+      sourceOutput: "result",
+      target: "mail",
+      targetInput: "text",
+    },
+  ],
+};
+
+/** The same, delivering through a provider nobody has connected. */
+const UNCONNECTED_PROVIDER_DRAFT = {
+  ...DRAFT_WITH_EXAMPLES,
+  nodes: [...DRAFT_WITH_EXAMPLES.nodes, { id: "post", type: "share-post-x" }],
+  edges: [
+    ...DRAFT_WITH_EXAMPLES.edges,
+    {
+      source: "conv",
+      sourceOutput: "result",
+      target: "post",
+      targetInput: "text",
+    },
+  ],
+};
+
+describe("the trial run is a rehearsal", () => {
+  it("always asks the executor for a rehearsal", async () => {
+    const { deps, run } = harness([llmResult(DRAFT_WITH_EXAMPLES)]);
+    await runGenerationPipeline(deps);
+
+    // Stated at the seam on every call, so a harness wiring its own executor
+    // sees the flag instead of silently running live.
+    expect(run).toHaveBeenCalled();
+    expect(run.mock.calls[0][4]).toEqual({ rehearsal: true });
+  });
+
+  it("keeps the frame clean when nothing needed stubbing", async () => {
+    const { deps, frames } = harness([llmResult(DRAFT_WITH_EXAMPLES)]);
+    await runGenerationPipeline(deps);
+
+    const result = frames.find((f) => f.type === "run_result");
+    expect(
+      result?.type === "run_result" ? result.rehearsal : "missing"
+    ).toBeUndefined();
+  });
+
+  it("reports the stubbed send on the run_result frame", async () => {
+    const { deps, frames } = harness([llmResult(SENDING_DRAFT)]);
+    await runGenerationPipeline(deps);
+
+    const result = frames.find((f) => f.type === "run_result");
+    expect(
+      result?.type === "run_result" ? result.rehearsal : undefined
+    ).toEqual({ nodes: [{ nodeId: "mail" }], unconnectedProviders: [] });
+  });
+
+  it("names the provider a rehearsed step still needs", async () => {
+    const { deps, frames } = harness([llmResult(UNCONNECTED_PROVIDER_DRAFT)]);
+    await runGenerationPipeline(deps);
+
+    const result = frames.find((f) => f.type === "run_result");
+    expect(
+      result?.type === "run_result" ? result.rehearsal : undefined
+    ).toEqual({
+      nodes: [{ nodeId: "post", provider: "x" }],
+      unconnectedProviders: ["x"],
+    });
+
+    // And it was said before the run, with the place to fix it.
+    const note = frames.find(
+      (f) =>
+        f.type === "log" &&
+        f.important === true &&
+        f.message.includes("isn't connected yet")
+    );
+    expect(note?.type === "log" && note.link).toBe("integrations");
   });
 });
 

@@ -1,17 +1,18 @@
-import type { GenerationPhase } from "@dafthunk/types";
+import type { GenerationPhase, IntegrationProvider } from "@dafthunk/types";
 import Check from "lucide-react/icons/check";
 import Loader2 from "lucide-react/icons/loader-2";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
-import { ApprovalCard } from "@/components/brief/approval-card";
 import { thinkingTextClass } from "@/components/brief/brief-sentence";
+import { ConnectProviderCard } from "@/components/brief/connect-card";
 import { OutcomeView } from "@/components/brief/outcome-view";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import type { BriefNote, BriefState } from "@/hooks/use-workflow-brief";
+import { getProviderLabel, useIntegrations } from "@/integrations";
 import { cn } from "@/utils/utils";
 import { failedSteps } from "@/utils/workflow-outcome";
 
@@ -19,7 +20,7 @@ import { failedSteps } from "@/utils/workflow-outcome";
  * The conversation half of the generator's stage, shared between the brief
  * page (where a workflow is born) and the workflow page's Describe mode
  * (where one is revised). Everything here is a state of the same session:
- * the narrated wait, the approval gate, the verdict, the next move.
+ * the narrated wait, the verdict, the next move.
  *
  * What is NOT here is deliberate: the creation-only screens (the request
  * hero, suggestions, the brief sentence and its blanks) stay on the brief
@@ -43,8 +44,7 @@ const PHASE_COPY: Record<GenerationPhase, string> = {
   validating: "Checking it holds together",
   repairing: "Fixing something up",
   saving: "Almost there",
-  approving: "Waiting for you",
-  running: "Trying it once",
+  running: "Trying it once, safely",
   complete: "Done",
 };
 
@@ -69,7 +69,6 @@ export type RailScreen =
   | "pointer"
   // Rail-owned: the shared conversation screens.
   | "lost"
-  | "approval"
   | "running"
   | "cancelled"
   | "failed"
@@ -92,8 +91,7 @@ export function isRailScreen(screen: RailScreen): boolean {
  * names the page-owned screens too, so their gating conditions live in this
  * one tested table instead of being restated (and eventually reordered) by
  * every page. The ORDER here is the contract: lost-midflight beats
- * everything, the approval gate beats the brief readback (a held run is also
- * `awaiting`), running beats every settled screen.
+ * everything, running beats every settled screen.
  */
 export function railScreen(state: BriefState): RailScreen {
   if (state.connection === "lost" && isMidFlight(state.status)) return "lost";
@@ -101,9 +99,6 @@ export function railScreen(state: BriefState): RailScreen {
     return "front-door";
   }
   if (state.suggestions && state.status !== "running") return "suggestions";
-  if (state.pendingActions && state.pendingActions.length > 0) {
-    return "approval";
-  }
   if (state.brief && state.status === "awaiting") return "brief";
   if (state.status === "running") return "running";
   if (
@@ -367,15 +362,10 @@ export function CritiqueForm({
  * with the honesty adjusted: withholding the re-arm there would strand a
  * paused workflow behind a result the user might be fine with.
  */
-/**
- * The outcome's verdict line, honest to what actually happened.
- *
- * A declined run has no execution, and saying "it ran" over the top of
- * "nothing was sent" is the one thing that would undermine the whole
- * approval gate — the user refused, and the screen must agree that it
- * obeyed.
- */
+/** The outcome's verdict line, honest to what actually happened. */
 function OutcomeHeadline({ state }: { state: BriefState }) {
+  const rehearsed = (state.rehearsal?.nodes.length ?? 0) > 0;
+
   return (
     <div className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300 motion-reduce:animate-none">
       {state.error?.code === "CANCELLED" ? (
@@ -383,8 +373,11 @@ function OutcomeHeadline({ state }: { state: BriefState }) {
           Stopped, as asked. What was built so far is saved.
         </p>
       ) : state.outcome === "partial" && !state.execution ? (
+        // The catch path: something broke after the save and before a run
+        // settled. The workflow exists; the trial did not finish.
         <p className="text-lg">
-          I changed it and left it unrun. Nothing was sent or posted.
+          It's saved, but I couldn't finish trying it. Tell me what to change,
+          or open the workflow and run it yourself.
         </p>
       ) : state.outcome === "partial" ? (
         <div className="space-y-2">
@@ -410,12 +403,25 @@ function OutcomeHeadline({ state }: { state: BriefState }) {
           <h1 className="text-2xl font-semibold tracking-tight">
             I tried it once. Here's what came out
           </h1>
-          {state.sampleName && (
+          {/* Both caveats in one breath when both apply — two apology lines
+              under one heading read as two problems. */}
+          {state.sampleName && rehearsed ? (
+            <p className="text-sm text-muted-foreground">
+              I invented "{state.sampleName}" and rehearsed the sends, so
+              nothing left Dafthunk and the details are stand-ins. Your real
+              data goes through the same steps.
+            </p>
+          ) : rehearsed ? (
+            <p className="text-sm text-muted-foreground">
+              The sending steps were rehearsed — nothing actually left Dafthunk.
+              Your real accounts stay untouched until you turn it on.
+            </p>
+          ) : state.sampleName ? (
             <p className="text-sm text-muted-foreground">
               I invented "{state.sampleName}" and ran it on that, so the details
               are stand-ins. Your real data goes through the same steps.
             </p>
-          )}
+          ) : null}
         </div>
       )}
     </div>
@@ -431,8 +437,15 @@ function OutcomeHeadline({ state }: { state: BriefState }) {
  */
 function armOffered(
   state: BriefState,
-  voice: "creation" | "revision"
+  voice: "creation" | "revision",
+  /**
+   * An account the workflow needs is not wired in yet. Arming now would
+   * schedule a failure, so the connect call to action takes the arm card's
+   * place until the wiring is done.
+   */
+  connectPending = false
 ): boolean {
+  if (connectPending) return false;
   if (!state.dormant || !state.workflowId) return false;
   return voice === "creation"
     ? state.outcome === "ok" && state.error?.code !== "CANCELLED"
@@ -444,6 +457,7 @@ function ArmCard({
   voice,
   armLabel,
   leading,
+  connectPending,
   onArm,
   getOrgUrl,
 }: {
@@ -452,6 +466,7 @@ function ArmCard({
   /** Creation only: the schedule-bearing button label. */
   armLabel?: string;
   leading: boolean;
+  connectPending: boolean;
   onArm: () => void;
   getOrgUrl: (path: string) => string;
 }) {
@@ -480,7 +495,7 @@ function ArmCard({
     );
   }
 
-  if (!armOffered(state, voice)) return null;
+  if (!armOffered(state, voice, connectPending)) return null;
 
   return (
     <div className="space-y-3 rounded-lg border p-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 [animation-delay:360ms] [animation-fill-mode:backwards] motion-reduce:animate-none">
@@ -507,8 +522,6 @@ function ArmCard({
 
 export interface RailActions {
   critique: (note: string) => void;
-  approve: () => void;
-  decline: (reason: string) => void;
   cancel: () => void;
   arm: () => void;
   reconnect: () => void;
@@ -521,9 +534,8 @@ export interface ConversationRailProps {
   /** Whose arc this is: a workflow being born, or one being revised. */
   voice: "creation" | "revision";
   /**
-   * Replaces the default sentence echo on the approval and running screens —
-   * the brief page renders its own `BriefSentence` when it agrees with the
-   * server.
+   * Replaces the default sentence echo on the running screen — the brief
+   * page renders its own `BriefSentence` when it agrees with the server.
    */
   sentence?: React.ReactNode;
   /** Between the outcome and the critique form (assumptions, blank cards). */
@@ -548,6 +560,10 @@ export function ConversationRail({
   pendingNote,
 }: ConversationRailProps) {
   const screen = railScreen(state);
+  // Live connection state, for the outcome screen's connect cross-check.
+  // Fetched here rather than in the case block because hooks cannot live
+  // inside a switch; every other screen simply ignores it.
+  const { integrations } = useIntegrations();
 
   // While frames stream, the echoed sentence wears the phase-mapped thinking
   // treatment — the model is visibly reading the words, not idling near them.
@@ -606,25 +622,15 @@ export function ConversationRail({
         </>
       );
 
-    // ── Waiting on permission to act ──────────────────────────────────────
-    case "approval":
-      return (
-        <>
-          {sentenceEcho}
-          <ApprovalCard
-            actions={state.pendingActions ?? []}
-            onApprove={actions.approve}
-            onDecline={actions.decline}
-          />
-          <BriefNotes notes={state.notes} getOrgUrl={getOrgUrl} />
-        </>
-      );
-
     // ── Running ───────────────────────────────────────────────────────────
     case "running": {
+      // The final `?? "Working on it"` catches a replayed session whose
+      // stored phase predates this protocol and no longer maps to copy.
       const activeLabel = state.cancelling
         ? "Finishing the current step, then stopping"
-        : (state.phaseLabel ?? PHASE_COPY[state.phase ?? "briefing"]);
+        : (state.phaseLabel ??
+          PHASE_COPY[state.phase ?? "briefing"] ??
+          "Working on it");
 
       return (
         <>
@@ -742,13 +748,35 @@ export function ConversationRail({
 
     // ── Outcome ───────────────────────────────────────────────────────────
     case "outcome": {
+      // The report is a snapshot from build time; the user may have linked an
+      // account since (possibly via this very screen's OAuth round trip), so
+      // it is cross-checked against what is connected *now*. Still missing →
+      // the connect card leads. Linked since the build → the workflow's own
+      // input is still unbound, so a canned critique rebuilds with the
+      // account wired in.
+      const reported = state.rehearsal?.unconnectedProviders ?? [];
+      const connectedNow = new Set<string>(
+        (integrations ?? []).map((integration) => integration.provider)
+      );
+      const stillUnconnected = reported.filter(
+        (provider) => !connectedNow.has(provider)
+      );
+      const connectedSinceBuild = reported.filter((provider) =>
+        connectedNow.has(provider)
+      );
+      const connectPending = reported.length > 0;
+
       // Leads only when the trial ran clean on real data — over stand-ins or
       // errors, correcting still beats committing.
       const commitLeads =
-        armOffered(state, voice) &&
+        armOffered(state, voice, connectPending) &&
         !state.armed &&
         state.outcome === "ok" &&
         (voice === "revision" || !state.sampleName);
+
+      const rehearsedNodeIds = new Set(
+        (state.rehearsal?.nodes ?? []).map((node) => node.nodeId)
+      );
 
       return (
         <>
@@ -763,15 +791,50 @@ export function ConversationRail({
               <OutcomeView
                 workflow={state.workflow}
                 execution={state.execution}
+                rehearsedNodeIds={rehearsedNodeIds}
               />
             </div>
           )}
+
+          {stillUnconnected.map((provider) => (
+            <ConnectProviderCard
+              key={provider}
+              provider={provider}
+              title={`To make this real, connect ${getProviderLabel(provider as IntegrationProvider)}`}
+              description="Those steps ran as a rehearsal. Link the account and I'll wire it in — you'll come straight back here."
+            />
+          ))}
+
+          {connectedSinceBuild.map((provider) => {
+            const label = getProviderLabel(provider as IntegrationProvider);
+            return (
+              <div
+                key={provider}
+                className="space-y-3 rounded-lg border p-4 animate-in fade-in-0 duration-300 motion-reduce:animate-none"
+              >
+                <p className="text-sm">
+                  {label} is connected now, but this workflow was built before
+                  it was — its steps aren't wired to your account yet.
+                </p>
+                <Button
+                  onClick={() =>
+                    actions.critique(
+                      `I connected ${label} — use my account for those steps.`
+                    )
+                  }
+                >
+                  Wire in {label} and try it again
+                </Button>
+              </div>
+            );
+          })}
 
           <ArmCard
             state={state}
             voice={voice}
             armLabel={armLabel}
             leading={commitLeads}
+            connectPending={connectPending}
             onArm={actions.arm}
             getOrgUrl={getOrgUrl}
           />

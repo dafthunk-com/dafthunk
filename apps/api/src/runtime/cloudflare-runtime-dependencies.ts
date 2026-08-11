@@ -9,6 +9,7 @@
 
 import {
   type MonitoringService,
+  RehearsalNodeRegistry,
   type RuntimeDependencies,
 } from "@dafthunk/runtime";
 
@@ -35,11 +36,23 @@ import { createSandboxExecutor } from "./sandbox-executor";
 import { createToolContext } from "./tool-context";
 import { runtimeVersion } from "./version";
 
+export interface BuildDependenciesOptions {
+  /**
+   * Wrap the node registry so outward writes are stubbed and nothing leaves
+   * the platform. The same wrapped instance feeds the tool registry, so
+   * LLM-agent tool calls to outward nodes are stubbed too.
+   */
+  rehearsal?: boolean;
+}
+
 export function buildDependencies(
   env: Bindings,
-  monitoringService: MonitoringService
+  monitoringService: MonitoringService,
+  options?: BuildDependenciesOptions
 ): RuntimeDependencies<Bindings> {
-  const nodeRegistry = new CloudflareNodeRegistry(env, true);
+  const nodeRegistry = options?.rehearsal
+    ? new RehearsalNodeRegistry(new CloudflareNodeRegistry(env, true), env)
+    : new CloudflareNodeRegistry(env, true);
   const objectStore = new CloudflareObjectStore(
     env.RESSOURCES,
     buildPresignedUrlConfig(env)

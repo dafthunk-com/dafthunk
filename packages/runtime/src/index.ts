@@ -120,6 +120,12 @@ export {
 } from "./node-types";
 export type { ObjectMetadata, ObjectStore } from "./object-store";
 export type { OrganizationService } from "./organization-service";
+export {
+  integrationProvider,
+  isOutward,
+  OUTWARD_PLATFORM_TYPES,
+  READ_ONLY_TYPES,
+} from "./outward";
 // Pure functions
 export {
   apiInputsToNode,
@@ -129,6 +135,8 @@ export {
   type ParameterMapperContext,
 } from "./parameter-mapper";
 export type { Queue, QueueService } from "./queue-service";
+export { synthesizeOutputs } from "./rehearsal-fixtures";
+export { RehearsalNodeRegistry } from "./rehearsal-node-registry";
 export type { SchemaService } from "./schema-service";
 export type {
   JSONSchema,
