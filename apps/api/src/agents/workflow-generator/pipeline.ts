@@ -58,6 +58,19 @@ import type { CreateResourceFn } from "./resource-resolver";
 import { createResourceResolver } from "./resource-resolver";
 import type { DraftKind, TraceEntry } from "./trace";
 
+/**
+ * What one revision round produced.
+ *
+ * `empty` and `unusable` are both failures, and the difference is whether
+ * asking again could help. An unusable round came back truncated or fenced —
+ * a formatting failure that will most likely repeat, so re-asking spends the
+ * budget on the same wall. An empty one parsed cleanly and simply named no
+ * nodes; the errors are unchanged and the next round starts from the same
+ * place, so it is worth one more turn of the budget rather than the end of the
+ * generation.
+ */
+type RevisionOutcome = "revised" | "empty" | "unusable";
+
 /** One LLM round trip, provider-agnostic so tests can stub it. */
 export interface GenerateCall {
   system: string;
@@ -770,7 +783,7 @@ export async function runGenerationPipeline(
     const revise = async (
       kind: DraftKind,
       instruction: string
-    ): Promise<boolean> => {
+    ): Promise<RevisionOutcome> => {
       attempt++;
 
       messages.push({ role: "assistant", content: response.content });
@@ -799,7 +812,38 @@ export async function runGenerationPipeline(
           outputTokens: response.outputTokens,
           types: [],
         });
-        return false;
+        return "unusable";
+      }
+
+      /**
+       * A revision that names nothing is a failed round, not a new graph.
+       *
+       * Taking it would trade a draft that exists for one that does not, and
+       * the loss is invisible downstream: `hydrate` injects the trigger, so the
+       * result is a graph rather than an empty one, and by the time validation
+       * sees it the eleven nodes it replaced are gone. Measured doing exactly
+       * that — an eleven-node queue workflow whose repair round returned no
+       * nodes, saved at one node and zero edges, reported as a success.
+       *
+       * Guarded on the draft in hand rather than unconditionally: an initial
+       * round that returns nothing has nothing better to keep, and belongs to
+       * `EMPTY_WORKFLOW` and the repair budget.
+       */
+      if (revised.nodes.length === 0 && draft.nodes.length > 0) {
+        const reason = "the revision named no nodes";
+        console.warn(
+          `[WorkflowGenerator] discarding an empty revision: ${reason}`
+        );
+        note({
+          stage: "draft",
+          ok: false,
+          attempt,
+          kind,
+          reason,
+          outputTokens: response.outputTokens,
+          types: [],
+        });
+        return "empty";
       }
 
       draft = revised;
@@ -811,7 +855,7 @@ export async function runGenerationPipeline(
 
       deps.emit({ type: "graph", workflow: hydrated.workflow, attempt });
       deps.emit({ type: "validation", attempt, issues: toIssues(errors) });
-      return true;
+      return "revised";
     };
 
     /**
@@ -833,14 +877,17 @@ export async function runGenerationPipeline(
         // An unreadable round leaves `errors` exactly as it was, so the loop
         // would spend its whole budget re-asking the same question. Stop and
         // let the caller deal with a graph that still does not validate.
-        if (
-          !(await revise(
-            "repair",
-            buildRepairPrompt(formatErrorsForLLM(errors))
-          ))
-        ) {
-          return;
-        }
+        //
+        // An empty round is the one failure worth re-asking: it parsed, so the
+        // model is answering in the right shape and simply produced nothing
+        // this time. Continuing costs one attempt of a bounded budget and
+        // keeps the draft already in hand, which is what the round would have
+        // thrown away.
+        const outcome = await revise(
+          "repair",
+          buildRepairPrompt(formatErrorsForLLM(errors))
+        );
+        if (outcome === "unusable") return;
       }
     };
 
@@ -1073,10 +1120,15 @@ export async function runGenerationPipeline(
         label: "Fixing what failed at run time",
       });
 
-      const reworked = await revise(
-        "run-repair",
-        buildRunRepairPrompt(formatRunFailures(execution, savedWorkflow))
-      );
+      // Either failure mode leaves the saved workflow standing, so the two
+      // collapse here — unlike in `repairUntilValid`, there is nothing to
+      // re-ask against: a run repair that produced nothing has no corrected
+      // graph to hold the budget open for.
+      const reworked =
+        (await revise(
+          "run-repair",
+          buildRunRepairPrompt(formatRunFailures(execution, savedWorkflow))
+        )) === "revised";
       if (reworked) await repairUntilValid();
 
       if (!reworked || hasFatal(errors)) {

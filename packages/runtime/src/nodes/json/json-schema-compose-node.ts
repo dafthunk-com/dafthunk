@@ -48,6 +48,8 @@ export class JsonSchemaComposeNode extends ExecutableNode {
     icon: "braces",
     inlinable: false,
     asTool: false,
+    // Inputs are the bound schema's fields; see NodeType.schemaPorts.
+    schemaPorts: "inputs",
     inputs: [
       {
         name: "schema",

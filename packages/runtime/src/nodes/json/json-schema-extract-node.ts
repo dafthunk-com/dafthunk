@@ -48,6 +48,8 @@ export class JsonSchemaExtractNode extends ExecutableNode {
     icon: "braces",
     inlinable: false,
     asTool: false,
+    // Outputs are the bound schema's fields; see NodeType.schemaPorts.
+    schemaPorts: "outputs",
     inputs: [
       {
         name: "schema",

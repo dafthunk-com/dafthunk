@@ -206,19 +206,37 @@ export function enrichValidation(
    * somebody is still drawing on. The asymmetry is the point: a person may
    * save nothing, a generator may not return it.
    *
+   * Counted over what the model contributed *and* whether anything is wired,
+   * not over node count alone. The trigger and responder are injected by
+   * `hydrate` whatever the draft says, so a draft naming no nodes at all
+   * arrives here as a one-node graph on every trigger that injects one — past
+   * a `length === 0` guard, past every other rule (all of which iterate edges),
+   * saved, run, and reported as a success. The benchmark caught it as a queue
+   * workflow that validated clean at one node and zero edges.
+   *
+   * Both halves are load-bearing. An echo endpoint is a legitimate workflow
+   * made of nothing but the two injected nodes and the edge between them —
+   * `http-echo` is a shipped template of exactly that shape — so "the model
+   * contributed no nodes" cannot be the test on its own. What the stub has and
+   * the echo does not is no edges: nothing reaches anything.
+   *
    * Returned alone. Every other check is vacuously satisfied by an empty graph,
    * so anything reported beside this would be noise in the repair prompt.
    */
-  if (workflow.nodes.length === 0) {
+  const contributed = workflow.nodes.filter(
+    (node) => node.id !== TRIGGER_NODE_ID && node.id !== RESPONDER_NODE_ID
+  );
+  if (contributed.length === 0 && workflow.edges.length === 0) {
+    const message =
+      workflow.nodes.length === 0
+        ? "The workflow has no nodes."
+        : "The workflow contains only the injected trigger, wired to nothing.";
     return [
       {
         code: "EMPTY_WORKFLOW",
         severity: "fatal",
-        message: "The workflow has no nodes.",
-        fix: fixForStructuralError(
-          "EMPTY_WORKFLOW",
-          "The workflow has no nodes."
-        ),
+        message,
+        fix: fixForStructuralError("EMPTY_WORKFLOW", message),
       },
     ];
   }

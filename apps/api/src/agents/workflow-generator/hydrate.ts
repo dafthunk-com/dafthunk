@@ -1,3 +1,4 @@
+import { FIELD_TYPE_TO_PARAMETER_TYPE } from "@dafthunk/runtime/nodes/form/form-trigger-base";
 import type {
   Edge,
   Node,
@@ -11,12 +12,12 @@ import {
   buildTriggerNodes,
   TRIGGER_TO_NODE_TYPES,
 } from "@dafthunk/utils";
-
 import {
   agentToolCatalog,
   applyAgentTools,
   isAgentNodeType,
 } from "./agent-tools";
+
 import { expandPseudoNode } from "./ai-nodes";
 import type {
   EnrichedValidationError,
@@ -432,6 +433,11 @@ export function hydrateGeneratedWorkflow(
   if (orgResources || bindings) {
     const seen = new Set<string>();
     for (const node of nodes) {
+      // Applied after the loop below, not inside it: deriving the input side
+      // appends to the very array being iterated.
+      let derivedPorts: Parameter[] | undefined;
+      let derivedSide: "inputs" | "outputs" | undefined;
+
       for (const input of node.inputs) {
         if (input.value !== undefined) continue;
         const type = input.type as OrgResourceType;
@@ -458,6 +464,55 @@ export function hydrateGeneratedWorkflow(
           seen.add(type);
           boundResources.push({ type, name: resource.name });
         }
+
+        /**
+         * Some nodes' ports are their schema's fields.
+         *
+         * The form triggers and `json-schema-extract` declare one side empty
+         * and grow it from the selected schema; `json-schema-compose` does the
+         * same on its input side. The editor writes those ports when someone
+         * picks a schema, and each node reads them back by field name at run
+         * time — but nothing did it on this path, so a bound node reached
+         * validation with no usable ports. Every edge touching one was fatal
+         * and unfixable, because the only advice the repair could offer was
+         * "its ports are: none". Measured as two cases burning their whole
+         * repair budget: one on `UNKNOWN_OUTPUT_PORT` off a form trigger, one
+         * on `UNKNOWN_INPUT_PORT` into a compose node.
+         *
+         * Derived here rather than in the draft because the model never sees
+         * the schema's fields — the catalog carries node types, not the org's
+         * data. Once the ports exist, the existing repair prompt names them and
+         * the round after can wire the edge it meant to.
+         *
+         * Driven by the node type's own `schemaPorts` declaration rather than
+         * by a list kept here, which would go stale the first time somebody
+         * added a fifth such node. `database-query` also takes a `schema`, to
+         * coerce its results, and declares nothing — so its ports are left
+         * alone, which is the whole point of asking the node.
+         */
+        if (input.type === "schema" && resource.fields?.length) {
+          const derived = byType.get(node.type)?.schemaPorts;
+          if (derived) {
+            const ports = resource.fields.map((field) => ({
+              name: field.name,
+              type: (FIELD_TYPE_TO_PARAMETER_TYPE[field.type] ??
+                "any") as Parameter["type"],
+              description: field.label ?? field.name,
+            })) as Parameter[];
+
+            derivedPorts = ports;
+            derivedSide = derived;
+          }
+        }
+      }
+
+      if (derivedPorts && derivedSide === "outputs") {
+        node.outputs = derivedPorts;
+      } else if (derivedPorts) {
+        // Appended, not replaced: the `schema` input is what bound the
+        // resource in the first place, and dropping it would strip the
+        // binding this loop just made.
+        node.inputs = [...node.inputs, ...derivedPorts];
       }
     }
   }

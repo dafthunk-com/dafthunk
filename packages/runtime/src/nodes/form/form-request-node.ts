@@ -22,6 +22,8 @@ export class FormRequestNode extends FormTriggerNode {
     icon: "clipboard-list",
     inlinable: true,
     trigger: true,
+    // Outputs are the bound schema's fields; see NodeType.schemaPorts.
+    schemaPorts: "outputs",
     inputs: [
       {
         name: "schema",

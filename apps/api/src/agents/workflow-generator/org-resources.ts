@@ -1,4 +1,4 @@
-import type { ParameterType } from "@dafthunk/types";
+import type { Field, ParameterType } from "@dafthunk/types";
 import { COMPONENT_FAMILIES } from "@dafthunk/utils";
 
 import type { createDatabase } from "../../db";
@@ -45,6 +45,18 @@ export interface OrgResource {
   description?: string;
   /** Mailboxes only: the address handle, which is how people know them. */
   handle?: string;
+  /**
+   * Schemas only: the fields, because for a form trigger they are its ports.
+   *
+   * The odd one out here, and deliberately so. Every other resource is opaque
+   * to the graph — a database id binds and the node does the rest — but a form
+   * trigger declares no outputs at all: they are derived from the schema it is
+   * bound to, the same derivation the editor widget runs when someone picks
+   * one. Without the fields, hydration binds the schema and leaves a node with
+   * no ports, so every edge drawn off the form is fatal and unfixable, because
+   * the repair prompt can only offer "its outputs are: none".
+   */
+  fields?: Field[];
 }
 
 export type OrgResources = Partial<Record<OrgResourceType, OrgResource[]>>;
@@ -187,12 +199,45 @@ export async function loadOrgResources(
   const byProvider = (provider: string): OrgResource[] =>
     named(allBots.filter((bot) => bot.provider === provider));
 
+  /**
+   * Schemas, carrying their fields. Stored as a JSON string; a row whose JSON
+   * will not parse degrades to a schema without fields rather than failing the
+   * whole load — it still binds, and only its derived ports are lost.
+   */
+  const withFields = (
+    rows: Array<{
+      id: string;
+      name: string;
+      description?: string;
+      fields: string;
+      createdAt: Date | null;
+    }>
+  ): OrgResource[] =>
+    [...rows]
+      .sort(
+        (a, b) => (a.createdAt?.getTime() ?? 0) - (b.createdAt?.getTime() ?? 0)
+      )
+      .map((row) => {
+        const resource: OrgResource = {
+          id: row.id,
+          name: row.name,
+          ...(row.description?.trim() ? { description: row.description } : {}),
+        };
+        try {
+          const fields: unknown = JSON.parse(row.fields);
+          if (Array.isArray(fields)) resource.fields = fields as Field[];
+        } catch {
+          // Deliberately swallowed; see above.
+        }
+        return resource;
+      });
+
   return {
     database: named(databases),
     dataset: named(datasets),
     queue: named(queues),
     email: named(emails),
-    schema: named(schemas),
+    schema: withFields(schemas),
     slack: byProvider("slack"),
     discord: byProvider("discord"),
     telegram: byProvider("telegram"),

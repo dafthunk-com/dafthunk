@@ -457,4 +457,103 @@ describe("empty generated workflow", () => {
 
     expect(errors.map((e) => e.code)).toEqual(["EMPTY_WORKFLOW"]);
   });
+
+  /**
+   * The same failure one node further along.
+   *
+   * `hydrate` injects the trigger whatever the draft says, so a draft naming no
+   * nodes reaches validation as a one-node graph on every trigger that injects
+   * one — past a `nodes.length === 0` guard, past every other rule, saved and
+   * run and reported as a success. The benchmark caught it as a queue workflow
+   * that validated clean at one node and zero edges.
+   */
+  const onlyTrigger = {
+    ...empty,
+    trigger: "queue_message",
+    nodes: [
+      {
+        id: "trigger",
+        name: "Receive Queue Message",
+        type: "receive-queue-message",
+        position: { x: 0, y: 0 },
+        inputs: [],
+        outputs: [{ name: "body", type: "string" }],
+      },
+    ],
+  } as unknown as Workflow;
+
+  it("is fatal when the model contributed nothing but the injected trigger", () => {
+    const errors = enrichValidation(onlyTrigger, []);
+
+    expect(errors).toHaveLength(1);
+    expect(errors[0].code).toBe("EMPTY_WORKFLOW");
+    expect(errors[0].severity).toBe("fatal");
+  });
+
+  it("says which of the two it is, so the repair round knows what to add", () => {
+    const [error] = enrichValidation(onlyTrigger, []);
+
+    expect(error.message).toMatch(/only the injected trigger/i);
+  });
+
+  it("accepts an echo endpoint, which is legitimately only the injected pair", () => {
+    // `http-echo` is a shipped template of exactly this shape. The stub above
+    // and this differ in one thing — whether anything is wired — so that, not
+    // the node count, is what the rule turns on.
+    const echo = {
+      ...empty,
+      trigger: "http_request",
+      nodes: [
+        {
+          id: "trigger",
+          name: "HTTP Request",
+          type: "http-request",
+          position: { x: 0, y: 0 },
+          inputs: [],
+          outputs: [{ name: "body", type: "json" }],
+        },
+        {
+          id: "responder",
+          name: "HTTP Response",
+          type: "http-response",
+          position: { x: 0, y: 0 },
+          inputs: [{ name: "body", type: "any" }],
+          outputs: [],
+        },
+      ],
+      edges: [
+        {
+          source: "trigger",
+          sourceOutput: "body",
+          target: "responder",
+          targetInput: "body",
+        },
+      ],
+    } as unknown as Workflow;
+
+    expect(enrichValidation(echo, []).map((e) => e.code)).not.toContain(
+      "EMPTY_WORKFLOW"
+    );
+  });
+
+  it("still accepts a graph the model did contribute to", () => {
+    const contributed = {
+      ...onlyTrigger,
+      nodes: [
+        ...onlyTrigger.nodes,
+        {
+          id: "output",
+          name: "Text Output",
+          type: "output-text",
+          position: { x: 0, y: 0 },
+          inputs: [{ name: "value", type: "string" }],
+          outputs: [],
+        },
+      ],
+    } as unknown as Workflow;
+
+    expect(enrichValidation(contributed, []).map((e) => e.code)).not.toContain(
+      "EMPTY_WORKFLOW"
+    );
+  });
 });

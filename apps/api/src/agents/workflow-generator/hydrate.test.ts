@@ -388,6 +388,111 @@ describe("binding org-owned resources", () => {
     expect(boundResources).toEqual([{ type: "database", name: "Main" }]);
   });
 
+  /**
+   * A form trigger declares no outputs; its ports are the bound schema's
+   * fields. Until hydration derived them, a bound form arrived at validation
+   * with nothing to wire — every edge off it fatal, and unfixable, because the
+   * repair prompt could only offer "its outputs are: none".
+   */
+  describe("a form trigger's derived ports", () => {
+    const formDraft = draft({ title: "Enquiry", trigger: "form_webhook" });
+
+    const enquirySchema = {
+      id: "sch1",
+      name: "Enquiry",
+      fields: [
+        { name: "email", type: "string" as const },
+        { name: "age", type: "integer" as const },
+      ],
+    };
+
+    it("comes from the fields of the schema it was bound to", () => {
+      const { workflow } = hydrateGeneratedWorkflow(
+        formDraft,
+        FIXTURE_NODE_TYPES,
+        FIXTURE_NODE_TYPES,
+        { orgResources: { schema: [enquirySchema] } }
+      );
+
+      const trigger = workflow.nodes.find((n) => n.id === TRIGGER_NODE_ID);
+
+      expect(trigger?.outputs.map((o) => o.name)).toEqual(["email", "age"]);
+      // Field types are mapped, not copied: `integer` is not a parameter type.
+      expect(trigger?.outputs.map((o) => o.type)).toEqual(["string", "number"]);
+    });
+
+    it("stays empty when the schema has no fields to derive from", () => {
+      const { workflow } = hydrateGeneratedWorkflow(
+        formDraft,
+        FIXTURE_NODE_TYPES,
+        FIXTURE_NODE_TYPES,
+        { orgResources: { schema: [{ id: "sch1", name: "Enquiry" }] } }
+      );
+
+      expect(
+        workflow.nodes.find((n) => n.id === TRIGGER_NODE_ID)?.outputs
+      ).toEqual([]);
+    });
+
+    it("derives the input side too, for a node that composes a record", () => {
+      // The mirror image: `json-schema-compose` declares only its schema and
+      // grows one input per field. Without this, a graph writing a form
+      // submission into a table failed on UNKNOWN_INPUT_PORT every round.
+      const composeDraft = draft({
+        title: "Store it",
+        nodes: [{ id: "c", type: "json-schema-compose" }],
+      });
+
+      const { workflow } = hydrateGeneratedWorkflow(
+        composeDraft,
+        FIXTURE_NODE_TYPES,
+        FIXTURE_NODE_TYPES,
+        { orgResources: { schema: [enquirySchema] } }
+      );
+
+      const compose = workflow.nodes.find(
+        (n) => n.type === "json-schema-compose"
+      );
+
+      expect(compose?.inputs.map((i) => i.name)).toEqual([
+        // The schema input stays: it is what bound the resource.
+        "schema",
+        "email",
+        "age",
+      ]);
+      // The declared output is untouched — only one side is derived.
+      expect(compose?.outputs.map((o) => o.name)).toEqual(["record"]);
+    });
+
+    it("does not rewrite the ports of a node that merely takes a schema", () => {
+      // `database-execute` takes a schema to coerce its results. Deriving its
+      // outputs from those fields would be nonsense, so the rule is gated on
+      // the node being a trigger that declares no outputs of its own.
+      const queryWithSchema = draft({
+        title: "Report",
+        nodes: [
+          { id: "q", type: "database-execute", inputs: { sql: "select 1" } },
+        ],
+      });
+
+      const { workflow } = hydrateGeneratedWorkflow(
+        queryWithSchema,
+        FIXTURE_NODE_TYPES,
+        FIXTURE_NODE_TYPES,
+        {
+          orgResources: {
+            database: [{ id: "db1", name: "Main" }],
+            schema: [enquirySchema],
+          },
+        }
+      );
+
+      const query = workflow.nodes.find((n) => n.type === "database-execute");
+
+      expect(query?.outputs.map((o) => o.name)).not.toEqual(["email", "age"]);
+    });
+  });
+
   it("leaves the input alone when the workspace owns none", () => {
     const { workflow, boundResources } = hydrateGeneratedWorkflow(
       queryDraft,
