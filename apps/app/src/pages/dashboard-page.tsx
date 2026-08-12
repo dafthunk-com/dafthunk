@@ -42,11 +42,10 @@ export function DashboardPage() {
     useDashboard();
   const { billing, billingError, isBillingLoading } = useBilling();
   const { getOrgUrl } = useOrgUrl();
-  const { organization, user } = useAuth();
+  const { organization } = useAuth();
   const orgId = organization?.id || "";
   // The brief flow is the first-run path, but it stays gated until it has been
   // dogfooded. Removing this condition is what ships it.
-  const isDeveloperMode = user?.developerMode ?? false;
   const { mutateWorkflows } = useWorkflows();
   const { nodeTypes } = useNodeTypes({ revalidateOnFocus: false });
   const { start: startTour } = useTour();
@@ -130,18 +129,13 @@ export function DashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex gap-2">
-          {isDeveloperMode && (
-            <Button variant="default" asChild>
-              <Link to={getOrgUrl("start")}>
-                <Sparkles className="mr-2 size-4" />
-                Describe what you want
-              </Link>
-            </Button>
-          )}
-          <Button
-            variant={isDeveloperMode ? "outline" : "default"}
-            onClick={startTour}
-          >
+          <Button variant="default" asChild>
+            <Link to={getOrgUrl("start")}>
+              <Sparkles className="mr-2 size-4" />
+              Describe what you want
+            </Link>
+          </Button>
+          <Button variant="outline" onClick={startTour}>
             <MapIcon className="mr-2 size-4" />
             Take a Tour
           </Button>

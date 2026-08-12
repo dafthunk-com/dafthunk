@@ -82,21 +82,17 @@ function AxisButton({
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user, organization } = useAuth();
+  const { organization } = useAuth();
   const orgId = organization?.id || "";
   const { getOrgUrl } = useOrgUrl();
 
   // ── Modes ───────────────────────────────────────────────────────────────
   // Describe: the conversation rail beside the pill schematic — say what
   // should change, the agent rebuilds. Edit: the detail canvas with the
-  // properties sidebar — change it by hand. Developer-gated like the
-  // generator itself; for everyone else the param silently reads as Edit.
-  const isDeveloperMode = user?.developerMode ?? false;
+  // properties sidebar — change it by hand.
   const [searchParams, setSearchParams] = useSearchParams();
   const mode: WorkflowPageMode =
-    isDeveloperMode && searchParams.get("mode") === "describe"
-      ? "describe"
-      : "edit";
+    searchParams.get("mode") === "describe" ? "describe" : "edit";
 
   // Both axes live in the URL; setting one is "set or drop a param". The
   // default (Edit, wiring) is the absent param, so plain workflow links stay
@@ -375,36 +371,32 @@ export function EditorPage() {
   // way you change this workflow (describe it, or edit it by hand), and how
   // closely you look at it (pills, or wiring). Handed to whichever surface
   // is showing, which centers it over its own canvas — page-center lands
-  // visibly off once a rail or sidebar shares the row. The mode pair is
-  // developer-only while the generator is gated; the view pair is for
-  // everyone. Only the Edit interaction locks during a turn — the zoom
-  // stays free.
+  // visibly off once a rail or sidebar shares the row. Only the Edit
+  // interaction locks during a turn — the zoom stays free.
   const axisControls = (
     <TooltipProvider>
       <div className="flex items-center gap-2">
-        {isDeveloperMode && (
-          <ActionBarGroup>
-            <AxisButton
-              active={mode === "describe"}
-              onClick={() => setMode("describe")}
-              tooltip="Describe your changes to the agent"
-            >
-              <MessageCircle className="size-4!" />
-            </AxisButton>
-            <AxisButton
-              active={mode === "edit"}
-              onClick={() => setMode("edit")}
-              disabled={mode === "describe" && generationBusy}
-              tooltip={
-                mode === "describe" && generationBusy
-                  ? "The agent is working on it"
-                  : "Edit the workflow by hand"
-              }
-            >
-              <Pencil className="size-4!" />
-            </AxisButton>
-          </ActionBarGroup>
-        )}
+        <ActionBarGroup>
+          <AxisButton
+            active={mode === "describe"}
+            onClick={() => setMode("describe")}
+            tooltip="Describe your changes to the agent"
+          >
+            <MessageCircle className="size-4!" />
+          </AxisButton>
+          <AxisButton
+            active={mode === "edit"}
+            onClick={() => setMode("edit")}
+            disabled={mode === "describe" && generationBusy}
+            tooltip={
+              mode === "describe" && generationBusy
+                ? "The agent is working on it"
+                : "Edit the workflow by hand"
+            }
+          >
+            <Pencil className="size-4!" />
+          </AxisButton>
+        </ActionBarGroup>
         <ActionBarGroup>
           <AxisButton
             active={view === "overview"}

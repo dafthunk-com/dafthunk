@@ -6,7 +6,6 @@ import type { RouteObject, RouterState } from "react-router";
 import { Navigate } from "react-router";
 
 import { AdminProtectedRoute } from "./components/admin-protected-route";
-import { DeveloperRoute } from "./components/developer-route";
 import { HeadSeo } from "./components/head-seo";
 import { AdminLayout } from "./components/layouts/admin-layout";
 import { AppLayout } from "./components/layouts/app-layout";
@@ -396,9 +395,7 @@ export const routes: AppRouteObject[] = [
     element: (
       <OrgLayout title="Start" focused>
         <ProtectedRoute>
-          <DeveloperRoute>
-            <BriefPage />
-          </DeveloperRoute>
+          <BriefPage />
         </ProtectedRoute>
       </OrgLayout>
     ),
@@ -411,9 +408,7 @@ export const routes: AppRouteObject[] = [
     element: (
       <OrgLayout title="Start" focused>
         <ProtectedRoute>
-          <DeveloperRoute>
-            <BriefPage />
-          </DeveloperRoute>
+          <BriefPage />
         </ProtectedRoute>
       </OrgLayout>
     ),
