@@ -1,6 +1,6 @@
 import type { BriefDestination, WorkflowTrigger } from "@dafthunk/types";
 
-import { BENCHMARK_CASES } from "./benchmark-cases";
+import { BRIEF_EXAMPLES } from "./brief-examples";
 import { MAX_ASKED_BLANKS } from "./config";
 import { type GroundingContext, projectGroundingForBrief } from "./grounding";
 
@@ -129,11 +129,14 @@ export const BRIEF_SCHEMA = {
 /**
  * Complete requests, shown so the model sees the shape of a finished sentence.
  *
- * Drawn from the benchmark rather than written fresh: those are the only
- * user-phrased requests in the codebase that are known to be buildable.
+ * The same list the person is offered when their request is too thin, and for
+ * the same reason: these are written as one sentence carrying a trigger, a job
+ * and a destination, which is exactly the shape a brief has to end up in. They
+ * were drawn from the benchmark until the two sets pulled apart — a case tuned
+ * to isolate one capability teaches a narrower sentence than a brief wants.
  */
 function exampleRequests(limit: number): string[] {
-  return BENCHMARK_CASES.slice(0, limit).map((entry) => entry.prompt);
+  return BRIEF_EXAMPLES.slice(0, limit).map((example) => example.prompt);
 }
 
 export interface BriefPromptInput {

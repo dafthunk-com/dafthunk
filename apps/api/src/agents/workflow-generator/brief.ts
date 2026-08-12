@@ -9,7 +9,7 @@ import type {
 } from "@dafthunk/types";
 import { RESOURCE_FAMILY_NOUNS, TRIGGER_TO_NODE_TYPES } from "@dafthunk/utils";
 
-import { BENCHMARK_CASES } from "./benchmark-cases";
+import { BRIEF_EXAMPLES, rankBriefExamples } from "./brief-examples";
 import {
   BRIEF_SCHEMA,
   buildBriefSystemPrompt,
@@ -27,7 +27,6 @@ import type { GroundingContext } from "./grounding";
 import { normalizeTrigger } from "./hydrate";
 import { parseJsonObject } from "./parse-json";
 import type { GenerateCall, GenerateResult } from "./pipeline";
-import { rankExamples } from "./template-examples";
 
 /**
  * Reads a request back as a sentence with the guesses left visible.
@@ -89,18 +88,12 @@ export function briefSuggestions(request: string): {
   prompts: string[];
   matched: boolean;
 } {
-  const byTemplate = new Map(
-    BENCHMARK_CASES.map((entry) => [entry.templateId, entry.prompt])
-  );
-
-  const scored = rankExamples(request, BRIEF_SUGGESTION_COUNT)
-    .map((template) => byTemplate.get(template.id))
-    .filter((prompt): prompt is string => Boolean(prompt));
+  const scored = rankBriefExamples(request, BRIEF_SUGGESTION_COUNT);
 
   const prompts = [...scored];
-  for (const entry of BENCHMARK_CASES) {
+  for (const example of BRIEF_EXAMPLES) {
     if (prompts.length >= BRIEF_SUGGESTION_COUNT) break;
-    if (!prompts.includes(entry.prompt)) prompts.push(entry.prompt);
+    if (!prompts.includes(example.prompt)) prompts.push(example.prompt);
   }
 
   return {
