@@ -1,6 +1,6 @@
 import type { BriefDestination, WorkflowTrigger } from "@dafthunk/types";
+import { BRIEF_EXAMPLES } from "@dafthunk/utils";
 
-import { BRIEF_EXAMPLES } from "./brief-examples";
 import { MAX_ASKED_BLANKS } from "./config";
 import { type GroundingContext, projectGroundingForBrief } from "./grounding";
 

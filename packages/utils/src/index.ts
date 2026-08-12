@@ -1,4 +1,5 @@
 // Export all utility functions and types
+export * from "./brief-examples";
 export * from "./component-families";
 export * from "./geojson";
 export * from "./parameter-compatibility";

@@ -7,9 +7,13 @@ import type {
   BriefSegment,
   WorkflowTrigger,
 } from "@dafthunk/types";
-import { RESOURCE_FAMILY_NOUNS, TRIGGER_TO_NODE_TYPES } from "@dafthunk/utils";
+import {
+  BRIEF_EXAMPLES,
+  RESOURCE_FAMILY_NOUNS,
+  TRIGGER_TO_NODE_TYPES,
+} from "@dafthunk/utils";
 
-import { BRIEF_EXAMPLES, rankBriefExamples } from "./brief-examples";
+import { rankBriefExamples } from "./brief-examples";
 import {
   BRIEF_SCHEMA,
   buildBriefSystemPrompt,

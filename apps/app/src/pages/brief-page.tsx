@@ -1,5 +1,6 @@
 import type { BriefAnswers } from "@dafthunk/types";
 import {
+  BRIEF_EXAMPLES,
   renderBriefSentence,
   resolveDestination,
   unansweredAssumptions,
@@ -34,12 +35,13 @@ import { markWorkflowKept } from "@/services/profile-service";
  * this screen: the failure it exists to fix is people describing the
  * interesting half of a task and omitting the obvious half, and an example
  * that omits it too would teach exactly the wrong shape.
+ *
+ * The top of the shared list, which is also what the brief prompt is taught
+ * with and what the server offers when a request is too thin — three copies of
+ * the same idea drifted apart once already, and a chip suggesting a sentence
+ * the generator was never shown reads well and builds badly.
  */
-const EXAMPLES = [
-  "Read my support inbox each morning and email me what's urgent",
-  "When someone fills in my contact form, reply and post it to Discord",
-  "Turn a blog post into a short summary and email it to me",
-];
+const EXAMPLES = BRIEF_EXAMPLES.slice(0, 3).map((example) => example.prompt);
 
 /** The last brief session, so the second visit to /start has a memory. */
 interface LastSession {
@@ -297,9 +299,11 @@ export function BriefPage() {
                 submitRequest(request);
               }
             }}
-            // Not one of the example chips: the same sentence twice on one
-            // screen reads as a bug, and a fourth complete job teaches more.
-            placeholder="Watch Hacker News for mentions of my product and email me a daily digest"
+            // Not one of the example chips, and not on their list at all: the
+            // same sentence twice on one screen reads as a bug, and a fourth
+            // complete job teaches more. The first chip is a Hacker News
+            // digest, so this one cannot be.
+            placeholder="When a new issue lands in my GitHub repo, summarize it and post it to Slack"
             className="field-sizing-content w-full resize-none bg-transparent text-2xl leading-relaxed tracking-tight caret-primary outline-none placeholder:text-muted-foreground/50"
           />
           <div className="flex flex-wrap gap-2">
