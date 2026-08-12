@@ -19,6 +19,7 @@ import { AdminDatasetsPage } from "./pages/admin/admin-datasets-page";
 import { AdminEmailsPage } from "./pages/admin/admin-emails-page";
 import { AdminExecutionDetailPage } from "./pages/admin/admin-execution-detail-page";
 import { AdminExecutionsPage } from "./pages/admin/admin-executions-page";
+import { AdminGenerationsPage } from "./pages/admin/admin-generations-page";
 import { AdminOrganizationDetailPage } from "./pages/admin/admin-organization-detail-page";
 import { AdminOrganizationsPage } from "./pages/admin/admin-organizations-page";
 import { AdminQueuesPage } from "./pages/admin/admin-queues-page";
@@ -251,6 +252,17 @@ export const routes: AppRouteObject[] = [
       </AdminLayout>
     ),
     handle: { head: <HeadSeo title="Executions - Admin - Dafthunk" /> },
+  },
+  {
+    path: "/admin/generations",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminGenerationsPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: { head: <HeadSeo title="Generations - Admin - Dafthunk" /> },
   },
   {
     path: "/admin/executions/:executionId",

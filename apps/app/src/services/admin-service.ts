@@ -199,6 +199,34 @@ export interface AdminExecution {
   usage: number;
 }
 
+/**
+ * One finished generation, as the admin view sees it.
+ *
+ * Metadata only — the API records no prompt text, so there is nothing here to
+ * redact and nothing a viewer could read that a person typed.
+ */
+export interface AdminGeneration {
+  sessionId: string;
+  workflowId?: string;
+  outcome: string;
+  failedStage?: string;
+  fatalCodes: string[];
+  trigger?: string;
+  nodeTypes: string[];
+  errorCode?: string;
+  organizationId: string;
+  organizationName: string;
+  durationMs: number;
+  repairs: number;
+  nodeCount: number;
+  inputTokens: number;
+  outputTokens: number;
+  turn: number;
+  /** Generations this row stands for once Analytics Engine sampling applies. */
+  weight: number;
+  timestamp: Date;
+}
+
 export interface AdminNodeExecution {
   nodeId: string;
   status: string;
@@ -789,6 +817,44 @@ export const useAdminExecutions = (
     executionsError: error || null,
     isExecutionsLoading: isLoading,
     mutateExecutions: mutate,
+  };
+};
+
+/**
+ * Hook to fetch admin generations list
+ */
+export const useAdminGenerations = (
+  page = 1,
+  limit = 20,
+  organizationId?: string,
+  outcome?: string,
+  stage?: string,
+  trigger?: string
+) => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    ...(organizationId && { organizationId }),
+    ...(outcome && { outcome }),
+    ...(stage && { stage }),
+    ...(trigger && { trigger }),
+  });
+
+  const { data, error, isLoading, mutate } = useSWR<{
+    generations: AdminGeneration[];
+    pagination: PaginationInfo;
+  }>(`${ADMIN_API_ENDPOINT}/generations?${params}`, async () =>
+    makeRequest<{ generations: AdminGeneration[]; pagination: PaginationInfo }>(
+      `${ADMIN_API_ENDPOINT}/generations?${params}`
+    )
+  );
+
+  return {
+    generations: data?.generations || [],
+    pagination: data?.pagination || null,
+    generationsError: error || null,
+    isGenerationsLoading: isLoading,
+    mutateGenerations: mutate,
   };
 };
 

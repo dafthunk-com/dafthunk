@@ -35,6 +35,7 @@ export interface Bindings {
   LOADER?: any; // worker_loaders binding for Code Mode sandbox
   BROWSER?: Fetcher;
   EXECUTIONS: AnalyticsEngineDataset;
+  GENERATIONS: AnalyticsEngineDataset;
   WEB_HOST: string;
   WEBSITE_URL: string;
   EMAIL_DOMAIN: string;

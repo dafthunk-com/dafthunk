@@ -88,6 +88,10 @@
     {
       "binding": "EXECUTIONS",
       "dataset": "dafthunk-executions-test"
+    },
+    {
+      "binding": "GENERATIONS",
+      "dataset": "dafthunk-generations-test"
     }
   ],
   "unsafe": {

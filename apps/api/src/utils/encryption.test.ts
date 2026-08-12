@@ -32,6 +32,7 @@ const createMockEnv = (masterKey?: string): Bindings => ({
   AI_SEARCH: {} as AiSearchNamespace,
   BROWSER: {} as Fetcher,
   EXECUTIONS: {} as AnalyticsEngineDataset,
+  GENERATIONS: {} as AnalyticsEngineDataset,
   WEB_HOST: "",
   WEBSITE_URL: "",
   EMAIL_DOMAIN: "",

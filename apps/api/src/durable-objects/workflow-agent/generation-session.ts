@@ -79,6 +79,8 @@ import type {
 } from "../../agents/workflow-generator/pipeline";
 import { runGenerationPipeline } from "../../agents/workflow-generator/pipeline";
 import { buildUserPrompt } from "../../agents/workflow-generator/prompts";
+import type { TraceEntry } from "../../agents/workflow-generator/trace";
+import { firstFailure } from "../../agents/workflow-generator/trace";
 import type { Bindings } from "../../context";
 import {
   createDatabase,
@@ -762,6 +764,16 @@ export class GenerationSession {
     }
 
     if (isCreditExhausted(billingInfo, this.host.env.CLOUDFLARE_ENV)) {
+      // Counted, because this is the one refusal that is a business signal
+      // rather than a defect: it says someone wanted to build something and
+      // the workspace could not afford to.
+      this.recordGeneration({
+        organizationId,
+        outcome: "refused",
+        durationMs: 0,
+        turn: 0,
+        errorCode: "CREDITS_EXHAUSTED",
+      });
       this.fail({
         type: "error",
         code: "CREDITS_EXHAUSTED",
@@ -989,6 +1001,93 @@ export class GenerationSession {
     }
   }
 
+  /**
+   * One row per finished generation, for the admin view.
+   *
+   * Deliberately metadata only: the trigger, the outcome, where it broke and
+   * what it cost. No prompt text and no graph contents — Analytics Engine has
+   * no row delete, so anything written here outlives an erasure request and
+   * leaves with nothing. Everything below is either our own vocabulary (node
+   * types, trigger names, validation codes) or a number.
+   *
+   * The question it exists to answer is the one the pipeline's own logs cannot:
+   * not "did this generation work" but "what is failing, across everybody, and
+   * how often". A stage that breaks for one person is a bug report; the same
+   * stage breaking for a fifth of requests is a defect with a size.
+   *
+   * Fire-and-forget, like the execution store's — telemetry must never be the
+   * reason a generation the user is waiting on fails.
+   */
+  private recordGeneration(input: {
+    organizationId: string;
+    outcome: string;
+    workflowId?: string;
+    trigger?: string;
+    nodeTypes?: string[];
+    trace?: TraceEntry[];
+    usage?: TierUsage;
+    durationMs: number;
+    turn: number;
+    errorCode?: string;
+  }): void {
+    try {
+      const failure = input.trace ? firstFailure(input.trace) : undefined;
+
+      // Codes, never messages. A validation message is written for the model
+      // and can quote the user's own text back; the code is an enum of ours.
+      const fatalCodes = [
+        ...new Set(
+          (input.trace ?? []).flatMap((entry) =>
+            entry.stage === "validate" ? entry.fatal : []
+          )
+        ),
+      ].join(",");
+
+      const repairs = (input.trace ?? []).filter(
+        (entry) => entry.stage === "draft" && entry.kind === "repair"
+      ).length;
+
+      const tokens = input.usage
+        ? (Object.keys(input.usage) as Array<keyof TierUsage>).reduce(
+            (total, tier) => ({
+              input: total.input + input.usage![tier].inputTokens,
+              output: total.output + input.usage![tier].outputTokens,
+            }),
+            { input: 0, output: 0 }
+          )
+        : { input: 0, output: 0 };
+
+      this.host.env.GENERATIONS.writeDataPoint({
+        indexes: [input.organizationId],
+        blobs: [
+          this.sessionId,
+          input.workflowId ?? "",
+          input.outcome,
+          failure?.stage ?? "",
+          fatalCodes.substring(0, 500),
+          input.trigger ?? "",
+          // Sorted so the same graph reads the same way across rows, and
+          // truncated because a wide workflow is not worth 16KB of blob.
+          [...new Set(input.nodeTypes ?? [])]
+            .sort()
+            .join(",")
+            .substring(0, 2000),
+          input.errorCode ?? "",
+        ],
+        doubles: [
+          input.durationMs,
+          repairs,
+          input.nodeTypes?.length ?? 0,
+          tokens.input,
+          tokens.output,
+          input.turn,
+        ],
+      });
+    } catch (error) {
+      console.error("[WorkflowGenerator] recordGeneration failed:", error);
+    }
+  }
+
   private logUsage(
     organizationId: string,
     stage: string,
@@ -1101,6 +1200,10 @@ export class GenerationSession {
     if (!context) return;
 
     const { userId, organizationId, billingInfo } = context;
+    // Wall clock across the whole pipeline, which is what someone waiting on
+    // it experiences — the per-tier token counts are the cost, this is the
+    // wait.
+    const startedAt = Date.now();
 
     try {
       // What the model is asked to build. A brief resolves to a sentence plus
@@ -1203,6 +1306,17 @@ export class GenerationSession {
       });
 
       this.logUsage(organizationId, `build:${result.outcome}`, result.usage);
+      this.recordGeneration({
+        organizationId,
+        outcome: result.outcome,
+        workflowId: result.workflowId,
+        trigger: result.workflow?.trigger,
+        nodeTypes: result.workflow?.nodes.map((node) => node.type),
+        trace: result.trace,
+        usage: result.usage,
+        durationMs: Date.now() - startedAt,
+        turn,
+      });
 
       this.sql.exec(
         `UPDATE gen_runs SET status = ?, workflow_id = ?, execution_id = ?, disarmed = ?, updated_at = ? WHERE session_id = ?`,
@@ -1226,6 +1340,16 @@ export class GenerationSession {
       await this.host.scheduleGenerationCleanup();
     } catch (error) {
       console.error("[WorkflowGenerator] pipeline crashed:", error);
+      // A crash never reaches the settle path above, and it is the outcome
+      // most worth counting — invisible to the user beyond "try again", and
+      // indistinguishable from a model failure unless it is recorded here.
+      this.recordGeneration({
+        organizationId,
+        outcome: "crashed",
+        durationMs: Date.now() - startedAt,
+        turn,
+        errorCode: "INTERNAL",
+      });
       this.fail({
         type: "error",
         code: "INTERNAL",

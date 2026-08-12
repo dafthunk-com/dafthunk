@@ -5,6 +5,7 @@ import LayoutDashboard from "lucide-react/icons/layout-dashboard";
 import ListTodo from "lucide-react/icons/list-todo";
 import Mail from "lucide-react/icons/mail";
 import Play from "lucide-react/icons/play";
+import Sparkles from "lucide-react/icons/sparkles";
 
 import Table from "lucide-react/icons/table";
 import UserMinus from "lucide-react/icons/user-minus";
@@ -66,6 +67,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           title: "Executions",
           url: "/admin/executions",
           icon: Play,
+        },
+        {
+          title: "Generations",
+          url: "/admin/generations",
+          icon: Sparkles,
         },
         {
           title: "Emails",

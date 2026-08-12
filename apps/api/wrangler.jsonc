@@ -122,6 +122,10 @@
     {
       "binding": "EXECUTIONS",
       "dataset": "dafthunk_executions_development"
+    },
+    {
+      "binding": "GENERATIONS",
+      "dataset": "dafthunk_generations_development"
     }
   ],
   "send_email": [
@@ -361,6 +365,10 @@
         {
           "binding": "EXECUTIONS",
           "dataset": "dafthunk_executions_production"
+        },
+        {
+          "binding": "GENERATIONS",
+          "dataset": "dafthunk_generations_production"
         }
       ],
       "send_email": [
