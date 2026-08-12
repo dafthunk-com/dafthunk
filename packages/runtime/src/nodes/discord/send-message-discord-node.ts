@@ -1,5 +1,10 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { imageSizeError, readOptionalImage } from "../../utils/images";
+import {
+  DISCORD_MAX_IMAGE_BYTES,
+  discordMessageRequest,
+} from "./discord-message";
 
 /**
  * Discord Send Message node implementation
@@ -40,6 +45,12 @@ export class SendMessageDiscordNode extends ExecutableNode {
         required: true,
       },
       {
+        name: "image",
+        type: "image",
+        description: "Optional image to attach to the message",
+        required: false,
+      },
+      {
         name: "embeds",
         type: "json",
         description: "Optional embed objects (max 10)",
@@ -73,6 +84,13 @@ export class SendMessageDiscordNode extends ExecutableNode {
       const { integrationId, channelId, content, embeds } = context.inputs;
       const { organizationId } = context;
 
+      const { image, error: imageError } = readOptionalImage(
+        context.inputs.image
+      );
+      if (imageError) {
+        return this.createErrorResult(imageError);
+      }
+
       // Validate required inputs
       if (!integrationId || typeof integrationId !== "string") {
         return this.createErrorResult(
@@ -96,6 +114,17 @@ export class SendMessageDiscordNode extends ExecutableNode {
 
       if (!organizationId || typeof organizationId !== "string") {
         return this.createErrorResult("Organization ID is required");
+      }
+
+      if (image) {
+        const sizeError = imageSizeError(
+          image,
+          DISCORD_MAX_IMAGE_BYTES,
+          "Discord"
+        );
+        if (sizeError) {
+          return this.createErrorResult(sizeError);
+        }
       }
 
       // Get integration with auto-refreshed token
@@ -126,15 +155,16 @@ export class SendMessageDiscordNode extends ExecutableNode {
       }
 
       // Send message via Discord API
+      const request = discordMessageRequest(payload, image);
       const response = await fetch(
         `https://discord.com/api/v10/channels/${channelId}/messages`,
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
+            ...request.headers,
           },
-          body: JSON.stringify(payload),
+          body: request.body,
         }
       );
 

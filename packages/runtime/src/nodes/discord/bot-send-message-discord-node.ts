@@ -1,5 +1,10 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { imageSizeError, readOptionalImage } from "../../utils/images";
+import {
+  DISCORD_MAX_IMAGE_BYTES,
+  discordMessageRequest,
+} from "./discord-message";
 
 export class BotSendMessageDiscordNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -39,6 +44,12 @@ export class BotSendMessageDiscordNode extends ExecutableNode {
         type: "string",
         description: "Message content (up to 2000 characters)",
         required: true,
+      },
+      {
+        name: "image",
+        type: "image",
+        description: "Optional image to attach to the message",
+        required: false,
       },
       {
         name: "embeds",
@@ -91,6 +102,24 @@ export class BotSendMessageDiscordNode extends ExecutableNode {
         );
       }
 
+      const { image, error: imageError } = readOptionalImage(
+        context.inputs.image
+      );
+      if (imageError) {
+        return this.createErrorResult(imageError);
+      }
+
+      if (image) {
+        const sizeError = imageSizeError(
+          image,
+          DISCORD_MAX_IMAGE_BYTES,
+          "Discord"
+        );
+        if (sizeError) {
+          return this.createErrorResult(sizeError);
+        }
+      }
+
       const payload: { content: string; embeds?: unknown[] } = { content };
 
       if (embeds) {
@@ -109,12 +138,13 @@ export class BotSendMessageDiscordNode extends ExecutableNode {
       // If interaction token and application ID are provided,
       // edit the deferred interaction response to resolve "thinking..."
       if (interactionToken && applicationId) {
+        const interactionRequest = discordMessageRequest(payload, image);
         const interactionResponse = await fetch(
           `https://discord.com/api/v10/webhooks/${applicationId}/${interactionToken}/messages/@original`,
           {
             method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
+            headers: interactionRequest.headers,
+            body: interactionRequest.body,
           }
         );
 
@@ -143,15 +173,16 @@ export class BotSendMessageDiscordNode extends ExecutableNode {
         return this.createErrorResult("Channel ID is required");
       }
 
+      const request = discordMessageRequest(payload, image);
       const response = await fetch(
         `https://discord.com/api/v10/channels/${channelId}/messages`,
         {
           method: "POST",
           headers: {
             Authorization: `Bot ${botToken}`,
-            "Content-Type": "application/json",
+            ...request.headers,
           },
-          body: JSON.stringify(payload),
+          body: request.body,
         }
       );
 

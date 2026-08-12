@@ -1,5 +1,14 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import {
+  imageFilename,
+  imageSizeError,
+  readOptionalImage,
+  type UploadableImage,
+} from "../../utils/images";
+
+/** The WhatsApp Cloud API caps image uploads at 5 MB. */
+const WHATSAPP_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export class BotSendImageWhatsAppNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -10,7 +19,7 @@ export class BotSendImageWhatsAppNode extends ExecutableNode {
     tags: ["Social", "WhatsApp", "Image", "Send"],
     icon: "image",
     documentation:
-      "This node sends images via the WhatsApp Business Cloud API using a publicly accessible URL.",
+      "This node sends images via the WhatsApp Business Cloud API. To send an image from the web, load it with an Image URL Loader node first.",
     usage: 10,
     inlinable: false,
     asTool: false,
@@ -22,9 +31,9 @@ export class BotSendImageWhatsAppNode extends ExecutableNode {
         required: true,
       },
       {
-        name: "imageUrl",
-        type: "string",
-        description: "Publicly accessible image URL",
+        name: "image",
+        type: "image",
+        description: "Image to send",
         required: true,
       },
       {
@@ -44,9 +53,50 @@ export class BotSendImageWhatsAppNode extends ExecutableNode {
     ],
   };
 
+  /**
+   * Uploads an image to the phone number's media store and returns its id.
+   * WhatsApp takes attachments only by id or by a URL it can fetch itself,
+   * so bytes produced inside a workflow have to be staged here first.
+   */
+  private async uploadImage(
+    accessToken: string,
+    phoneNumberId: string,
+    image: UploadableImage
+  ): Promise<string> {
+    const form = new FormData();
+    form.append("messaging_product", "whatsapp");
+    form.append("type", image.mimeType);
+    form.append(
+      "file",
+      new Blob([image.data], { type: image.mimeType }),
+      imageFilename(image)
+    );
+
+    const response = await fetch(
+      `https://graph.facebook.com/v21.0/${phoneNumberId}/media`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: form,
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(`Failed to upload image to WhatsApp: ${errorData}`);
+    }
+
+    const result = (await response.json()) as { id?: string };
+    if (!result.id) {
+      throw new Error("WhatsApp media upload returned no media id");
+    }
+
+    return result.id;
+  }
+
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { to, imageUrl, caption } = context.inputs;
+      const { to, caption } = context.inputs;
       const accessToken = context.whatsappAccessToken;
       const phoneNumberId = context.whatsappPhoneNumberId;
 
@@ -60,11 +110,28 @@ export class BotSendImageWhatsAppNode extends ExecutableNode {
         return this.createErrorResult("Recipient phone number is required");
       }
 
-      if (!imageUrl || typeof imageUrl !== "string") {
-        return this.createErrorResult("Image URL is required");
+      const { image, error: imageError } = readOptionalImage(
+        context.inputs.image
+      );
+      if (imageError) {
+        return this.createErrorResult(imageError);
+      }
+      if (!image) {
+        return this.createErrorResult("Image is required");
       }
 
-      const imagePayload: Record<string, string> = { link: imageUrl };
+      const sizeError = imageSizeError(
+        image,
+        WHATSAPP_MAX_IMAGE_BYTES,
+        "WhatsApp"
+      );
+      if (sizeError) {
+        return this.createErrorResult(sizeError);
+      }
+
+      const mediaId = await this.uploadImage(accessToken, phoneNumberId, image);
+
+      const imagePayload: Record<string, string> = { id: mediaId };
       if (caption && typeof caption === "string") {
         if (caption.length > 1024) {
           return this.createErrorResult(

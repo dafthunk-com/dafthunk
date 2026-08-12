@@ -1,5 +1,10 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { imageSizeError, readOptionalImage } from "../../utils/images";
+import {
+  DISCORD_MAX_IMAGE_BYTES,
+  discordMessageRequest,
+} from "./discord-message";
 
 /**
  * Discord Bot Send DM node implementation
@@ -30,6 +35,12 @@ export class BotSendDMDiscordNode extends ExecutableNode {
         type: "string",
         description: "Message content (up to 2000 characters)",
         required: true,
+      },
+      {
+        name: "image",
+        type: "image",
+        description: "Optional image to attach to the message",
+        required: false,
       },
       {
         name: "embeds",
@@ -85,6 +96,24 @@ export class BotSendDMDiscordNode extends ExecutableNode {
         );
       }
 
+      const { image, error: imageError } = readOptionalImage(
+        context.inputs.image
+      );
+      if (imageError) {
+        return this.createErrorResult(imageError);
+      }
+
+      if (image) {
+        const sizeError = imageSizeError(
+          image,
+          DISCORD_MAX_IMAGE_BYTES,
+          "Discord"
+        );
+        if (sizeError) {
+          return this.createErrorResult(sizeError);
+        }
+      }
+
       // Create a DM channel with the user
       const dmResponse = await fetch(
         "https://discord.com/api/v10/users/@me/channels",
@@ -122,15 +151,16 @@ export class BotSendDMDiscordNode extends ExecutableNode {
         }
       }
 
+      const request = discordMessageRequest(payload, image);
       const messageResponse = await fetch(
         `https://discord.com/api/v10/channels/${dmChannel.id}/messages`,
         {
           method: "POST",
           headers: {
             Authorization: `Bot ${botToken}`,
-            "Content-Type": "application/json",
+            ...request.headers,
           },
-          body: JSON.stringify(payload),
+          body: request.body,
         }
       );
 

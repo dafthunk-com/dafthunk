@@ -1,5 +1,13 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import {
+  imageFilename,
+  imageSizeError,
+  readOptionalImage,
+} from "../../utils/images";
+
+/** The Telegram Bot API caps uploaded photos at 10 MB. */
+const TELEGRAM_MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 
 export class BotSendPhotoTelegramNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -10,7 +18,7 @@ export class BotSendPhotoTelegramNode extends ExecutableNode {
     tags: ["Social", "Telegram", "Image", "Send"],
     icon: "image",
     documentation:
-      "This node sends photos to Telegram chats using the Telegram Bot API. Accepts a URL or an image blob.",
+      "This node sends photos to Telegram chats using the Telegram Bot API. To send a photo from the web, load it with an Image URL Loader node first.",
     usage: 10,
     inlinable: false,
     asTool: false,
@@ -23,8 +31,8 @@ export class BotSendPhotoTelegramNode extends ExecutableNode {
       },
       {
         name: "photo",
-        type: "string",
-        description: "Photo URL to send",
+        type: "image",
+        description: "Photo to send",
         required: true,
       },
       {
@@ -52,7 +60,7 @@ export class BotSendPhotoTelegramNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { chatId, photo, caption } = context.inputs;
+      const { chatId, caption } = context.inputs;
       const botToken = context.telegramBotToken;
 
       if (!botToken) {
@@ -65,14 +73,32 @@ export class BotSendPhotoTelegramNode extends ExecutableNode {
         return this.createErrorResult("Chat ID is required");
       }
 
-      if (!photo || typeof photo !== "string") {
-        return this.createErrorResult("Photo URL is required");
+      const { image: photo, error: photoError } = readOptionalImage(
+        context.inputs.photo
+      );
+      if (photoError) {
+        return this.createErrorResult(photoError);
+      }
+      if (!photo) {
+        return this.createErrorResult("Photo is required");
       }
 
-      const payload: Record<string, string> = {
-        chat_id: chatId,
+      const sizeError = imageSizeError(
         photo,
-      };
+        TELEGRAM_MAX_PHOTO_BYTES,
+        "Telegram"
+      );
+      if (sizeError) {
+        return this.createErrorResult(sizeError);
+      }
+
+      const form = new FormData();
+      form.append("chat_id", chatId);
+      form.append(
+        "photo",
+        new Blob([photo.data], { type: photo.mimeType }),
+        imageFilename(photo)
+      );
 
       if (caption && typeof caption === "string") {
         if (caption.length > 1024) {
@@ -80,15 +106,14 @@ export class BotSendPhotoTelegramNode extends ExecutableNode {
             "Caption must be 1024 characters or less"
           );
         }
-        payload.caption = caption;
+        form.append("caption", caption);
       }
 
       const response = await fetch(
         `https://api.telegram.org/bot${botToken}/sendPhoto`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: form,
         }
       );
 

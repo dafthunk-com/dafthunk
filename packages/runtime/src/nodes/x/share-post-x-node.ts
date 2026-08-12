@@ -1,5 +1,14 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import {
+  imageFilename,
+  imageSizeError,
+  readOptionalImage,
+  type UploadableImage,
+} from "../../utils/images";
+
+/** X rejects images above 5 MB on the media upload endpoint. */
+const X_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 /**
  * X Share Post node implementation
@@ -14,7 +23,7 @@ export class SharePostXNode extends ExecutableNode {
     tags: ["Social", "X", "Post", "Share"],
     icon: "send",
     documentation:
-      "This node shares a new post to X. Supports text content and optional reply-to. Requires a connected X integration with tweet.write scope.",
+      "This node shares a new post to X. Supports text content, an optional image attachment, and optional reply-to. Requires a connected X integration with tweet.write and media.write scopes.",
     usage: 20,
     asTool: true,
     inlinable: false,
@@ -32,6 +41,12 @@ export class SharePostXNode extends ExecutableNode {
         type: "string",
         description: "Post text content (max 280 characters)",
         required: true,
+      },
+      {
+        name: "image",
+        type: "image",
+        description: "Optional image to attach to the post",
+        required: false,
       },
       {
         name: "replyToId",
@@ -68,6 +83,42 @@ export class SharePostXNode extends ExecutableNode {
     ],
   };
 
+  /**
+   * Uploads an image and returns its media id. Images go through the simple
+   * upload endpoint in one request; only video needs the chunked variant.
+   */
+  private async uploadImage(
+    accessToken: string,
+    image: UploadableImage
+  ): Promise<string> {
+    const form = new FormData();
+    form.append(
+      "media",
+      new Blob([image.data], { type: image.mimeType }),
+      imageFilename(image)
+    );
+    form.append("media_category", "tweet_image");
+    form.append("media_type", image.mimeType);
+
+    const response = await fetch("https://api.x.com/2/media/upload", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: form,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(`Failed to upload image to X: ${errorData}`);
+    }
+
+    const result = (await response.json()) as { data?: { id?: string } };
+    if (!result.data?.id) {
+      throw new Error("X media upload returned no media id");
+    }
+
+    return result.data.id;
+  }
+
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { integrationId, text, replyToId, quoteId } = context.inputs;
@@ -82,10 +133,29 @@ export class SharePostXNode extends ExecutableNode {
         return this.createErrorResult("Post text is required");
       }
 
+      const { image, error: imageError } = readOptionalImage(
+        context.inputs.image
+      );
+      if (imageError) {
+        return this.createErrorResult(imageError);
+      }
+
+      if (image) {
+        const sizeError = imageSizeError(image, X_MAX_IMAGE_BYTES, "X");
+        if (sizeError) {
+          return this.createErrorResult(sizeError);
+        }
+      }
+
       const integration = await context.getIntegration(integrationId);
       const accessToken = integration.token;
 
       const body: Record<string, unknown> = { text };
+
+      if (image) {
+        const mediaId = await this.uploadImage(accessToken, image);
+        body.media = { media_ids: [mediaId] };
+      }
 
       if (replyToId && typeof replyToId === "string") {
         body.reply = { in_reply_to_tweet_id: replyToId };

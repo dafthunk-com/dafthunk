@@ -1,5 +1,16 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import {
+  imageFilename,
+  readOptionalImage,
+  type UploadableImage,
+} from "../../utils/images";
+
+/** Shape shared by every Slack Web API response. */
+interface SlackResponse {
+  ok: boolean;
+  error?: string;
+}
 
 export class BotSendMessageSlackNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -10,7 +21,7 @@ export class BotSendMessageSlackNode extends ExecutableNode {
     tags: ["Social", "Slack", "Message", "Send"],
     icon: "message-circle",
     documentation:
-      "This node sends messages to Slack channels using the bot token. Optionally specify a thread_ts to reply in a thread.",
+      "This node sends messages to Slack channels using the bot token. Optionally specify a thread_ts to reply in a thread. Attaching an image uploads it to the channel with the message as its comment, which needs the files:write scope on the bot.",
     usage: 10,
     inlinable: false,
     asTool: false,
@@ -26,6 +37,12 @@ export class BotSendMessageSlackNode extends ExecutableNode {
         type: "string",
         description: "Message text",
         required: true,
+      },
+      {
+        name: "image",
+        type: "image",
+        description: "Optional image to attach to the message",
+        required: false,
       },
       {
         name: "threadTs",
@@ -56,6 +73,105 @@ export class BotSendMessageSlackNode extends ExecutableNode {
     ],
   };
 
+  /**
+   * Uploads an image and shares it into the channel, using the message text
+   * as the file's comment. Slack retired the single-call `files.upload`, so
+   * this is a lease, a PUT to storage, and a call to publish the result.
+   * Returns the timestamp of the message Slack posted for the share.
+   */
+  private async uploadImage(
+    botToken: string,
+    channelId: string,
+    text: string,
+    threadTs: string | undefined,
+    image: UploadableImage
+  ): Promise<string> {
+    const filename = imageFilename(image);
+
+    const leaseResponse = await fetch(
+      "https://slack.com/api/files.getUploadURLExternal",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${botToken}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          filename,
+          length: String(image.data.byteLength),
+        }),
+      }
+    );
+
+    const lease = (await leaseResponse.json()) as SlackResponse & {
+      upload_url?: string;
+      file_id?: string;
+    };
+    if (!lease.ok || !lease.upload_url || !lease.file_id) {
+      throw new Error(
+        `Failed to request Slack upload URL: ${lease.error ?? "unknown error"}`
+      );
+    }
+
+    const form = new FormData();
+    form.append(
+      "file",
+      new Blob([image.data], { type: image.mimeType }),
+      filename
+    );
+    const uploadResponse = await fetch(lease.upload_url, {
+      method: "POST",
+      body: form,
+    });
+    if (!uploadResponse.ok) {
+      throw new Error(
+        `Failed to upload image to Slack: ${await uploadResponse.text()}`
+      );
+    }
+
+    const completeBody: Record<string, unknown> = {
+      files: [{ id: lease.file_id, title: filename }],
+      channel_id: channelId,
+      initial_comment: text,
+    };
+    if (threadTs) {
+      completeBody.thread_ts = threadTs;
+    }
+
+    const completeResponse = await fetch(
+      "https://slack.com/api/files.completeUploadExternal",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${botToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(completeBody),
+      }
+    );
+
+    const completed = (await completeResponse.json()) as SlackResponse & {
+      files?: Array<{
+        shares?: {
+          public?: Record<string, Array<{ ts?: string }>>;
+          private?: Record<string, Array<{ ts?: string }>>;
+        };
+      }>;
+    };
+    if (!completed.ok) {
+      throw new Error(
+        `Failed to share image on Slack: ${completed.error ?? "unknown error"}`
+      );
+    }
+
+    // The share timestamp is nested under whichever visibility the channel
+    // has; either bucket is keyed by channel id.
+    const shares = completed.files?.[0]?.shares;
+    const share =
+      shares?.public?.[channelId]?.[0] ?? shares?.private?.[channelId]?.[0];
+    return share?.ts ?? "";
+  }
+
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { channelId, text, threadTs } = context.inputs;
@@ -73,6 +189,28 @@ export class BotSendMessageSlackNode extends ExecutableNode {
 
       if (!text || typeof text !== "string") {
         return this.createErrorResult("Message text is required");
+      }
+
+      const { image, error: imageError } = readOptionalImage(
+        context.inputs.image
+      );
+      if (imageError) {
+        return this.createErrorResult(imageError);
+      }
+
+      if (image) {
+        const messageTs = await this.uploadImage(
+          botToken,
+          channelId,
+          text,
+          typeof threadTs === "string" ? threadTs : undefined,
+          image
+        );
+        return this.createSuccessResult({
+          channelId,
+          messageTs,
+          timestamp: messageTs,
+        });
       }
 
       const payload: Record<string, string> = {

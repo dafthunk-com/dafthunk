@@ -48,6 +48,7 @@ export class XProvider extends OAuthProvider<XToken, XUser> {
   readonly scopes = [
     "tweet.read",
     "tweet.write",
+    "media.write",
     "users.read",
     "follows.read",
     "follows.write",
