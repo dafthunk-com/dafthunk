@@ -7,7 +7,7 @@ settings:
 overrides:
   esbuild@<=0.24.2: '>=0.25.0'
   esbuild@>=0.27.3 <0.28.1: '>=0.28.1'
-  undici@>=7.0.0 <7.28.0: '>=7.28.0 <8'
+  undici@>=7.0.0 <7.29.0: '>=7.29.0 <8'
   minimatch@<10.2.3: '>=10.2.3'
   axios@>=1.0.0 <1.18.0: '>=1.18.0 <2'
   qs@>=6.7.0 <6.15.2: '>=6.15.2'
@@ -16,10 +16,12 @@ overrides:
   ws@>=8.0.0 <8.21.0: '>=8.21.0 <9'
   form-data@>=4.0.0 <4.0.6: '>=4.0.6 <5'
   fast-uri@>=3.0.0 <3.1.4: '>=3.1.4 <4'
-  hono@>=4.0.0 <4.12.27: '>=4.12.27 <5'
+  hono@>=4.0.0 <4.12.34: '>=4.12.34 <5'
   '@hono/node-server@<2.0.5': '>=2.0.5 <3'
   body-parser@>=2.0.0 <2.3.0: '>=2.3.0 <3'
   postcss@>=8.0.0 <8.5.18: '>=8.5.18 <9'
+  nanoid@<3.3.17: '>=3.3.17 <4'
+  nanoid@>=4.0.0 <5.1.16: '>=5.1.16 <6'
   '@babel/core@>=7.0.0 <7.29.6': '>=7.29.6 <8'
   valibot@>=1.0.0 <1.4.2: '>=1.4.2 <2'
   sharp@>=0.33.0 <0.35.0: '>=0.35.0 <1'
@@ -60,13 +62,13 @@ importers:
         version: 1.52.0(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3))(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       '@hono-rate-limiter/cloudflare':
         specifier: ^0.2.2
-        version: 0.2.2(@cloudflare/workers-types@5.20260730.1)(hono@4.12.32)
+        version: 0.2.2(@cloudflare/workers-types@5.20260730.1)(hono@4.13.1)
       '@hono/oauth-providers':
         specifier: ^0.8.5
-        version: 0.8.5(hono@4.12.32)
+        version: 0.8.5(hono@4.13.1)
       '@hono/zod-validator':
         specifier: ^0.7.6
-        version: 0.7.6(hono@4.12.32)(zod@4.4.3)
+        version: 0.7.6(hono@4.13.1)(zod@4.4.3)
       agents:
         specifier: ^0.20.1
         version: 0.20.1(@babel/runtime@7.29.2)(@cloudflare/workers-types@5.20260730.1)(@modelcontextprotocol/client@2.0.0)(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3))(@modelcontextprotocol/server@2.0.0)(ai@6.0.182(zod@4.4.3))(react@19.2.8)(rolldown@1.0.2)(vite@7.3.5(@types/node@22.19.19)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.9.0))(zod@4.4.3)
@@ -80,14 +82,14 @@ importers:
         specifier: 0.45.2
         version: 0.45.2(@cloudflare/workers-types@5.20260730.1)(@opentelemetry/api@1.9.1)
       hono:
-        specifier: ^4.12.32
-        version: 4.12.32
+        specifier: ^4.12.34
+        version: 4.13.1
       jose:
         specifier: ^6.2.3
         version: 6.2.3
       nanoid:
-        specifier: ^5.1.11
-        version: 5.1.11
+        specifier: ^5.1.16
+        version: 5.1.16
       openai:
         specifier: ^6.37.0
         version: 6.37.0(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@6.0.6))(zod@4.4.3)
@@ -1397,24 +1399,24 @@ packages:
     resolution: {integrity: sha512-wMnqeV+cb5Wov2npLIMFtCVm3tiNMtqw9LhPWSzSMwHOzh2qbhI3mCS6s962fxcJ6UUNJhRqDbVMEsB/NinCIQ==}
     peerDependencies:
       '@cloudflare/workers-types': ^4.20240529.0
-      hono: '>=4.12.27 <5'
+      hono: '>=4.12.34 <5'
 
   '@hono/node-server@2.0.12':
     resolution: {integrity: sha512-eWpQYr67tqJLeaSUl0Q+TquuYfUdTibpOJlUMV2FfUP7+KqCC5TufnwnlXL6mobZBJbGAYRd7ZvEBDCbLInjhg==}
     engines: {node: '>=20'}
     peerDependencies:
-      hono: '>=4.12.27 <5'
+      hono: '>=4.12.34 <5'
 
   '@hono/oauth-providers@0.8.5':
     resolution: {integrity: sha512-hgEDH/gUmB/opman9jvT8dLItZsSC9M9yFiaam0b6InK7WQkdzIcaRAkdda47QpixnK9S1Ah2vjDB2U16LkMnA==}
     engines: {node: '>=18.4.0'}
     peerDependencies:
-      hono: '>=4.12.27 <5'
+      hono: '>=4.12.34 <5'
 
   '@hono/zod-validator@0.7.6':
     resolution: {integrity: sha512-Io1B6d011Gj1KknV4rXYz4le5+5EubcWEU/speUjuw9XMMIaP3n78yXLhjd2A3PXaXaUwEAluOiAyLqhBEJgsw==}
     peerDependencies:
-      hono: '>=4.12.27 <5'
+      hono: '>=4.12.34 <5'
       zod: ^3.25.0 || ^4.0.0
 
   '@img/colour@1.1.0':
@@ -4144,12 +4146,8 @@ packages:
   hast-util-whitespace@3.0.0:
     resolution: {integrity: sha512-88JUN06ipLwsnv+dVn+OIYOvAuvBMy/Qoi6O7mQHxdPXpjy+Cd6xRkWwux7DKO+4sYILtLBRIKgsdpS2gQc7qw==}
 
-  hono@4.12.32:
-    resolution: {integrity: sha512-XcuyW9qE2kJn07PkecMOBd5Vq/hMy7mmGw+idz1yblbg9N17ijJODrvPkn7/dwL3Kulj8LcRJ69DLOWf91dRUg==}
-    engines: {node: '>=16.9.0'}
-
-  hono@4.12.33:
-    resolution: {integrity: sha512-+SwvkaiJtxsiPjhy9LivY/1m7UsNqCJetM1BrZl9A5DkQhlbHQDU730mMiDPWjnoCYOM8Chf3WrCJw27kNTPFQ==}
+  hono@4.13.1:
+    resolution: {integrity: sha512-kdJoFVv2xmayw6cY09H7AbMJMt8Jn5jdlEdXsP7AGBdF2DIptVlKlOLKXP41yPip4/a3yQPv9gVcJYI8YY04dw==}
     engines: {node: '>=16.9.0'}
 
   html-escaper@2.0.2:
@@ -4622,14 +4620,9 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  nanoid@3.3.16:
-    resolution: {integrity: sha512-bzlKTyNJ7+LdGIIwy8ijFpIqEQIvafahV7eYykJ8Cvh42EdJeODoJ6gUJXpQJvej1BddH8OqTXZNE/KfbWAu8Q==}
+  nanoid@3.3.18:
+    resolution: {integrity: sha512-DTg4MJbGMWkfi6VZFdNt2/caMbQy4Ou+Op/hJQvGEWcnVfoA1QA+xzRKAzw9jD6+GVOOeYr/mIcuDSdug6F6+w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
-    hasBin: true
-
-  nanoid@5.1.11:
-    resolution: {integrity: sha512-v+KEsUv2ps74PaSKv0gHTxTCgMXOIfBEbaqa6w6ISIGC7ZsvHN4N9oJ8d4cmf0n5oTzQz2SLmThbQWhjd/8eKg==}
-    engines: {node: ^18 || >=20}
     hasBin: true
 
   nanoid@5.1.16:
@@ -5272,8 +5265,8 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
-  undici@7.28.0:
-    resolution: {integrity: sha512-cRZYrTDwWznlnRiPjggAGxZXanty6M8RV1ff8Wm4LWXBp7/IG8v5DnOm74DtUBp9OONpK75YlPnIjQqX0dBDtA==}
+  undici@7.29.0:
+    resolution: {integrity: sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==}
     engines: {node: '>=20.18.1'}
 
   unenv@2.0.0-rc.24:
@@ -5975,7 +5968,7 @@ snapshots:
       '@cloudflare/containers': 0.3.7
       aws4fetch: 1.0.20
       capnweb: 0.8.0
-      hono: 4.12.32
+      hono: 4.13.1
 
   '@cloudflare/unenv-preset@2.16.1(unenv@2.0.0-rc.24)(workerd@1.20260722.1)':
     dependencies:
@@ -6372,22 +6365,22 @@ snapshots:
       lit: 3.3.3
       three: 0.182.0
 
-  '@hono-rate-limiter/cloudflare@0.2.2(@cloudflare/workers-types@5.20260730.1)(hono@4.12.32)':
+  '@hono-rate-limiter/cloudflare@0.2.2(@cloudflare/workers-types@5.20260730.1)(hono@4.13.1)':
     dependencies:
       '@cloudflare/workers-types': 5.20260730.1
-      hono: 4.12.32
+      hono: 4.13.1
 
-  '@hono/node-server@2.0.12(hono@4.12.33)':
+  '@hono/node-server@2.0.12(hono@4.13.1)':
     dependencies:
-      hono: 4.12.33
+      hono: 4.13.1
 
-  '@hono/oauth-providers@0.8.5(hono@4.12.32)':
+  '@hono/oauth-providers@0.8.5(hono@4.13.1)':
     dependencies:
-      hono: 4.12.32
+      hono: 4.13.1
 
-  '@hono/zod-validator@0.7.6(hono@4.12.32)(zod@4.4.3)':
+  '@hono/zod-validator@0.7.6(hono@4.13.1)(zod@4.4.3)':
     dependencies:
-      hono: 4.12.32
+      hono: 4.13.1
       zod: 4.4.3
 
   '@img/colour@1.1.0': {}
@@ -6594,7 +6587,7 @@ snapshots:
 
   '@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3)':
     dependencies:
-      '@hono/node-server': 2.0.12(hono@4.12.33)
+      '@hono/node-server': 2.0.12(hono@4.13.1)
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
       content-type: 1.0.5
@@ -6604,7 +6597,7 @@ snapshots:
       eventsource-parser: 3.1.0
       express: 5.2.1
       express-rate-limit: 8.6.1(express@5.2.1)
-      hono: 4.12.33
+      hono: 4.13.1
       jose: 6.2.7
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
@@ -9755,9 +9748,7 @@ snapshots:
     dependencies:
       '@types/hast': 3.0.4
 
-  hono@4.12.32: {}
-
-  hono@4.12.33: {}
+  hono@4.13.1: {}
 
   html-escaper@2.0.2: {}
 
@@ -10317,7 +10308,7 @@ snapshots:
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       sharp: 0.35.2
-      undici: 7.28.0
+      undici: 7.29.0
       workerd: 1.20260722.1
       ws: 8.21.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       youch: 4.1.0-beta.10
@@ -10329,9 +10320,7 @@ snapshots:
 
   ms@2.1.3: {}
 
-  nanoid@3.3.16: {}
-
-  nanoid@5.1.11: {}
+  nanoid@3.3.18: {}
 
   nanoid@5.1.16: {}
 
@@ -10429,7 +10418,7 @@ snapshots:
   partyserver@0.5.9(@cloudflare/workers-types@5.20260730.1):
     dependencies:
       '@cloudflare/workers-types': 5.20260730.1
-      nanoid: 5.1.11
+      nanoid: 5.1.16
 
   partysocket@1.3.0(react@19.2.8):
     dependencies:
@@ -10479,7 +10468,7 @@ snapshots:
 
   postcss@8.5.23:
     dependencies:
-      nanoid: 3.3.16
+      nanoid: 3.3.18
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
@@ -11062,7 +11051,7 @@ snapshots:
 
   undici-types@6.21.0: {}
 
-  undici@7.28.0: {}
+  undici@7.29.0: {}
 
   unenv@2.0.0-rc.24:
     dependencies:
