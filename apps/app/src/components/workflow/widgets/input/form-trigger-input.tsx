@@ -1,4 +1,5 @@
 import type { Field, FieldType, GetSchemaResponse } from "@dafthunk/types";
+import { hashSchemaFields, SCHEMA_FIELDS_HASH_KEY } from "@dafthunk/utils";
 import Copy from "lucide-react/icons/copy";
 import ExternalLink from "lucide-react/icons/external-link";
 import LoaderCircle from "lucide-react/icons/loader-circle";
@@ -35,8 +36,6 @@ import { useWorkflow } from "../../workflow-context";
 import type { WorkflowParameter } from "../../workflow-types";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget, getInputValue } from "../widget";
-
-import { hashSchemaFields, SCHEMA_FIELDS_HASH_KEY } from "./schema-fields-hash";
 
 const CREATE_NEW = "__create_new__";
 

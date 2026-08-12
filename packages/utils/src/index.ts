@@ -3,5 +3,6 @@ export * from "./brief-examples";
 export * from "./component-families";
 export * from "./geojson";
 export * from "./parameter-compatibility";
+export * from "./schema-fields";
 export * from "./workflow-authoring";
 export * from "./workflow-brief";

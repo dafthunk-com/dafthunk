@@ -258,7 +258,13 @@ export const FETCH: NodeType = {
   outputs: [param("status", "number"), param("body", "blob")],
 };
 
-/** Needs an org-owned database, which is safe to bind without review. */
+/**
+ * Needs an org-owned database, which is safe to bind without review.
+ *
+ * Takes an optional schema too, to coerce its results — and declares no
+ * `schemaPorts`, which is what makes it the counter-example: a node can hold a
+ * schema without its ports being that schema's fields.
+ */
 export const DATABASE_QUERY: NodeType = {
   id: "database-execute",
   name: "Run a query",
@@ -269,6 +275,7 @@ export const DATABASE_QUERY: NodeType = {
   inputs: [
     param("databaseId", "database", { required: true, hidden: true }),
     param("sql", "string", { required: true }),
+    param("schema", "schema", { hidden: true }),
   ],
   outputs: [param("rows", "json")],
 };

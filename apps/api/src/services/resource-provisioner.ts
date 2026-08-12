@@ -1,5 +1,6 @@
 import type { Field } from "@dafthunk/types";
 import { FIELD_TYPES, IDENTIFIER_PATTERN } from "@dafthunk/types";
+import { toSchemaName } from "@dafthunk/utils";
 import { v7 as uuid } from "uuid";
 
 import type { CreateResourceFn } from "../agents/workflow-generator/resource-resolver";
@@ -91,12 +92,15 @@ export function createResourceProvisioner(
         }
         const row = await createSchemaRecord(db, {
           id: uuid(),
-          name,
+          name: toSchemaName(name),
           description,
           fields: JSON.stringify(fields),
           ...base,
         });
-        return { id: row.id, name: row.name };
+        // Fields travel back, unlike every other family: the nodes that bind a
+        // schema grow their ports from it, and a resource without them binds an
+        // id onto a node with nothing to wire.
+        return { id: row.id, name: row.name, fields };
       }
       case "email": {
         const created = await withUniqueHandle(name, (handle) =>

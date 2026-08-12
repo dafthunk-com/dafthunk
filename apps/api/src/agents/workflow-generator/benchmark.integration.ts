@@ -16,6 +16,7 @@ import {
 import type { OrgResources } from "./org-resources";
 import type { GenerateCall } from "./pipeline";
 import { runGenerationPipeline } from "./pipeline";
+import type { CreateResourceFn } from "./resource-resolver";
 import type { TraceEntry } from "./trace";
 import { firstFailure, summarize } from "./trace";
 
@@ -61,8 +62,9 @@ const CASES: GenerationCase[] = [
  * "picked the right one" trivial, which keeps the case about whether the model
  * reached for the resource at all.
  *
- * `createResource` stays absent, so nothing is invented: these are reuse
- * targets, and a case that needs a table the org does not own should fail.
+ * Places — databases, datasets, mailboxes — are reuse targets only: no creator
+ * is supplied for them, so a case needing a table the org does not own should
+ * fail. Schemas are the exception, and `createBenchSchema` says why.
  */
 const ORG_RESOURCES: OrgResources = {
   database: [
@@ -96,6 +98,27 @@ const ORG_RESOURCES: OrgResources = {
   ],
   queue: [{ id: "bench-queue", name: "Incoming jobs" }],
   email: [{ id: "bench-mailbox", name: "Support", handle: "support" }],
+};
+
+/**
+ * The one creator this harness supplies, because schemas are the one family
+ * the generator writes rather than finds. Withholding it would measure a
+ * tenant where no form can ever have a shape, so every form case would fail
+ * for a reason the model had no part in.
+ *
+ * Nothing is persisted: the id only has to be distinguishable from the
+ * pre-owned `bench-schema`, so a case can tell reuse from authorship.
+ */
+let benchSchemaCount = 0;
+const createBenchSchema: CreateResourceFn = async (type, spec) => {
+  if (type !== "schema") {
+    throw new Error(`the benchmark owns its ${type}s; nothing to create`);
+  }
+  return {
+    id: `bench-authored-${++benchSchemaCount}`,
+    name: spec.name,
+    ...(spec.fields ? { fields: spec.fields } : {}),
+  };
 };
 
 interface CaseResult {
@@ -204,6 +227,7 @@ async function runCase(
       "github",
     ]),
     orgResources: ORG_RESOURCES,
+    createResource: createBenchSchema,
     // Literally the function the Durable Object dispatches through, not a copy
     // of it — same tier, same output ceiling, same constrained decoding. A
     // benchmark that dispatches its own way measures a path that does not ship,

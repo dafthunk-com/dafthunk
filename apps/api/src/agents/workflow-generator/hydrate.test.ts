@@ -1,3 +1,4 @@
+import { hashSchemaFields, SCHEMA_FIELDS_HASH_KEY } from "@dafthunk/utils";
 import { describe, expect, it } from "vitest";
 
 import type { GeneratedWorkflowDraft } from "./draft-types";
@@ -406,8 +407,34 @@ describe("binding org-owned resources", () => {
       ],
     };
 
-    it("comes from the fields of the schema it was bound to", () => {
+    it("comes from the fields of the schema shaped for that node", () => {
       const { workflow } = hydrateGeneratedWorkflow(
+        formDraft,
+        FIXTURE_NODE_TYPES,
+        FIXTURE_NODE_TYPES,
+        { schemasByNode: new Map([[TRIGGER_NODE_ID, enquirySchema]]) }
+      );
+
+      const trigger = workflow.nodes.find((n) => n.id === TRIGGER_NODE_ID);
+
+      expect(trigger?.outputs.map((o) => o.name)).toEqual(["email", "age"]);
+      // Field types are mapped, not copied: `integer` is not a parameter type.
+      expect(trigger?.outputs.map((o) => o.type)).toEqual(["string", "number"]);
+      // The signature the editor stamps when a person picks a schema, so a
+      // generated workflow has a baseline to detect later drift against.
+      expect(trigger?.metadata?.[SCHEMA_FIELDS_HASH_KEY]).toBe(
+        hashSchemaFields(enquirySchema.fields)
+      );
+    });
+
+    /**
+     * The rule this whole change exists for. A schema's fields become the
+     * node's ports, so falling back to whatever the workspace owns does not
+     * produce a defensible default — it produces a form asking for someone
+     * else's fields, silently, with nothing on screen saying so.
+     */
+    it("is never bound from the workspace's schemas by fallback", () => {
+      const { workflow, boundResources } = hydrateGeneratedWorkflow(
         formDraft,
         FIXTURE_NODE_TYPES,
         FIXTURE_NODE_TYPES,
@@ -416,9 +443,11 @@ describe("binding org-owned resources", () => {
 
       const trigger = workflow.nodes.find((n) => n.id === TRIGGER_NODE_ID);
 
-      expect(trigger?.outputs.map((o) => o.name)).toEqual(["email", "age"]);
-      // Field types are mapped, not copied: `integer` is not a parameter type.
-      expect(trigger?.outputs.map((o) => o.type)).toEqual(["string", "number"]);
+      expect(trigger?.inputs.find((i) => i.name === "schema")?.value).toBe(
+        undefined
+      );
+      expect(trigger?.outputs).toEqual([]);
+      expect(boundResources).toEqual([]);
     });
 
     it("stays empty when the schema has no fields to derive from", () => {
@@ -426,12 +455,20 @@ describe("binding org-owned resources", () => {
         formDraft,
         FIXTURE_NODE_TYPES,
         FIXTURE_NODE_TYPES,
-        { orgResources: { schema: [{ id: "sch1", name: "Enquiry" }] } }
+        {
+          schemasByNode: new Map([
+            [TRIGGER_NODE_ID, { id: "sch1", name: "Enquiry" }],
+          ]),
+        }
       );
 
-      expect(
-        workflow.nodes.find((n) => n.id === TRIGGER_NODE_ID)?.outputs
-      ).toEqual([]);
+      const trigger = workflow.nodes.find((n) => n.id === TRIGGER_NODE_ID);
+
+      // Bound all the same — the id is what the form route reads back.
+      expect(trigger?.inputs.find((i) => i.name === "schema")?.value).toBe(
+        "sch1"
+      );
+      expect(trigger?.outputs).toEqual([]);
     });
 
     it("derives the input side too, for a node that composes a record", () => {
@@ -447,7 +484,7 @@ describe("binding org-owned resources", () => {
         composeDraft,
         FIXTURE_NODE_TYPES,
         FIXTURE_NODE_TYPES,
-        { orgResources: { schema: [enquirySchema] } }
+        { schemasByNode: new Map([["c", enquirySchema]]) }
       );
 
       const compose = workflow.nodes.find(
@@ -464,10 +501,55 @@ describe("binding org-owned resources", () => {
       expect(compose?.outputs.map((o) => o.name)).toEqual(["record"]);
     });
 
+    /**
+     * The other half of "a shape belongs to a node": two nodes in one workflow
+     * that mean different records get different schemas. Before this, one
+     * binding served the family and both nodes grew the same ports.
+     */
+    it("shapes each node from its own schema", () => {
+      const bothDraft = draft({
+        title: "Enquiry",
+        trigger: "form_webhook",
+        nodes: [{ id: "c", type: "json-schema-compose" }],
+      });
+
+      const answerSchema = {
+        id: "sch2",
+        name: "Answer",
+        fields: [{ name: "reply", type: "string" as const }],
+      };
+
+      const { workflow, boundResources } = hydrateGeneratedWorkflow(
+        bothDraft,
+        FIXTURE_NODE_TYPES,
+        FIXTURE_NODE_TYPES,
+        {
+          schemasByNode: new Map([
+            [TRIGGER_NODE_ID, enquirySchema],
+            ["c", answerSchema],
+          ]),
+        }
+      );
+
+      expect(
+        workflow.nodes
+          .find((n) => n.id === TRIGGER_NODE_ID)
+          ?.outputs.map((o) => o.name)
+      ).toEqual(["email", "age"]);
+      expect(
+        workflow.nodes.find((n) => n.id === "c")?.inputs.map((i) => i.name)
+      ).toEqual(["schema", "reply"]);
+      // Both named, so a workspace can see every shape the run brought in.
+      expect(boundResources).toEqual([
+        { type: "schema", name: "Enquiry" },
+        { type: "schema", name: "Answer" },
+      ]);
+    });
+
     it("does not rewrite the ports of a node that merely takes a schema", () => {
-      // `database-execute` takes a schema to coerce its results. Deriving its
-      // outputs from those fields would be nonsense, so the rule is gated on
-      // the node being a trigger that declares no outputs of its own.
+      // `database-execute` takes a schema to coerce its results and declares
+      // no `schemaPorts`. Deriving its outputs from those fields would be
+      // nonsense, so the rule is gated on what the node type asks for.
       const queryWithSchema = draft({
         title: "Report",
         nodes: [
@@ -480,16 +562,18 @@ describe("binding org-owned resources", () => {
         FIXTURE_NODE_TYPES,
         FIXTURE_NODE_TYPES,
         {
-          orgResources: {
-            database: [{ id: "db1", name: "Main" }],
-            schema: [enquirySchema],
-          },
+          orgResources: { database: [{ id: "db1", name: "Main" }] },
+          schemasByNode: new Map([["q", enquirySchema]]),
         }
       );
 
       const query = workflow.nodes.find((n) => n.type === "database-execute");
 
-      expect(query?.outputs.map((o) => o.name)).not.toEqual(["email", "age"]);
+      expect(query?.inputs.find((i) => i.name === "schema")?.value).toBe(
+        "sch1"
+      );
+      expect(query?.inputs.map((i) => i.name)).not.toContain("email");
+      expect(query?.outputs.map((o) => o.name)).toEqual(["rows"]);
     });
   });
 

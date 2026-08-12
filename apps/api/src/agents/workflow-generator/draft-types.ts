@@ -14,8 +14,18 @@ export interface DraftResource {
   name: string;
   /** Create only: one line of purpose. Lands in the instance's description. */
   description?: string;
-  /** Schema create only: the record shape. */
+  /** Schema only: the record shape, which is the whole of what a schema is. */
   fields?: Field[];
+  /**
+   * Schemas only: the node this shape belongs to.
+   *
+   * Every other family binds once per workflow, because an instance is a place
+   * — one database is the database. A schema is a shape, and one workflow
+   * routinely needs several unrelated ones: what the form asks for, what the
+   * model must emit, what the table's columns are. Without this they would all
+   * collapse onto the first one declared.
+   */
+  nodeId?: string;
 }
 
 /**

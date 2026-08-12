@@ -32,6 +32,15 @@ export interface GroundingInstance {
   description?: string;
   /** Mailboxes only: the address, which is how a person knows the mailbox. */
   address?: string;
+  /**
+   * Schemas only: the field names, which are what a schema actually is.
+   *
+   * Every other family is identified by its name — one "Customers" database is
+   * the customers database. Two schemas can share a subject and hold different
+   * fields, and binding the wrong one silently rewires a node's ports, so the
+   * name alone is not enough to tell them apart.
+   */
+  fields?: string[];
 }
 
 export interface FamilyGrounding {
@@ -127,6 +136,9 @@ export function buildGroundingContext(input: GroundingInput): GroundingContext {
         ...(type === "email" && resource.handle && input.emailDomain
           ? { address: `${resource.handle}@${input.emailDomain}` }
           : {}),
+        ...(type === "schema" && resource.fields?.length
+          ? { fields: resource.fields.map((field) => field.name) }
+          : {}),
       })
     );
 
@@ -153,6 +165,9 @@ const MAX_PROJECTED_INSTANCES = 5;
 /** Descriptions are one line in a prompt, however long their column is. */
 const MAX_PROJECTED_DESCRIPTION = 100;
 
+/** Enough of a schema's fields to recognize the shape, not to reproduce it. */
+const MAX_PROJECTED_FIELDS = 8;
+
 function pluralize(noun: string): string {
   return noun.endsWith("x") ? `${noun}es` : `${noun}s`;
 }
@@ -168,6 +183,11 @@ function truncate(text: string, limit: number): string {
 function projectInstance(instance: GroundingInstance): string {
   const parts = [`"${instance.name}"`];
   if (instance.address) parts.push(`<${instance.address}>`);
+  if (instance.fields?.length) {
+    const named = instance.fields.slice(0, MAX_PROJECTED_FIELDS).join(", ");
+    const overflow = instance.fields.length - MAX_PROJECTED_FIELDS;
+    parts.push(`[${named}${overflow > 0 ? `, +${overflow} more` : ""}]`);
+  }
   if (instance.description) {
     parts.push(
       `(${truncate(instance.description, MAX_PROJECTED_DESCRIPTION)})`
@@ -242,8 +262,11 @@ export function projectGroundingForSynthesis(
 
 The workspace owns the components below. Resource inputs on nodes (database, dataset, queue, email, schema, bot ids) are filled by the server — never invent a value for one; leave it unset.
 
-To use or create a component, add it to "resources". Reuse by the exact name listed; propose {"action": "create"} only when nothing listed fits. Creatable: database, dataset, queue, mailbox, schema — bots can only be reused. A created schema needs "fields". Example:
+To use or create a component, add it to "resources". Reuse by the exact name listed; propose {"action": "create"} only when nothing listed fits. Creatable: database, dataset, queue, mailbox — bots can only be reused. Example:
 "resources": [{"family": "dataset", "action": "create", "name": "Support articles", "description": "Indexed help articles the workflow searches"}]
+
+Schemas work the other way round. A schema is a record shape, not a place, and a workflow usually needs several different ones: what a form asks for, what a model must emit, what a table's columns are. So write the shape each node needs — {"family": "schema", "action": "create", "nodeId": "...", "name": "...", "fields": [...]} — rather than picking one from the list. Give it the name you would use for that record; if the workspace already owns that exact shape under that name, the server reuses it instead of making a second one. Example:
+"resources": [{"family": "schema", "action": "create", "nodeId": "trigger", "name": "product_question", "description": "What the visitor asked", "fields": [{"name": "email", "type": "string", "required": true, "label": "Your email"}, {"name": "question", "type": "string", "required": true, "label": "Your question"}]}]
 
 ${lines.join("\n")}
 - AI models — ${context.aiModels}`;

@@ -32,7 +32,16 @@ describe("PASSIVE_BINDABLE_TYPES", () => {
   it("includes the passive types", () => {
     expect(PASSIVE_BINDABLE_TYPES.has("database")).toBe(true);
     expect(PASSIVE_BINDABLE_TYPES.has("dataset")).toBe(true);
-    expect(PASSIVE_BINDABLE_TYPES.has("schema")).toBe(true);
+  });
+
+  /**
+   * Falling back to the oldest instance is a guess, and for every other family
+   * it is a defensible one: a database is a place, and the workspace's first
+   * one is probably the real one. A schema is the shape of a node's own ports,
+   * so the same guess makes a form ask for an unrelated schema's fields.
+   */
+  it("excludes schemas, which are shaped per node rather than chosen", () => {
+    expect(PASSIVE_BINDABLE_TYPES.has("schema")).toBe(false);
   });
 });
 

@@ -104,7 +104,7 @@ export const DRAFT_SCHEMA = {
     resources: {
       type: "array",
       description:
-        'Optional. Workspace components the workflow leans on: {"family": "database"|"dataset"|"queue"|"email"|"schema"|"discord"|"telegram"|"whatsapp"|"slack", "action": "use"|"create", "name": "...", "description": "...", "fields": [...]}. Reuse by the exact name listed under Workspace components; "create" only when nothing listed fits. Leave the matching node inputs unset — the server fills the ids.',
+        'Optional. Workspace components the workflow leans on. Places to read, store or send — {"family": "database"|"dataset"|"queue"|"email"|"discord"|"telegram"|"whatsapp"|"slack", "action": "use"|"create", "name": "...", "description": "..."} — are reused by the exact name listed under Workspace components, with "create" only when nothing listed fits. Record shapes are written, not chosen: {"family": "schema", "action": "create", "name": "...", "description": "...", "nodeId": "the node this shape belongs to", "fields": [{"name": "identifier", "type": "string"|"integer"|"number"|"boolean"|"datetime"|"json"|"image"|"document"|"audio"|"video", "required": true, "label": "Question"}]} — one entry per node that needs one, and the server reuses an identical existing shape by itself. Leave the matching node inputs unset; the server fills the ids.',
       items: { type: "object" },
     },
   },

@@ -56,6 +56,7 @@ import {
 import { providerLabel } from "./provider-labels";
 import type { CreateResourceFn } from "./resource-resolver";
 import { createResourceResolver } from "./resource-resolver";
+import { deriveSchemaShapes } from "./schema-shapes";
 import type { DraftKind, TraceEntry } from "./trace";
 
 /**
@@ -550,7 +551,13 @@ export async function runGenerationPipeline(
     });
 
     const hydrate = async (input: GeneratedWorkflowDraft) => {
-      const resolution = await resolver.resolve(input.resources);
+      // Shapes the graph implies but the draft never declared. Appended rather
+      // than resolved separately: a derived shape is matched against what the
+      // workspace owns under exactly the same rules as a declared one.
+      const resolution = await resolver.resolve([
+        ...(Array.isArray(input.resources) ? input.resources : []),
+        ...deriveSchemaShapes({ draft: input, nodeTypes: deps.nodeTypes }),
+      ]);
       for (const created of resolution.created) {
         createdResources.push({
           type: created.type,
@@ -565,6 +572,7 @@ export async function runGenerationPipeline(
           deps.destination?.kind === "email" ? deps.ownerEmail : undefined,
         orgResources: deps.orgResources,
         bindings: resolution.bindings,
+        schemasByNode: resolution.schemasByNode,
         integrations: deps.integrationsByProvider,
       });
     };

@@ -100,6 +100,7 @@ const EMAIL_AGENT_INPUTS: NodeType["inputs"] = [
     description:
       "Optional JSON schema constraining the shape of the final result.",
     type: "schema",
+    scope: "structured-output",
     required: false,
     hidden: true,
   },

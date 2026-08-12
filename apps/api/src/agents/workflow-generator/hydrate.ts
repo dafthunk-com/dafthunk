@@ -10,6 +10,8 @@ import type {
 import {
   buildNodeFromNodeType,
   buildTriggerNodes,
+  hashSchemaFields,
+  SCHEMA_FIELDS_HASH_KEY,
   TRIGGER_TO_NODE_TYPES,
 } from "@dafthunk/utils";
 import {
@@ -285,6 +287,15 @@ export interface HydrateOptions {
    */
   bindings?: Partial<Record<OrgResourceType, OrgResource>>;
   /**
+   * Schemas by node id — the one family that binds per node.
+   *
+   * A schema is a shape, not a place, and one workflow needs several: what the
+   * form asks for, what the model must emit, what the table's columns are.
+   * Consulted before `bindings.schema`, which is now only the workflow-wide
+   * default for nodes that were given no shape of their own.
+   */
+  schemasByNode?: ReadonlyMap<string, OrgResource>;
+  /**
    * Connected integrations by provider, for `integration` inputs.
    *
    * Like `orgResources`, the model never sees these ids. An input the model
@@ -309,7 +320,8 @@ export function hydrateGeneratedWorkflow(
   candidates: NodeType[],
   options: HydrateOptions = {}
 ): HydrateResult {
-  const { ownerEmail, orgResources, bindings, integrations } = options;
+  const { ownerEmail, orgResources, bindings, schemasByNode, integrations } =
+    options;
   const errors: EnrichedValidationError[] = [];
   const byType = new Map(nodeTypes.map((nt) => [nt.type, nt]));
 
@@ -430,7 +442,7 @@ export function hydrateGeneratedWorkflow(
   // stays restricted to the passive types, because falling back must never be
   // able to arm anything.
   const boundResources: BoundResource[] = [];
-  if (orgResources || bindings) {
+  if (orgResources || bindings || schemasByNode) {
     const seen = new Set<string>();
     for (const node of nodes) {
       // Applied after the loop below, not inside it: deriving the input side
@@ -442,17 +454,33 @@ export function hydrateGeneratedWorkflow(
         if (input.value !== undefined) continue;
         const type = input.type as OrgResourceType;
 
-        let resource: OrgResource | undefined = bindings?.[type];
+        /**
+         * The shape this node was given, before any family-wide choice.
+         *
+         * There is no fallback under it. A schema's fields become the node's
+         * ports, so binding whichever schema the workspace happens to own
+         * oldest does not produce a workflow with a defensible default — it
+         * produces a form asking for someone else's fields. Better an unset
+         * input the repair round and the editor can both see.
+         */
+        const ownShape =
+          type === "schema" ? schemasByNode?.get(node.id) : undefined;
+
+        // A structured-output schema must not contain blob fields, and a shape
+        // chosen for the workflow at large says nothing about what this node
+        // may emit. Only a shape written for this node lands on one.
+        if (
+          !ownShape &&
+          input.type === "schema" &&
+          input.scope === "structured-output"
+        ) {
+          continue;
+        }
+
+        let resource: OrgResource | undefined = ownShape;
+        resource ??= bindings?.[type];
         if (!resource) {
           if (!PASSIVE_BINDABLE_TYPES.has(type)) continue;
-          // A structured-output schema must not contain blob fields, and an
-          // OrgResource cannot say whether one does — so scoped inputs are
-          // never filled by fallback. An explicit choice above still lands:
-          // the person picked it, and the consuming node enforces the scope
-          // at runtime.
-          if (input.type === "schema" && input.scope === "structured-output") {
-            continue;
-          }
           resource = orgResources
             ? resourceToBind(orgResources, type)
             : undefined;
@@ -460,8 +488,11 @@ export function hydrateGeneratedWorkflow(
 
         if (!resource) continue;
         input.value = resource.id;
-        if (!seen.has(type)) {
-          seen.add(type);
+        // Keyed by instance for schemas, since several distinct ones legitimately
+        // land in one workflow and each is worth naming once.
+        const mention = type === "schema" ? `${type}:${resource.id}` : type;
+        if (!seen.has(mention)) {
+          seen.add(mention);
           boundResources.push({ type, name: resource.name });
         }
 
@@ -502,6 +533,14 @@ export function hydrateGeneratedWorkflow(
 
             derivedPorts = ports;
             derivedSide = derived;
+
+            // The same signature the editor stamps when a person picks a
+            // schema. Without it a generated workflow has no baseline, so the
+            // widget can never tell the user their schema has since moved.
+            node.metadata = {
+              ...(node.metadata ?? {}),
+              [SCHEMA_FIELDS_HASH_KEY]: hashSchemaFields(resource.fields),
+            };
           }
         }
       }

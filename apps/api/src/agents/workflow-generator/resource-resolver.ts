@@ -2,6 +2,8 @@ import type { Field } from "@dafthunk/types";
 import {
   RESOURCE_FAMILY_NOUNS,
   type ResolvedResourceBinding,
+  schemaShapeKey,
+  toSchemaName,
 } from "@dafthunk/utils";
 
 import type { DraftResource } from "./draft-types";
@@ -21,9 +23,12 @@ import { CREATABLE_RESOURCE_TYPES, resourceToBind } from "./org-resources";
  * is a request, the resolver is the guarantee.
  *
  * Constructed once per pipeline run and consulted on every attempt, because
- * repair rounds re-emit the draft: creations are cached by family and
- * normalized name, so a re-emitted "create" reuses the row instead of
- * multiplying it.
+ * repair rounds re-emit the draft: creations are cached, so a re-emitted
+ * "create" reuses the row instead of multiplying it.
+ *
+ * Schemas are the exception to nearly everything here, and `resolveSchema`
+ * says why: every other family is a place to be found, a schema is a shape to
+ * be written down.
  */
 
 export type CreateResourceFn = (
@@ -34,6 +39,13 @@ export type CreateResourceFn = (
 export interface ResourceResolution {
   /** One instance per family, ready for hydration to bind. */
   bindings: Partial<Record<OrgResourceType, OrgResource>>;
+  /**
+   * Schemas by node id, because a shape belongs to a node rather than to a
+   * workflow. `bindings.schema` survives alongside this as the fallback for
+   * nodes the draft gave no shape of their own — that is where a schema the
+   * user picked in the brief lands.
+   */
+  schemasByNode: Map<string, OrgResource>;
   /** Rows brought into being by THIS resolve call. */
   created: Array<{ type: OrgResourceType; resource: OrgResource }>;
   /** User-facing lines about what was created, for the log frames. */
@@ -55,6 +67,11 @@ function findByName(
     owned.find((resource) => normalizeName(resource.name) === needle) ??
     owned.find((resource) => normalizeName(resource.name).includes(needle))
   );
+}
+
+/** How a schema name compares, so creation and matching agree on one form. */
+function normalizeSchemaName(name: string): string {
+  return toSchemaName(name).toLowerCase();
 }
 
 export function createResourceResolver(
@@ -81,10 +98,17 @@ export function createResourceResolver(
   const createOnce = async (
     family: OrgResourceType,
     spec: { name: string; description?: string; fields?: Field[] },
-    resolution: ResourceResolution
+    resolution: ResourceResolution,
+    /**
+     * What makes two requests the same request. Names, for a place: asking
+     * twice for the "Leads" database means one database. For a schema it is
+     * the shape, because the model renames the same record between repair
+     * rounds far more readily than it reshapes it.
+     */
+    cacheKey = `${family}:${normalizeName(spec.name)}`
   ): Promise<OrgResource | undefined> => {
     if (!options?.create) return undefined;
-    const key = `${family}:${normalizeName(spec.name)}`;
+    const key = cacheKey;
     const cached = createdCache.get(key);
     if (cached) return cached;
 
@@ -110,11 +134,76 @@ export function createResourceResolver(
     return resource;
   };
 
+  /**
+   * A schema for one declared shape: the workspace's own if it already has
+   * this exact shape under this name, a new row otherwise.
+   *
+   * Both halves of that test earn their place. The shape decides whether reuse
+   * is *safe* — the fields become the node's ports, so an unequal shape is a
+   * silently miswired graph. The name decides whether reuse is *what the user
+   * meant* — the schema is what they will see on their form and in their
+   * Schemas list, and an identical shape filed under someone else's word for
+   * it is a workflow that reads as being about something else.
+   */
+  const resolveSchema = async (
+    entry: DraftResource,
+    resolution: ResourceResolution
+  ): Promise<OrgResource | undefined> => {
+    const fields = entry.fields?.length ? entry.fields : undefined;
+    // A schema without fields validates nothing and structures nothing —
+    // there is no meaningful row, and nothing to compare against one.
+    if (!fields) return undefined;
+
+    const shape = schemaShapeKey(fields);
+    const wanted = normalizeSchemaName(entry.name);
+    const owned = ownedAndCreated("schema");
+
+    const match = owned.find(
+      (resource) =>
+        resource.fields?.length &&
+        schemaShapeKey(resource.fields) === shape &&
+        normalizeSchemaName(resource.name) === wanted
+    );
+    if (match) return match;
+
+    // The name is taken by a different shape. Reusing it would rewire a node
+    // to the wrong fields and renaming their row would be worse, so the new
+    // shape gets a name of its own.
+    let name = toSchemaName(entry.name);
+    if (
+      owned.some((resource) => normalizeSchemaName(resource.name) === wanted)
+    ) {
+      let suffix = 2;
+      while (
+        owned.some(
+          (resource) =>
+            normalizeSchemaName(resource.name) ===
+            normalizeSchemaName(`${name}_${suffix}`)
+        )
+      ) {
+        suffix += 1;
+      }
+      name = `${name}_${suffix}`;
+    }
+
+    return createOnce(
+      "schema",
+      {
+        name,
+        ...(entry.description ? { description: entry.description } : {}),
+        fields,
+      },
+      resolution,
+      `schema:${shape}`
+    );
+  };
+
   const resolve = async (
     requested?: DraftResource[]
   ): Promise<ResourceResolution> => {
     const resolution: ResourceResolution = {
       bindings: {},
+      schemasByNode: new Map(),
       created: [],
       notes: [],
     };
@@ -141,15 +230,35 @@ export function createResourceResolver(
       const family = entry.family as OrgResourceType;
       if (!VALID_FAMILIES.has(family)) continue;
       if (typeof entry.name !== "string" || !entry.name.trim()) continue;
+
+      /**
+       * Schemas resolve per node and by shape, so none of what follows applies
+       * to them: not the one-per-family guard, not the name fallbacks, and not
+       * `resourceToBind`. Binding the workspace's oldest schema to a node is
+       * never a good guess — its fields become that node's ports.
+       */
+      if (family === "schema") {
+        const nodeId =
+          typeof entry.nodeId === "string" ? entry.nodeId.trim() : "";
+        if (nodeId && resolution.schemasByNode.has(nodeId)) continue;
+        const resource = await resolveSchema(entry, resolution);
+        if (!resource) continue;
+        if (nodeId) {
+          resolution.schemasByNode.set(nodeId, resource);
+        } else {
+          // No node named: the shape stands for the workflow, the way it did
+          // before schemas were per-node. Still never overrides the brief.
+          resolution.bindings.schema ??= resource;
+        }
+        pendingCreate.delete(family);
+        continue;
+      }
+
       // One binding per family; the first request (or the brief) wins.
       if (resolution.bindings[family]) continue;
 
-      const creatable =
-        CREATABLE_RESOURCE_TYPES.has(family) && Boolean(options?.create);
-      // A schema without fields validates nothing and structures nothing —
-      // there is no meaningful row to create.
       const canCreate =
-        creatable && (family !== "schema" || (entry.fields?.length ?? 0) > 0);
+        CREATABLE_RESOURCE_TYPES.has(family) && Boolean(options?.create);
       const wantsCreate =
         entry.action === "create" || pendingCreate.has(family);
 
@@ -169,7 +278,6 @@ export function createResourceResolver(
                   ...(entry.description
                     ? { description: entry.description }
                     : {}),
-                  ...(entry.fields?.length ? { fields: entry.fields } : {}),
                 },
                 resolution
               )
@@ -195,7 +303,9 @@ export function createResourceResolver(
     // words the user accepted — better a plainly named row than a broken bind.
     for (const [family, name] of pendingCreate) {
       if (resolution.bindings[family]) continue;
-      if (family === "schema") continue; // no fields to give it
+      // A schema is its fields, and a blank only carried a name. The shapes
+      // the graph needs are recovered from the graph instead.
+      if (family === "schema") continue;
       if (!CREATABLE_RESOURCE_TYPES.has(family)) continue;
       const resource = await createOnce(family, { name }, resolution);
       if (resource) resolution.bindings[family] = resource;

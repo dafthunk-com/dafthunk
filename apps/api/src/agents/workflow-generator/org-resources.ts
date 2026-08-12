@@ -62,7 +62,7 @@ export interface OrgResource {
 export type OrgResources = Partial<Record<OrgResourceType, OrgResource[]>>;
 
 /**
- * Resource types hydration may bind wherever they appear, without review.
+ * Resource types hydration may bind by falling back on what the org owns.
  *
  * Deliberately only the passive ones. `hydrate.disarm` blanks `queue`, `email`
  * and the four bot types on the trigger node because `WorkflowStore.syncTriggers`
@@ -71,11 +71,15 @@ export type OrgResources = Partial<Record<OrgResourceType, OrgResource[]>>;
  * and an unreviewed workflow would start consuming the org's real Slack or
  * Telegram traffic.
  *
- * A database, a dataset or a schema does nothing until a node reads it, so
- * there is nothing to arm and nothing to review first.
+ * A database or a dataset does nothing until a node reads it, so there is
+ * nothing to arm and nothing to review first. `schema` was here too and is
+ * not: a schema is not a place a node reads from, it is the shape of the
+ * node's own ports, so the oldest one is never a defensible default — it makes
+ * a form ask for whatever fields an unrelated schema happens to hold. Shapes
+ * are resolved per node by the resource resolver instead.
  */
 export const PASSIVE_BINDABLE_TYPES: ReadonlySet<OrgResourceType> =
-  new Set<OrgResourceType>(["database", "dataset", "schema"]);
+  new Set<OrgResourceType>(["database", "dataset"]);
 
 /**
  * Resource types the generator may create an instance of at generation time.

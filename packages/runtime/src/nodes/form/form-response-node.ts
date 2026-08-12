@@ -24,6 +24,8 @@ export class FormResponseNode extends ExecutableNode {
       "After the form is submitted, the composed record is shown to the user formatted per the schema.",
     tags: ["Form", "Response", "HITL"],
     icon: "log-out",
+    // Inputs are the bound schema's fields; see NodeType.schemaPorts.
+    schemaPorts: "inputs",
     inlinable: false,
     responder: true,
     asTool: false,

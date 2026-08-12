@@ -1,5 +1,6 @@
 import type { InputOverrides } from "@dafthunk/runtime";
 import type {
+  Field,
   GeneratorServerMessage,
   Workflow,
   WorkflowExample,
@@ -11,6 +12,7 @@ import { workflowToDraft } from "./adopt";
 import { selectCandidates } from "./catalog-selection";
 import { withheldProviders, withheldResources } from "./eligibility";
 import { FIXTURE_NODE_TYPES } from "./fixtures";
+import type { OrgResource } from "./org-resources";
 import type { GenerateResult, PipelineDependencies } from "./pipeline";
 import {
   formatRunFailures,
@@ -1226,6 +1228,129 @@ describe("creating workspace components", () => {
     // The database input stays unset; without a creator the run cannot avoid
     // the missing-input failure, but it must never invent a resource.
     expect(result.createdResources).toEqual([]);
+  });
+});
+
+/**
+ * The end a form workflow depends on: the shape a form asks for is written by
+ * the generator and grown into the trigger's ports, rather than borrowed from
+ * whatever schema the workspace happened to own first.
+ */
+describe("shaping a form's schema", () => {
+  const FORM_DRAFT = {
+    title: "Enquiry",
+    description: "Answers a product question",
+    trigger: "form_webhook",
+    steps: ["Ask", "Show"],
+    nodes: [{ id: "sink", type: "output-text" }],
+    edges: [
+      {
+        source: "trigger",
+        sourceOutput: "question",
+        target: "sink",
+        targetInput: "value",
+      },
+    ],
+    examples: [{ name: "Basic" }],
+    resources: [
+      {
+        family: "schema",
+        action: "create",
+        name: "product_question",
+        nodeId: "trigger",
+        fields: [
+          { name: "question", type: "string", required: true },
+          { name: "email", type: "string" },
+        ],
+      },
+    ],
+  };
+
+  const createStub = () =>
+    vi.fn(
+      async (
+        _type: string,
+        spec: { name: string; fields?: Field[] }
+      ): Promise<OrgResource> => ({
+        id: "sch-9",
+        name: spec.name,
+        ...(spec.fields ? { fields: spec.fields } : {}),
+      })
+    );
+
+  it("creates the shape the draft declared and derives the trigger's ports", async () => {
+    const createResource = createStub();
+    const { deps, saved } = harness([llmResult(FORM_DRAFT)], {
+      orgResources: {},
+      createResource,
+    });
+
+    const result = await runGenerationPipeline(deps);
+
+    expect(result.outcome).toBe("ok");
+    expect(createResource).toHaveBeenCalledWith(
+      "schema",
+      expect.objectContaining({ name: "product_question" })
+    );
+
+    const trigger = saved[0].nodes.find((node) => node.id === "trigger");
+    expect(trigger?.inputs.find((i) => i.name === "schema")?.value).toBe(
+      "sch-9"
+    );
+    expect(trigger?.outputs.map((o) => o.name)).toEqual(["question", "email"]);
+  });
+
+  /**
+   * The workspace owns a schema, and it is the wrong one. Before shapes were
+   * authored, it bound anyway and the form silently asked for its fields.
+   */
+  it("ignores an unrelated schema the workspace already owns", async () => {
+    const createResource = createStub();
+    const { deps, saved } = harness([llmResult(FORM_DRAFT)], {
+      orgResources: {
+        schema: [
+          {
+            id: "sch-old",
+            name: "invoice",
+            fields: [{ name: "amount", type: "number" }],
+          },
+        ],
+      },
+      createResource,
+    });
+
+    await runGenerationPipeline(deps);
+
+    const trigger = saved[0].nodes.find((node) => node.id === "trigger");
+    expect(trigger?.inputs.find((i) => i.name === "schema")?.value).toBe(
+      "sch-9"
+    );
+    expect(trigger?.outputs.map((o) => o.name)).toEqual(["question", "email"]);
+  });
+
+  /**
+   * The model forgot to declare a shape, but it wired edges off the trigger —
+   * which is the same information, written down somewhere else.
+   */
+  it("recovers the shape from the edges when the draft declares none", async () => {
+    const createResource = createStub();
+    const { deps, saved } = harness(
+      [llmResult({ ...FORM_DRAFT, resources: [] })],
+      { orgResources: {}, createResource }
+    );
+
+    const result = await runGenerationPipeline(deps);
+
+    expect(result.outcome).toBe("ok");
+    expect(createResource).toHaveBeenCalledWith(
+      "schema",
+      expect.objectContaining({
+        fields: [{ name: "question", type: "string" }],
+      })
+    );
+
+    const trigger = saved[0].nodes.find((node) => node.id === "trigger");
+    expect(trigger?.outputs.map((o) => o.name)).toEqual(["question"]);
   });
 });
 
