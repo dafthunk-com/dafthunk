@@ -176,6 +176,30 @@ function applyFrame(
 ): BriefState {
   switch (frame.type) {
     case "session":
+      /**
+       * An idle session is not news, and must not be treated as a correction.
+       *
+       * The reset below exists to clear stale local state before the replay
+       * that follows. An `idle` frame has no replay behind it — the server is
+       * saying it holds nothing — and on the opening move it is also *older*
+       * than what the browser knows: the socket is opened and the `ask` sent
+       * in the same breath, so this frame describes the instant before that
+       * ask arrived. Resetting on it threw away the turn the person had just
+       * started, dropping the screen back to the front door for one round trip
+       * before the first phase frame put it back. That flash was read as the
+       * wait having two steps in it.
+       */
+      if (frame.status === "idle") {
+        return {
+          ...state,
+          sessionLoaded: true,
+          // Still taken from the frame: the server holds nothing under this
+          // id, so a pointer the browser kept from an earlier session is not
+          // about this one.
+          workflowId: frame.workflowId,
+          executionId: frame.executionId,
+        };
+      }
       return {
         ...INITIAL_BRIEF_STATE,
         sessionLoaded: true,

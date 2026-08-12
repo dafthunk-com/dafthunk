@@ -79,3 +79,80 @@ describe("the rehearsal report in the reducer", () => {
     expect(play([future])).toMatchObject({ status: "idle" });
   });
 });
+
+/**
+ * The opening move, where the browser knows something the server does not yet.
+ *
+ * `ask` opens the socket and sends the request in the same breath, so the
+ * `session` frame the server answers the connection with describes the instant
+ * *before* that request landed. Treating it as a correction dropped the screen
+ * back to the front door for one round trip.
+ */
+describe("the session frame against an optimistic turn", () => {
+  /** What `ask` sets before anything has been sent. */
+  const OPTIMISTIC = {
+    ...INITIAL_BRIEF_STATE,
+    status: "running",
+    phase: "briefing",
+    sessionLoaded: true,
+  } as const;
+
+  const idleSession: GeneratorServerMessage = {
+    type: "session",
+    sessionId: "s-1",
+    status: "idle",
+    protocol: 2,
+  } as GeneratorServerMessage;
+
+  it("leaves a turn the browser already started alone", () => {
+    const state = reduce(OPTIMISTIC, idleSession);
+
+    expect(state.status).toBe("running");
+    expect(state.phase).toBe("briefing");
+  });
+
+  it("keeps the narration continuous across the connection", () => {
+    const state = [
+      idleSession,
+      {
+        type: "phase",
+        phase: "briefing",
+        label: "Reading that back",
+      } as GeneratorServerMessage,
+    ].reduce(reduce, OPTIMISTIC);
+
+    // One phase, named once: the optimistic line and the server's are the same
+    // words, and nothing blanked the screen between them.
+    expect(state.phaseLabel).toBe("Reading that back");
+    expect(state.phaseTrail).toEqual([]);
+  });
+
+  it("drops a pointer the browser kept from an earlier session", () => {
+    const state = reduce(
+      { ...OPTIMISTIC, workflowId: "wf-old", executionId: "ex-old" },
+      idleSession
+    );
+
+    expect(state.workflowId).toBeUndefined();
+    expect(state.executionId).toBeUndefined();
+  });
+
+  it("still resets everything for a session the server does hold", () => {
+    const state = reduce(
+      { ...OPTIMISTIC, notes: [{ level: "warn", message: "stale" }] },
+      {
+        type: "session",
+        sessionId: "s-1",
+        status: "awaiting",
+        prompt: "a digest",
+        protocol: 2,
+      } as GeneratorServerMessage
+    );
+
+    // A replay follows this one, so local state has to go.
+    expect(state.status).toBe("awaiting");
+    expect(state.prompt).toBe("a digest");
+    expect(state.notes).toEqual([]);
+    expect(state.phase).toBeUndefined();
+  });
+});
