@@ -34,7 +34,45 @@ import { templateToEmitFormat } from "./template-examples";
  * and only the second one ships.
  */
 
-const bindings = env as unknown as Bindings;
+/**
+ * The catalog the generator ships with, not the one this machine is configured
+ * for.
+ *
+ * A seventh of the registry is gated on a credential — each OAuth integration
+ * on its client pair, web search on its API key, SMS on its Twilio trio — and
+ * those live in `.dev.vars`, which a developer has and CI does not. Left
+ * ambient, this suite ranks 439 node types on a laptop and 369 on CI: different
+ * corpora, so different IDF, so a different answer to the only question it
+ * asks, and the gaps pinned below are right in one place and wrong in the
+ * other. Bound to placeholders so both measure what a deployment offers. The
+ * values are never read — nothing here executes a node.
+ */
+const bindings: Bindings = {
+  ...(env as unknown as Bindings),
+  CLOUDFLARE_ACCOUNT_ID: "test",
+  CLOUDFLARE_API_TOKEN: "test",
+  GOOGLE_API_KEY: "test",
+  TAVILY_API_KEY: "test",
+  TWILIO_ACCOUNT_SID: "test",
+  TWILIO_AUTH_TOKEN: "test",
+  TWILIO_PHONE_NUMBER: "test",
+  INTEGRATION_DISCORD_CLIENT_ID: "test",
+  INTEGRATION_DISCORD_CLIENT_SECRET: "test",
+  INTEGRATION_GITHUB_CLIENT_ID: "test",
+  INTEGRATION_GITHUB_CLIENT_SECRET: "test",
+  INTEGRATION_GOOGLE_CALENDAR_CLIENT_ID: "test",
+  INTEGRATION_GOOGLE_CALENDAR_CLIENT_SECRET: "test",
+  INTEGRATION_GOOGLE_MAIL_CLIENT_ID: "test",
+  INTEGRATION_GOOGLE_MAIL_CLIENT_SECRET: "test",
+  INTEGRATION_LINKEDIN_CLIENT_ID: "test",
+  INTEGRATION_LINKEDIN_CLIENT_SECRET: "test",
+  INTEGRATION_REDDIT_CLIENT_ID: "test",
+  INTEGRATION_REDDIT_CLIENT_SECRET: "test",
+  INTEGRATION_WORDPRESS_CLIENT_ID: "test",
+  INTEGRATION_WORDPRESS_CLIENT_SECRET: "test",
+  INTEGRATION_X_CLIENT_ID: "test",
+  INTEGRATION_X_CLIENT_SECRET: "test",
+};
 
 /** Built once: the registry runs several hundred registrations. */
 const CATALOG: NodeType[] = new CloudflareNodeRegistry(
@@ -112,8 +150,9 @@ const KNOWN_RETRIEVAL_GAPS: Record<string, string[]> = {
  * Not covered here: the delivery nodes.
  *
  * `send-email` and `notify-me` are registered only when `SEND_EMAIL` and
- * `SEND_EMAIL_FROM` are bound, which they are not in the test environment — so
- * they are absent from the catalog and this suite says nothing about whether
+ * `SEND_EMAIL_FROM` are bound. That gate is a service binding rather than a
+ * secret, so it is the one the placeholders above cannot close — the nodes are
+ * absent from the catalog and this suite says nothing about whether
  * retrieval would surface them. Worth knowing, because the pipeline only forces
  * a delivery node into the catalog when a brief supplied a destination
  * (`selectCandidates`'s `required`), and the benchmark and evaluation both run
