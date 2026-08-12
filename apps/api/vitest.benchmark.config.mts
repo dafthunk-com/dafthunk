@@ -50,6 +50,10 @@ export default defineConfig({
   ],
   test: {
     include: ["**/benchmark.integration.ts"],
+    // The pass rate is the product of this suite, and the pool swallows worker
+    // console output by default — which would leave a run that measured
+    // everything and said nothing.
+    disableConsoleIntercept: true,
     setupFiles: ["./test/setup.ts"],
     // One case can take four model calls with a full catalog in the prompt.
     testTimeout: 300_000,
