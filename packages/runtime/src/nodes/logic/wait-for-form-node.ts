@@ -14,10 +14,11 @@ export class WaitForFormNode extends ExecutableNode {
     id: "wait-for-form",
     name: "Wait for Form",
     type: "wait-for-form",
-    description: "Pauses the workflow until the linked form is submitted",
+    description:
+      "Pauses the workflow until a person submits the linked form, so a run can wait for someone to approve or review its work before continuing",
     icon: "user-check",
     usage: 0,
-    tags: ["Logic", "HITL", "Approval"],
+    tags: ["Logic", "HITL", "Approval", "Human"],
     documentation:
       "Suspends the workflow on the token emitted by Create Form and resumes when that form is submitted, for up to 24 hours. Suspension is durable, so the run survives restarts while it waits. Requires durable workflow execution — it cannot run in worker mode.",
     inlinable: false,

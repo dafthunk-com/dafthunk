@@ -23,10 +23,10 @@ export class CreateFeedbackFormNode extends ExecutableNode {
     name: "Create Feedback Form",
     type: "create-feedback-form",
     description:
-      "Creates a public feedback page showing workflow outputs and evaluation criteria",
+      "Creates a public page where a person can review workflow outputs against evaluation criteria and give feedback, without pausing the run",
     icon: "message-circle-question",
     usage: 0,
-    tags: ["Logic", "HITL", "Feedback"],
+    tags: ["Logic", "HITL", "Feedback", "Review", "Human"],
     documentation:
       "Builds a public feedback page from a title and description and returns its signed URL. Unlike Create Form, the workflow does not pause: the URL is emitted and execution continues, so downstream nodes can deliver it by email, Slack or Discord while the run finishes.",
     inlinable: false,

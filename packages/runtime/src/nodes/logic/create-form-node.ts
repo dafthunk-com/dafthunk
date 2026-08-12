@@ -27,11 +27,14 @@ export class CreateFormNode extends ExecutableNode {
     id: "create-form",
     name: "Create Form",
     type: "create-form",
+    // Named for the job rather than the mechanism, because retrieval scores
+    // this text and nobody asks for "a form from a schema" — they ask to have
+    // someone review, approve or sign off on something mid-run.
     description:
-      "Creates a human input form from a schema and generates a shareable URL",
+      "Creates a form for a person to fill in and returns a shareable URL, for asking a human to review, approve or sign off on something mid-run",
     icon: "clipboard-list",
     usage: 0,
-    tags: ["Logic", "HITL", "Form"],
+    tags: ["Logic", "HITL", "Form", "Approval", "Human"],
     documentation:
       "Turns a schema into a human input form and returns a signed, single-use URL. Blob fields render as file uploads. Pair it with Wait for Form to hold the workflow until someone submits, or use the URL on its own for fire-and-forget collection.",
     inlinable: false,
