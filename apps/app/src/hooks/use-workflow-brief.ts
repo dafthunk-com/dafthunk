@@ -145,6 +145,10 @@ const PHASE_TRAIL_LIMIT = 6;
 /**
  * The optimistic label between a click and the server's first frame.
  * Never joins the trail — it is a claim about our intent, not a step done.
+ *
+ * Only for the moves that continue a session, where the phase the server will
+ * announce is not the one on screen. An opening `ask` needs no label: it is
+ * already in `briefing`, and the rail's copy for that phase says so.
  */
 const SENDING_LABEL = "Sending…";
 
@@ -385,9 +389,12 @@ export function useWorkflowBrief(
         ...current,
         status: "running",
         phase: "briefing",
-        // Optimism about our intent, not about the server's activity — the
-        // first real phase frame replaces this the moment the server speaks.
-        phaseLabel: SENDING_LABEL,
+        // No label of its own: the phase is already the one the server is
+        // about to announce, so the rail's copy for `briefing` covers the wait
+        // and the real frame repaints the same words. Naming this stretch
+        // separately made one wait read as two steps, the second of which was
+        // about our plumbing rather than their request.
+        phaseLabel: undefined,
         phaseTrail: [],
         cancelling: false,
         sessionLoaded: true,
