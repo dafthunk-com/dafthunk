@@ -24,7 +24,7 @@ import { scoreNodeTypes } from "./node-search";
  * a node with `input`/`text` is worse than no example, because the model
  * follows the examples over the schema.
  */
-const AGENT_TEXT_TYPE = "agent-claude-sonnet-4";
+const AGENT_TEXT_TYPE = "agent-claude-opus-5";
 
 /** Port names on a Workers AI text node, and their agent equivalents. */
 const MODEL_PROMPT = "prompt";

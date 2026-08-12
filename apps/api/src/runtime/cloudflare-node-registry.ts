@@ -19,6 +19,7 @@ import { GeoTiffMetadataReaderNode } from "@dafthunk/runtime/nodes/3d/geotiff-me
 import { GeoTiffQueryNode } from "@dafthunk/runtime/nodes/3d/geotiff-query-node";
 import { GeoTiffTransformNode } from "@dafthunk/runtime/nodes/3d/geotiff-transform-node";
 import { GltfWireframeNode } from "@dafthunk/runtime/nodes/3d/gltf-wireframe-node";
+import { AgentClaudeOpus5Node } from "@dafthunk/runtime/nodes/agent/agent-claude-opus-5-node";
 import { AgentClaudeSonnet4Node } from "@dafthunk/runtime/nodes/agent/agent-claude-sonnet-4-node";
 import { AgentGemini25FlashNode } from "@dafthunk/runtime/nodes/agent/agent-gemini-2-5-flash-node";
 import { AgentGemini31ProNode } from "@dafthunk/runtime/nodes/agent/agent-gemini-3-1-pro-node";
@@ -1101,6 +1102,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(AnyOutputNode);
 
     // Agent nodes — multi-turn agentic execution via Durable Object
+    this.registerImplementation(AgentClaudeOpus5Node);
     this.registerImplementation(AgentClaudeSonnet4Node);
     this.registerImplementation(AgentGemini25FlashNode);
     this.registerImplementation(AgentGemini3FlashNode);

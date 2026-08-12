@@ -179,7 +179,7 @@ describe("curated AI catalog", () => {
   it("offers the named model and withholds the rest", () => {
     const { eligible } = filterEligible(
       [
-        modelNode("agent-claude-sonnet-4"),
+        modelNode("agent-claude-opus-5"),
         modelNode("gpt-5-mini"),
         modelNode("gemini-2-5-flash"),
         modelNode("claude-35-haiku"),
@@ -188,7 +188,7 @@ describe("curated AI catalog", () => {
       { connectedProviders: new Set() }
     );
 
-    expect(typesOf(eligible)).toEqual(new Set(["agent-claude-sonnet-4"]));
+    expect(typesOf(eligible)).toEqual(new Set(["agent-claude-opus-5"]));
   });
 
   it("says nothing about the models it did not offer", () => {

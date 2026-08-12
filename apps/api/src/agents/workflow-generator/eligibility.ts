@@ -48,8 +48,11 @@ const REPLACED_BY_PSEUDO_TYPES: ReadonlySet<string> = new Set([
 const OFFERED_AI_TYPES: ReadonlySet<string> = new Set([
   // Text generation and the tool loop, which are the same node: an agent with
   // no tools is a text generator, and it is the one model measured to stop when
-  // it is done rather than when its budget does.
-  "agent-claude-sonnet-4",
+  // it is done rather than when its budget does. Opus over Sonnet is the
+  // quality-first read of the same rule the rest of this list follows: the
+  // cheaper tier is the one someone picks in the editor, where the trade is
+  // visible and theirs to make.
+  "agent-claude-opus-5",
   // Curated Workers AI stand-ins. No Anthropic model replaces either, and they
   // need no credentials, which keeps image and audio workflows runnable.
   "ai-image",

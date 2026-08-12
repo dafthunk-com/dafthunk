@@ -169,7 +169,7 @@ describe("the catalog floor holds for every evaluation case", () => {
       });
       const offered = new Set(candidates.map((candidate) => candidate.type));
 
-      expect(offered.has("agent-claude-sonnet-4")).toBe(true);
+      expect(offered.has("agent-claude-opus-5")).toBe(true);
       expect(offered.has("output-text")).toBe(true);
     });
   }

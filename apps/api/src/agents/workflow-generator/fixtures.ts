@@ -132,6 +132,42 @@ export const RECEIVE_SCHEDULED: NodeType = {
   outputs: [param("timestamp", "string")],
 };
 
+/**
+ * A form trigger, which is the one node type whose outputs are not its own.
+ *
+ * `outputs: []` is the real declaration, not a shortcut for the fixture: the
+ * ports come from the schema the node is bound to, so anything that assumes a
+ * trigger arrives with usable ports is wrong about this one.
+ */
+export const FORM_WEBHOOK: NodeType = {
+  id: "form-webhook",
+  name: "Form Webhook",
+  type: "form-webhook",
+  description: "Receives a form submission and runs the workflow durably",
+  tags: ["Form", "Trigger"],
+  icon: "clipboard-list",
+  trigger: true,
+  schemaPorts: "outputs",
+  inputs: [param("schema", "schema", { required: true, hidden: true })],
+  outputs: [],
+};
+
+/**
+ * The same derivation on the other side: a compose node's *inputs* are the
+ * schema's fields, and `record` is what it builds out of them.
+ */
+export const SCHEMA_COMPOSE: NodeType = {
+  id: "json-schema-compose",
+  name: "JSON Schema Compose",
+  type: "json-schema-compose",
+  description: "Composes a JSON record from individual fields",
+  tags: ["JSON", "Schema", "Compose"],
+  icon: "braces",
+  schemaPorts: "inputs",
+  inputs: [param("schema", "schema", { required: true, hidden: true })],
+  outputs: [param("record", "json")],
+};
+
 export const SEND_SLACK: NodeType = {
   id: "send-slack-message",
   name: "Send Slack Message",
@@ -191,9 +227,9 @@ export const BROWSER_MARKDOWN: NodeType = {
  * exception `agent-tools.ts` makes.
  */
 export const AGENT: NodeType = {
-  id: "agent-claude-sonnet-4",
-  name: "Agent Claude Sonnet 4",
-  type: "agent-claude-sonnet-4",
+  id: "agent-claude-opus-5",
+  name: "Agent Claude Opus 5",
+  type: "agent-claude-opus-5",
   description: "AI agent that autonomously uses tools to accomplish tasks",
   tags: ["AI", "Agent"],
   icon: "sparkles",
@@ -336,6 +372,8 @@ export const FIXTURE_NODE_TYPES: NodeType[] = [
   HTTP_REQUEST,
   HTTP_RESPONSE,
   RECEIVE_SCHEDULED,
+  FORM_WEBHOOK,
+  SCHEMA_COMPOSE,
   SEND_SLACK,
   SEND_EMAIL,
   BROWSER_MARKDOWN,

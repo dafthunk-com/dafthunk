@@ -78,12 +78,13 @@ export const CORE_NODE_TYPES: readonly string[] = [
    * the budget does. No ceiling serves both "translate one sentence" and "write
    * 700 words" when the model fills whatever it is given.
    *
-   * Sonnet stops on its own, which is the property none of the others have, and
-   * carries a 200K context that removes the digest limit outright. Measured:
-   * it passed `hn-digest` on both samples of the first N=2 run, a case that had
-   * failed every previous run under three different Workers AI models.
+   * The Anthropic agent stops on its own, which is the property none of the
+   * others have, and its context removes the digest limit outright. Measured on
+   * the Sonnet tier this replaced: it passed `hn-digest` on both samples of the
+   * first N=2 run, a case that had failed every previous run under three
+   * different Workers AI models.
    *
-   * Two costs come with it, both real. It bills at $3/$15 per M against Workers
+   * Two costs come with it, both real. It bills at $5/$25 per M against Workers
    * AI's fractions of a cent, on every generated workflow rather than only on
    * generation. And it needs the AI Gateway configured, so the "runs on the
    * first attempt in any deployment" property the pseudo types were built for
@@ -91,9 +92,12 @@ export const CORE_NODE_TYPES: readonly string[] = [
    * worked; a workflow that runs anywhere and delivers a cut-off answer is not
    * the better trade.
    *
+   * Opus rather than Sonnet is a deliberate quality-over-price call, and the
+   * premium is paid per run of every generated workflow, not per generation.
+   *
    * Listed because retrieval cannot find it. Nobody writes "agent" in a
    * request; they write "read the top stories and summarize each", and the
    * shape that suits it has to be on the table before the model can choose it.
    */
-  "agent-claude-sonnet-4",
+  "agent-claude-opus-5",
 ];

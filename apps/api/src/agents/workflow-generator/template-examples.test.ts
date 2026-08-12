@@ -1,4 +1,4 @@
-import { AgentClaudeSonnet4Node } from "@dafthunk/runtime/nodes/agent/agent-claude-sonnet-4-node";
+import { AgentClaudeOpus5Node } from "@dafthunk/runtime/nodes/agent/agent-claude-opus-5-node";
 import { describe, expect, it } from "vitest";
 
 import { workflowTemplates } from "../../templates";
@@ -19,7 +19,7 @@ import {
  * the failure being guarded against is a template nobody remembered to update.
  */
 
-const AGENT_TYPE = "agent-claude-sonnet-4";
+const AGENT_TYPE = "agent-claude-opus-5";
 
 /** Ports that belong to the Workers AI node and must not survive projection. */
 const MODEL_PORTS = { input: "prompt", output: "response" };
@@ -94,11 +94,9 @@ describe("templateToEmitFormat", () => {
    */
   it("only wires ports the agent node actually declares", () => {
     const declared = {
-      inputs: new Set(
-        AgentClaudeSonnet4Node.nodeType.inputs.map((p) => p.name)
-      ),
+      inputs: new Set(AgentClaudeOpus5Node.nodeType.inputs.map((p) => p.name)),
       outputs: new Set(
-        AgentClaudeSonnet4Node.nodeType.outputs.map((p) => p.name)
+        AgentClaudeOpus5Node.nodeType.outputs.map((p) => p.name)
       ),
     };
 

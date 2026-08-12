@@ -292,6 +292,22 @@ export interface NodeType {
   responder?: boolean; // Terminal companion of a synchronous request trigger; auto-added with the trigger, hidden from the palette, and styled like a trigger
   dynamicInputs?: DynamicInputsConfig; // User-adjustable numbered inputs
   /**
+   * Which side of this node's ports comes from the schema it is bound to.
+   *
+   * A handful of nodes declare one side empty and grow it from the selected
+   * schema's fields — the form triggers and `json-schema-extract` derive their
+   * outputs, `json-schema-compose` derives its inputs. Until now that was a
+   * convention held in three editor widgets and nowhere a server could read it,
+   * so anything building a graph without the editor produced nodes with no
+   * usable ports: every edge to or from one was fatal, and unfixable, because
+   * the only advice available was "its ports are: none".
+   *
+   * Declared rather than inferred so the rule cannot go stale. A list of node
+   * types kept beside the derivation would have to be updated by whoever adds
+   * the fifth such node, and would not fail to compile if they did not.
+   */
+  schemaPorts?: "inputs" | "outputs";
+  /**
    * Editor- / runtime-internal flags that survive save/load alongside
    * `inputs`/`outputs`. Use this for non-user-facing state that needs to
    * round-trip through the wire format (e.g. picker locks, display
