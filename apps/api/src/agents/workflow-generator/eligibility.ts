@@ -1,4 +1,5 @@
 import type { NodeType, Parameter } from "@dafthunk/types";
+import { RESOURCE_FAMILY_NOUNS } from "@dafthunk/utils";
 
 /**
  * Parameter types that reference a resource the org must already have created.
@@ -7,17 +8,9 @@ import type { NodeType, Parameter } from "@dafthunk/types";
  * depends on the org owning at least one, or the generator being able to
  * create one — see `offerableResources` in org-resources.ts.
  */
-const ORG_RESOURCE_TYPES: ReadonlySet<string> = new Set([
-  "database",
-  "dataset",
-  "queue",
-  "email",
-  "schema",
-  "discord",
-  "telegram",
-  "whatsapp",
-  "slack",
-]);
+const ORG_RESOURCE_TYPES: ReadonlySet<string> = new Set(
+  Object.keys(RESOURCE_FAMILY_NOUNS)
+);
 
 /** Raw Workers AI nodes are withheld in favour of the curated pseudo types. */
 const REPLACED_BY_PSEUDO_TYPES: ReadonlySet<string> = new Set([
@@ -25,48 +18,75 @@ const REPLACED_BY_PSEUDO_TYPES: ReadonlySet<string> = new Set([
   "cloudflare-gateway-model",
 ]);
 
+/** One kind of work a model node does, and the types offered to do it. */
+export interface AiCapability {
+  /** Reads after "when the step needs": the work, in the request's words. */
+  work: string;
+  /** Most preferred first. */
+  types: readonly string[];
+}
+
 /**
  * The AI nodes the generator may reach for — one per capability, chosen for
- * what it can do rather than what it costs.
+ * what it can do rather than what it costs, and grouped by the work it does.
  *
  * Thirty-six node types carry the `AI` tag, and offering all of them does not
  * give the model a choice so much as a lottery: selection is keyword scoring
  * against descriptions, so a request lands on `gpt-5-mini` or `gemini-2-5-flash`
- * because the words matched, not because either suited the work. An evaluation
- * run picked three different providers across seven cases for no reason anyone
- * could state. Naming one per capability turns an accident into a decision, and
- * takes thirty entries out of the prompt.
+ * because the words matched, not because either suited the work. Naming one per
+ * capability turns an accident into a decision, and takes thirty entries out of
+ * the prompt. Everything AI-tagged and unnamed here is withheld, so a newly
+ * registered model stays out until it is chosen on purpose — the failure is a
+ * missing option, not a silent downgrade.
  *
- * Quality first, deliberately. Someone who wants the cheap model can pick it in
- * the editor, where the trade is visible and theirs to make; someone reading a
- * generated workflow for the first time is judging whether the product works.
+ * Grouped rather than flat because the grouping is the half the model needs and
+ * the half it never got. The prompt used to tell it to prefer `"ai-*"` nodes,
+ * which named two of the eight below — `ai-text` had been deleted and the list
+ * had moved to agent, gemini and dataset types — so five capabilities were on
+ * the table under no description at all, and the one naming convention the
+ * prompt taught had stopped describing the set.
  *
- * Everything AI-tagged and unnamed here is withheld, so a newly registered model
- * stays out until it is chosen on purpose. That is the safe direction for a
- * curated list — the failure is a missing option, not a silent downgrade.
+ * The comments that used to carry this grouping are now the `work` strings,
+ * which is the only form of them a model can read.
  */
-const OFFERED_AI_TYPES: ReadonlySet<string> = new Set([
-  // Text generation and the tool loop, which are the same node: an agent with
-  // no tools is a text generator, and it is the one model measured to stop when
-  // it is done rather than when its budget does. Opus over Sonnet is the
-  // quality-first read of the same rule the rest of this list follows: the
-  // cheaper tier is the one someone picks in the editor, where the trade is
-  // visible and theirs to make.
-  "agent-claude-opus-5",
+export const AI_CAPABILITIES: readonly AiCapability[] = [
+  {
+    // Text generation and the tool loop are the same node: an agent with no
+    // tools is a text generator, and it is the one model measured to stop when
+    // it is done rather than when its budget does. Opus over Sonnet is the
+    // quality-first read of the rule the rest of this list follows — the
+    // cheaper tier is the one someone picks in the editor, where the trade is
+    // visible and theirs to make.
+    work: "judgement, summarizing, classifying, drafting or any other writing",
+    types: ["agent-claude-opus-5"],
+  },
   // Curated Workers AI stand-ins. No Anthropic model replaces either, and they
   // need no credentials, which keeps image and audio workflows runnable.
-  "ai-image",
-  "ai-transcribe",
+  { work: "making an image", types: ["ai-image"] },
+  { work: "turning speech into text", types: ["ai-transcribe"] },
   // Understanding and speech, where the pro tier is the better answer and the
   // flash variants exist only to be cheaper.
-  "gemini-2-5-pro-image-understanding",
-  "gemini-2-5-pro-audio-understanding",
-  "gemini-2-5-flash-tts",
+  {
+    work: "reading an image",
+    types: ["gemini-2-5-pro-image-understanding"],
+  },
+  {
+    work: "listening to audio",
+    types: ["gemini-2-5-pro-audio-understanding"],
+  },
+  { work: "turning text into speech", types: ["gemini-2-5-flash-tts"] },
   // Retrieval over an org's own data. Tagged `AI` but not a model choice, so
   // withholding them would remove a capability rather than narrow one.
-  "dataset-ai-search",
-  "dataset-search",
-]);
+  {
+    work: "searching the workspace's own documents",
+    types: ["dataset-ai-search", "dataset-search"],
+  },
+];
+
+/** The same list flattened, which is what eligibility actually filters on. */
+export const OFFERED_AI_TYPES: ReadonlySet<string> = new Set(
+  AI_CAPABILITIES.flatMap((capability) => capability.types)
+);
 
 /**
  * Withheld silently rather than reported, like the pseudo-type replacements

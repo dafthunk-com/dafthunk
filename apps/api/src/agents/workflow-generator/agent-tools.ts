@@ -1,3 +1,4 @@
+import { DEFAULT_MAX_STEPS } from "@dafthunk/runtime/nodes/agent/base-agent-node";
 import type { Node, NodeType, Parameter, ToolReference } from "@dafthunk/types";
 
 /**
@@ -20,6 +21,16 @@ import type { Node, NodeType, Parameter, ToolReference } from "@dafthunk/types";
  */
 
 /** Tool references live here on every agent-loop node. */
+/**
+ * The literal shape of one tool reference, shown wherever one is asked for.
+ *
+ * Stated once because it is asked for twice: here, describing the port, and in
+ * the `UNKNOWN_TOOL` repair message when an agent reached for something it
+ * cannot use. Two hand-written copies of a JSON literal is two chances for the
+ * repair round to teach a shape the port description contradicts.
+ */
+export const TOOL_REFERENCE_EXAMPLE = '[{"type":"node","identifier":"fetch"}]';
+
 export const TOOLS_INPUT = "tools";
 
 /** How many tool-call rounds the loop may take before it gives up. */
@@ -148,7 +159,7 @@ export function describeAgentTools(tools: NodeType[]): string[] {
     .join(", ");
 
   return [
-    `tools:json — node types this agent may call, as [{"type":"node","identifier":"fetch"}]. Choose from: ${options}. Omit it for an agent that only reasons over what it is given.`,
+    `tools:json — node types this agent may call, as ${TOOL_REFERENCE_EXAMPLE}. Choose from: ${options}. Omit it for an agent that only reasons over what it is given.`,
     `${MAX_STEPS_INPUT}:number — tool-call rounds allowed before it stops (default ${TOOL_EQUIPPED_MAX_STEPS} once tools are set). Raise it when the task fans out over a list.`,
   ];
 }
@@ -285,5 +296,12 @@ function wasChosen(input: Parameter): boolean {
   );
 }
 
-/** What `base-agent-node.ts` ships as the `max_steps` default. */
-const DEFAULT_AGENT_MAX_STEPS = 10;
+/**
+ * What `base-agent-node.ts` ships as the `max_steps` default.
+ *
+ * Imported rather than restated. The node declared 10 in its parameter list,
+ * defaulted to 10 again when executing, and this file held a third copy whose
+ * comment admitted as much — three numbers that had to agree with nothing
+ * making them.
+ */
+const DEFAULT_AGENT_MAX_STEPS = DEFAULT_MAX_STEPS;

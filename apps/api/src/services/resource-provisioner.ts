@@ -3,7 +3,7 @@ import { FIELD_TYPES, IDENTIFIER_PATTERN } from "@dafthunk/types";
 import { toSchemaName } from "@dafthunk/utils";
 import { v7 as uuid } from "uuid";
 
-import type { CreateResourceFn } from "../agents/workflow-generator/resource-resolver";
+import type { CreateResourceFn } from "../agents/workflow-generator";
 import type { createDatabase } from "../db";
 import {
   createDatabaseRecord,

@@ -38,12 +38,10 @@ import { calculateTokenUsage } from "@dafthunk/runtime/utils/usage";
 import type {
   Brief,
   BriefAnswers,
-  CloudflareModelInfo,
   GenerationPhase,
   GenerationStatus,
   GeneratorClientMessage,
   GeneratorServerMessage,
-  NodeType,
   Workflow,
   WorkflowExample,
   WorkflowExecution,
@@ -55,44 +53,31 @@ import {
   resolveDestination,
   resolveResourceBindings,
 } from "@dafthunk/utils";
-import { eq } from "drizzle-orm";
 import type { Connection, ConnectionContext } from "partyserver";
-import { workflowToDraft } from "../../agents/workflow-generator/adopt";
-import { generateBrief } from "../../agents/workflow-generator/brief";
-import {
-  GENERATOR_MODELS,
-  RUN_STALL_TIMEOUT_MS,
-} from "../../agents/workflow-generator/config";
-import { achievableDestinations } from "../../agents/workflow-generator/destinations";
-import { filterEligible } from "../../agents/workflow-generator/eligibility";
-import { buildGroundingContext } from "../../agents/workflow-generator/grounding";
-import type { DisarmedInput } from "../../agents/workflow-generator/hydrate";
-import { createModelRouter } from "../../agents/workflow-generator/model-router";
-import type { OrgResources } from "../../agents/workflow-generator/org-resources";
-import {
-  loadOrgResources,
-  offerableResources,
-} from "../../agents/workflow-generator/org-resources";
 import type {
+  DisarmedInput,
   GenerateCall,
   TierUsage,
-} from "../../agents/workflow-generator/pipeline";
-import { runGenerationPipeline } from "../../agents/workflow-generator/pipeline";
-import { buildUserPrompt } from "../../agents/workflow-generator/prompts";
-import type { TraceEntry } from "../../agents/workflow-generator/trace";
-import { firstFailure } from "../../agents/workflow-generator/trace";
+  TraceEntry,
+} from "../../agents/workflow-generator";
+import {
+  buildUserPrompt,
+  createModelRouter,
+  firstFailure,
+  GENERATOR_MODELS,
+  generateBrief,
+  loadWorkspace,
+  RUN_STALL_TIMEOUT_MS,
+  runGenerationPipeline,
+  workflowToDraft,
+} from "../../agents/workflow-generator";
 import type { Bindings } from "../../context";
 import {
   createDatabase,
-  getIntegrations,
   getOrganizationBillingInfo,
   resolveOrganizationBillingOptions,
   stampOnboardingStage,
 } from "../../db";
-import { users } from "../../db/schema";
-import { fetchCloudflareModelCatalog } from "../../runtime/cloudflare-model-catalog";
-import { CloudflareNodeRegistry } from "../../runtime/cloudflare-node-registry";
-import { availableIntegrationProviders } from "../../services/integration-availability";
 import { createResourceProvisioner } from "../../services/resource-provisioner";
 import type { WorkflowExecutorParameters } from "../../services/workflow-executor";
 import { WorkflowExecutor } from "../../services/workflow-executor";
@@ -721,6 +706,11 @@ export class GenerationSession {
    * all, so callers only handle the happy path. Shared because the brief turn
    * has exactly the same preconditions as synthesis — it costs credits and
    * needs the same catalog to know which destinations are real.
+   *
+   * Two questions, kept apart. Whether this org may generate at all — credits,
+   * gateway configuration — is answered here, because it is about the account
+   * and it is this object that has to say no. What could be generated is
+   * `loadWorkspace`'s, because both turns have to be held to one answer.
    */
   private async prepare() {
     const userId = this.host.genState.userId;
@@ -729,18 +719,26 @@ export class GenerationSession {
 
     const db = createDatabase(this.host.env.DB);
 
-    // Independent reads on the same key; from inside a DO each is a
-    // cross-service hop, so overlapping them saves a round trip.
-    //
     // Guarded here rather than by the callers: this runs under `waitUntil`, so
     // a throw that escapes is an unhandled rejection and the client is left
     // watching a run that will never speak again.
+    // Started together: from inside a DO each read is a cross-service hop, and
+    // the workspace never depends on the billing answer. A refusal below simply
+    // discards a workspace that cost nothing extra to have fetched.
+    const workspaceRead = loadWorkspace({
+      env: this.host.env,
+      organizationId,
+      userId,
+      developerMode: this.host.genState.developerMode ?? false,
+      waitUntil: (promise) => this.host.waitUntil(promise),
+    });
+
     let billingInfo: Awaited<ReturnType<typeof getOrganizationBillingInfo>>;
-    let integrations: Awaited<ReturnType<typeof getIntegrations>>;
+    let workspace: Awaited<typeof workspaceRead>;
     try {
-      [billingInfo, integrations] = await Promise.all([
+      [billingInfo, workspace] = await Promise.all([
         getOrganizationBillingInfo(db, organizationId),
-        getIntegrations(db, organizationId),
+        workspaceRead,
       ]);
     } catch (error) {
       console.error("[WorkflowGenerator] pre-flight failed:", error);
@@ -763,10 +761,28 @@ export class GenerationSession {
       return undefined;
     }
 
+    /**
+     * The only place credits gate generation, and deliberately the only one.
+     *
+     * A turn is refused before it starts or it runs to the end. Nothing checks
+     * again while it is in flight, and nothing should: a generation makes up to
+     * four model calls and a trial run, so a workspace that crosses zero
+     * partway through finishes the turn and goes slightly negative. That is the
+     * cheaper mistake. Killing a build a person is watching, to save a fraction
+     * of a cent, leaves them with a half-written workflow and no way to tell an
+     * outage from a bill — and the pipeline's own `isCancelled` hook makes such
+     * a check easy enough to add that it is worth saying here that it is not
+     * wanted.
+     *
+     * The rest of the system already works this way: `Runtime.settleUsage`
+     * meters a run as it goes and settles afterwards rather than aborting, so
+     * "refuse at the door, never mid-flight" holds end to end.
+     *
+     * Counted, because this is the one refusal that is a business signal rather
+     * than a defect: it says someone wanted to build something and the
+     * workspace could not afford to.
+     */
     if (isCreditExhausted(billingInfo, this.host.env.CLOUDFLARE_ENV)) {
-      // Counted, because this is the one refusal that is a business signal
-      // rather than a defect: it says someone wanted to build something and
-      // the workspace could not afford to.
       this.recordGeneration({
         organizationId,
         outcome: "refused",
@@ -800,111 +816,7 @@ export class GenerationSession {
       return undefined;
     }
 
-    const registry = new CloudflareNodeRegistry(
-      this.host.env,
-      this.host.genState.developerMode ?? false
-    );
-
-    // The address `send-email` delivers to. Read here rather than at execution:
-    // `NodeContext` carries no user identity, so the recipient has to be baked
-    // into the graph while it is being built.
-    let ownerEmail: string | undefined;
-    try {
-      const [row] = await db
-        .select({ email: users.email })
-        .from(users)
-        .where(eq(users.id, userId));
-      ownerEmail = row?.email ?? undefined;
-    } catch (error) {
-      // Not fatal: the generation can still produce an on-screen result. The
-      // destination contract will simply have nothing to pin.
-      console.error("[WorkflowGenerator] could not read owner email:", error);
-    }
-
-    // What the org owns, for node inputs that hold a resource id. Read here
-    // for the same reason as the address above: the model is never shown these
-    // ids, so the binding has to happen while the graph is being built.
-    let orgResources: OrgResources = {};
-    try {
-      orgResources = await loadOrgResources(db, organizationId);
-    } catch (error) {
-      // Not fatal: an empty set simply withholds the nodes that need one,
-      // which is the behaviour that shipped before any of this existed.
-      console.error("[WorkflowGenerator] could not read org resources:", error);
-    }
-
-    // The live Workers AI catalog, so the model descriptions the generator
-    // reads evolve with what Cloudflare serves. Best-effort by construction:
-    // without it the hand-written descriptions stand, which is exactly what
-    // shipped before.
-    let modelCatalog: CloudflareModelInfo[] = [];
-    try {
-      modelCatalog = await fetchCloudflareModelCatalog(this.host.env, {
-        waitUntil: (promise) => this.host.waitUntil(promise),
-      });
-    } catch (error) {
-      console.warn(
-        "[WorkflowGenerator] model catalog unavailable, using static descriptions:",
-        error instanceof Error ? error.message : error
-      );
-    }
-
-    const nodeTypes = registry.getNodeTypes() as NodeType[];
-
-    // One integration per provider, for auto-binding onto generated nodes.
-    // Active beats expired (an expired one still binds — reconnecting heals
-    // it in place, and silently stubbing a step the user believes is live
-    // would be worse); revoked never binds. Newest wins within a rank, and
-    // the editor's integration field lets the user swap the choice.
-    const integrationsByProvider = new Map<
-      string,
-      { id: string; name: string }
-    >();
-    const rank = (status: string) => (status === "active" ? 0 : 1);
-    const usable = integrations
-      .filter((integration) => integration.status !== "revoked")
-      .sort(
-        (a, b) =>
-          rank(a.status) - rank(b.status) ||
-          b.createdAt.getTime() - a.createdAt.getTime()
-      );
-    for (const integration of usable) {
-      if (!integrationsByProvider.has(integration.provider)) {
-        integrationsByProvider.set(integration.provider, {
-          id: integration.id,
-          name: integration.name,
-        });
-      }
-    }
-
-    return {
-      userId,
-      organizationId,
-      billingInfo,
-      ownerEmail,
-      orgResources,
-      modelCatalog,
-      nodeTypes,
-      // Built once per turn, here, because every turn's prompt needs it and
-      // three call sites had already drifted into keeping identical copies.
-      grounding: buildGroundingContext({
-        nodeTypes,
-        orgResources,
-        emailDomain: this.host.env.EMAIL_DOMAIN,
-        modelCatalog,
-      }),
-      integrationsByProvider: integrationsByProvider as ReadonlyMap<
-        string,
-        { id: string; name: string }
-      >,
-      // Derived from the same map so "connected" and "bindable" cannot drift.
-      connectedProviders: new Set(
-        integrationsByProvider.keys()
-      ) as ReadonlySet<string>,
-      availableProviders: new Set(
-        availableIntegrationProviders(this.host.env)
-      ) as ReadonlySet<string>,
-    };
+    return { userId, organizationId, billingInfo, workspace };
   }
 
   /**
@@ -926,30 +838,9 @@ export class GenerationSession {
       });
       this.touch();
 
-      // Identical inputs to the pipeline's own eligibility pass, so the brief
-      // and synthesis agree by construction about what can be offered. These
-      // used to diverge: the brief filtered without resource knowledge.
-      const { eligible } = filterEligible(context.nodeTypes, {
-        connectedProviders: context.connectedProviders,
-        availableProviders: context.availableProviders,
-        offerableResources: offerableResources(context.orgResources),
-      });
-
       const outcome = await generateBrief({
         request: prompt,
-        // The trigger is not known until the brief picks one, so responder
-        // destinations are resolved later, on `resolve`.
-        destinations: achievableDestinations({
-          eligible,
-          trigger: "manual",
-          availableProviders: context.availableProviders,
-          nodeTypes: context.nodeTypes,
-          connectedProviders: context.connectedProviders,
-        }),
-        connectedProviders: context.connectedProviders,
-        // The sentence can only name what the workspace really has — this is
-        // where the org's own components reach the brief's judgement.
-        grounding: context.grounding,
+        workspace: context.workspace,
         callLLM: (call: GenerateCall) => this.callModel(call),
       });
 
@@ -1218,9 +1109,9 @@ export class GenerationSession {
         ? resolveResourceBindings(input.brief, answers).flatMap((entry) => {
             const bound = entry.binding;
             if (bound.kind === "create") return [entry];
-            const owned = (context.orgResources[entry.family] ?? []).find(
-              (resource) => resource.id === bound.resourceId
-            );
+            const owned = (
+              context.workspace.orgResources[entry.family] ?? []
+            ).find((resource) => resource.id === bound.resourceId);
             if (!owned) {
               console.warn(
                 `[WorkflowGenerator] dropping stale ${entry.family} binding ${bound.resourceId} (session=${this.sessionId})`
@@ -1258,19 +1149,12 @@ export class GenerationSession {
         earlyPlan: true,
         onConversation: (system, messages) =>
           this.storeConversation(turn, system, messages),
-        nodeTypes: context.nodeTypes,
-        connectedProviders: context.connectedProviders,
-        availableProviders: context.availableProviders,
-        integrationsByProvider: context.integrationsByProvider,
-        orgResources: context.orgResources,
+        workspace: context.workspace,
         resourceBindings,
         createResource: createResourceProvisioner(
           createDatabase(this.host.env.DB),
           organizationId
         ),
-        grounding: context.grounding,
-        modelCatalog: context.modelCatalog,
-        ownerEmail: context.ownerEmail,
         apiHost: this.host.genState.apiHost,
         isCancelled: () => this.isCancelled(),
         emit: (frame) => {

@@ -4,8 +4,7 @@ import type { Bindings } from "../../context";
 import { callAgentLLM } from "../../durable-objects/agent-llm";
 import type { ModelTier } from "./config";
 import { GENERATOR_MAX_TOKENS, GENERATOR_MODELS } from "./config";
-import type { GenerateCall, GenerateResult } from "./pipeline";
-import { DRAFT_SCHEMA } from "./prompts";
+import type { GenerateCall, GenerateResult } from "./llm";
 
 /**
  * The one place a tiered `GenerateCall` becomes a real model call.
@@ -102,9 +101,13 @@ export function createModelRouter(
       instructions: call.system,
       messages: call.messages,
       tools: [],
-      // The brief turn supplies its own; everything else is composing a graph.
-      schema:
-        call.schema ?? (DRAFT_SCHEMA as unknown as Record<string, unknown>),
+      // Whatever the turn asked to be constrained by, and nothing implied. This
+      // used to fall back to the workflow schema when a caller passed none,
+      // which made "forgot a schema" and "meant the draft schema" the same
+      // input — a brief call that omitted one would have been decoded against
+      // the graph schema with nothing to say so. Every turn now travels as a
+      // `Briefing`, so the schema arrives with the prose that explains it.
+      schema: call.schema,
     });
 
     return {

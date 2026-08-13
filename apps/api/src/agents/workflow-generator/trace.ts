@@ -56,6 +56,15 @@ export interface SelectTrace {
    * Here to make catalog dilution measurable across runs.
    */
   unconnectedProviders?: string[];
+  /**
+   * Characters the offered catalog renders to — dilution in what it costs.
+   *
+   * `offeredTypes.length` counts a fifteen-port node and a `text-input` the
+   * same, and they differ by roughly six times. Since the catalog is most of
+   * the prompt, the count alone cannot answer whether a run got expensive
+   * because it offered more types or because the projection got wordier.
+   */
+  catalogChars: number;
 }
 
 /** Which prompt produced a draft, since the three have different failure modes. */
@@ -68,7 +77,19 @@ export interface DraftTrace {
   kind: DraftKind;
   /** Why the response could not be read, when it could not. */
   reason?: string;
+  /**
+   * What the call cost on the way in, beside what it produced.
+   *
+   * `outputTokens` alone made a repair round look nearly free: every round
+   * resends the whole prompt — a catalog, a grounding section and two worked
+   * examples — so the input is the larger half and it grows with the
+   * projection. It was already sitting on `GenerateResult` and being dropped
+   * here, which left a change that doubled the prompt visible only on the bill.
+   */
+  inputTokens: number;
   outputTokens: number;
+  /** Characters of system prompt — the number a projection change moves. */
+  systemChars: number;
   /** Node types the model named, before any of them are checked to exist. */
   types: string[];
 }
@@ -141,7 +162,7 @@ export function firstFailure(trace: TraceEntry[]): TraceEntry | undefined {
 export function summarize(entry: TraceEntry): string {
   switch (entry.stage) {
     case "select":
-      return `select: ${entry.offeredTypes.length}/${entry.catalog} offered${
+      return `select: ${entry.offeredTypes.length}/${entry.catalog} offered (${Math.round(entry.catalogChars / 1000)}k chars)${
         entry.missingRequired.length
           ? `, REQUIRED MISSING: ${entry.missingRequired.join(", ")}`
           : ""
@@ -154,8 +175,13 @@ export function summarize(entry: TraceEntry): string {
       return `draft[${entry.attempt}] ${entry.kind}: ${
         entry.ok
           ? `${entry.types.length} nodes named`
-          : `UNREADABLE ${entry.reason ?? ""}`
-      }`;
+          : // Not "UNREADABLE": a round is discarded either because it could
+            // not be parsed or because it parsed and named nothing, and those
+            // are the two outcomes `RevisionOutcome` exists to keep apart. The
+            // label claimed the first for both, which sent a reader of the
+            // 2026-08-13 sweep looking for a decoding fault that was not there.
+            `DISCARDED ${entry.reason ?? ""}`
+      } (${entry.inputTokens}in/${entry.outputTokens}out, ${entry.systemChars} system chars)`;
     case "hydrate":
       return `hydrate[${entry.attempt}]: ${entry.drafted} drafted -> ${entry.types.length} built${
         entry.droppedTypes.length

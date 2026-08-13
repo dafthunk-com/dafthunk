@@ -1,6 +1,6 @@
 import type { NodeType, Parameter } from "@dafthunk/types";
 
-import { describeAgentTools, isAgentNodeType } from "./agent-tools";
+import { describeAgentTools, isAgentNodeType } from "../agent-tools";
 
 /**
  * Compact rendering of the node catalog for the prompt.

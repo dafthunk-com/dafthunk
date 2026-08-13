@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { workflowToDraft } from "./adopt";
 import { enrichValidation } from "./enrich-validation";
-import { FIXTURE_NODE_TYPES } from "./fixtures";
+import { FIXTURE_NODE_TYPES } from "./fixtures/node-types";
 import {
   hydrateGeneratedWorkflow,
   RESPONDER_NODE_ID,

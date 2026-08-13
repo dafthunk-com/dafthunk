@@ -1,5 +1,5 @@
 import type { Field, ParameterType } from "@dafthunk/types";
-import { COMPONENT_FAMILIES } from "@dafthunk/utils";
+import { COMPONENT_FAMILIES, RESOURCE_FAMILY_NOUNS } from "@dafthunk/utils";
 
 import type { createDatabase } from "../../db";
 import {
@@ -94,8 +94,33 @@ export const CREATABLE_RESOURCE_TYPES: ReadonlySet<OrgResourceType> = new Set(
     .flatMap((family) => family.parameterTypes as OrgResourceType[])
 );
 
-const BOT_RESOURCE_TYPES: ReadonlySet<OrgResourceType> =
-  new Set<OrgResourceType>(["discord", "telegram", "whatsapp", "slack"]);
+/**
+ * Resource types that are a shape rather than a place.
+ *
+ * The distinction the rest of this module keeps having to restate. An instance
+ * of every other family is somewhere — one database IS the database, and it
+ * binds once per workflow. A schema is a record shape, and one workflow needs
+ * several unrelated ones: what the form asks for, what the model must emit,
+ * what the table's columns are. So a shape is written per node rather than
+ * chosen from a list, which is why `DraftResource.nodeId` exists and why
+ * `PASSIVE_BINDABLE_TYPES` excludes it.
+ *
+ * Named because the prompts have to draw the same line, and were drawing it by
+ * hand: the draft schema's family union listed the eight places and left
+ * `schema` out, which read as a family the wire did not accept.
+ */
+export const SHAPE_RESOURCE_TYPES: ReadonlySet<OrgResourceType> =
+  new Set<OrgResourceType>(["schema"]);
+
+/** Resource families that are somewhere a node reads from, writes to or sends to. */
+export const PLACE_RESOURCE_TYPES: readonly OrgResourceType[] = (
+  Object.keys(RESOURCE_FAMILY_NOUNS) as OrgResourceType[]
+).filter((type) => !SHAPE_RESOURCE_TYPES.has(type));
+
+/** Character-for-character the bot descriptor's own parameter types. */
+const BOT_RESOURCE_TYPES: ReadonlySet<OrgResourceType> = new Set(
+  COMPONENT_FAMILIES.bot.parameterTypes as readonly OrgResourceType[]
+);
 
 /**
  * The resource families the generator may offer nodes for.
@@ -127,18 +152,15 @@ const RESOURCE_ADVICE: Record<OrgResourceType, string> = {
   whatsapp: "add a WhatsApp bot under Bots, then pick it in the editor",
 };
 
-/** A human name for a resource type, for the same sentence. */
-const RESOURCE_NOUN: Record<OrgResourceType, string> = {
-  database: "database",
-  dataset: "dataset",
-  queue: "queue",
-  email: "mailbox",
-  schema: "schema",
-  slack: "Slack bot",
-  discord: "Discord bot",
-  telegram: "Telegram bot",
-  whatsapp: "WhatsApp bot",
-};
+/**
+ * What to call a family in front of a person.
+ *
+ * `RESOURCE_FAMILY_NOUNS` verbatim, until it wasn't: this was a hand copy of
+ * the same nine keys and the same nine words, and the only thing keeping them
+ * equal was that nobody had edited either.
+ */
+const RESOURCE_NOUN: Readonly<Record<OrgResourceType, string>> =
+  RESOURCE_FAMILY_NOUNS;
 
 /**
  * One sentence explaining a capability the request needed and could not have.

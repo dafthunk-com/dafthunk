@@ -2,12 +2,14 @@ import { env } from "cloudflare:test";
 import type { BriefDestination } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
-import { generateBrief } from "./brief";
+import type { Bindings } from "../../../context";
+import { generateBrief } from "../brief";
+import type { GroundingContext } from "../grounding";
+import { createModelRouter } from "../model-router";
+import type { Workspace } from "../workspace";
+import { createWorkspace } from "../workspace";
 import { briefViolations } from "./brief-assertions";
 import { BRIEF_BENCHMARK_CASES } from "./brief-benchmark-cases";
-import type { GroundingContext } from "./grounding";
-import { createModelRouter } from "./model-router";
 
 /**
  * Does the brief surface every moving part? — the regression gate for
@@ -79,7 +81,6 @@ const GROUNDING: GroundingContext = {
         },
       ],
       triggerKinds: [],
-      consumerCount: 16,
     },
     {
       family: "dataset",
@@ -96,7 +97,6 @@ const GROUNDING: GroundingContext = {
         { id: "ds-kb", name: "Support KB" },
       ],
       triggerKinds: [],
-      consumerCount: 6,
     },
     {
       family: "email",
@@ -112,11 +112,26 @@ const GROUNDING: GroundingContext = {
         },
       ],
       triggerKinds: ["email_message"],
-      consumerCount: 5,
     },
   ],
   aiModels:
     "Text, image, transcription, speech and vision models that run inside nodes; no extra account is needed.",
+};
+
+/**
+ * The two fixtures above, as the workspace the brief is held to.
+ *
+ * Stated rather than derived: a benchmark whose destination set moves with the
+ * registry measures two things at once, and the expectations in the case file
+ * are written against exactly these three destinations.
+ */
+const BENCH_WORKSPACE: Workspace = {
+  ...createWorkspace({
+    nodeTypes: [],
+    connectedProviders: new Set(["discord"]),
+  }),
+  grounding: GROUNDING,
+  destinations: () => DESTINATIONS,
 };
 
 interface Sample {
@@ -143,9 +158,7 @@ describe("the brief surfaces every known moving part", () => {
         const started = Date.now();
         const outcome = await generateBrief({
           request: testCase.prompt,
-          destinations: DESTINATIONS,
-          connectedProviders: new Set(["discord"]),
-          grounding: GROUNDING,
+          workspace: BENCH_WORKSPACE,
           callLLM,
         });
         const briefMillis = Date.now() - started;

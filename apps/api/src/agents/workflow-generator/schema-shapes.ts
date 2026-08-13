@@ -3,11 +3,8 @@ import { IDENTIFIER_PATTERN } from "@dafthunk/types";
 import { TRIGGER_TO_NODE_TYPES } from "@dafthunk/utils";
 
 import type { DraftResource, GeneratedWorkflowDraft } from "./draft-types";
-import {
-  normalizeTrigger,
-  RESPONDER_NODE_ID,
-  TRIGGER_NODE_ID,
-} from "./hydrate";
+import { RESPONDER_NODE_ID, TRIGGER_NODE_ID } from "./hydrate";
+import { normalizeTrigger } from "./triggers";
 
 /**
  * The shapes the graph implies, for the nodes the model gave none.

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { GeneratedWorkflowDraft } from "./draft-types";
-import { FIXTURE_NODE_TYPES } from "./fixtures";
+import { FIXTURE_NODE_TYPES } from "./fixtures/node-types";
 import { deriveSchemaShapes } from "./schema-shapes";
 
 function draft(overrides: Partial<GeneratedWorkflowDraft> = {}) {

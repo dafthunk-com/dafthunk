@@ -6,7 +6,7 @@ import {
   withheldProviders,
   withheldResources,
 } from "./eligibility";
-import { FIXTURE_NODE_TYPES } from "./fixtures";
+import { FIXTURE_NODE_TYPES } from "./fixtures/node-types";
 import { offerableResources } from "./org-resources";
 
 const typesOf = (nodeTypes: { type: string }[]) =>

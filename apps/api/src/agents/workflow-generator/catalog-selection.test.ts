@@ -6,10 +6,10 @@ import type { Bindings } from "../../context";
 import { CloudflareNodeRegistry } from "../../runtime/cloudflare-node-registry";
 import { workflowTemplates } from "../../templates";
 import { pseudoNodeTypes } from "./ai-nodes";
-import { BENCHMARK_CASES } from "./benchmark-cases";
 import { selectCandidates } from "./catalog-selection";
 import { filterEligible } from "./eligibility";
-import { EVALUATION_CASES } from "./evaluation-cases";
+import { BENCHMARK_CASES } from "./eval/benchmark-cases";
+import { EVALUATION_CASES } from "./eval/evaluation-cases";
 import { templateToEmitFormat } from "./template-examples";
 
 /**

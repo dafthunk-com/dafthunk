@@ -16,6 +16,16 @@ export interface AgentNodeConfig {
 
 // ── Shared node metadata ──────────────────────────────────────────────────
 
+/**
+ * Tool-call rounds an agent gets when nobody says otherwise.
+ *
+ * Exported because two other places need to know it and both used to carry
+ * their own copy: the execution fallback below, and the generator, which tells
+ * a `max_steps` value the model chose apart from the one the registry put
+ * there by comparing against this number.
+ */
+export const DEFAULT_MAX_STEPS = 10;
+
 /** Standard inputs shared by all agent nodes */
 const AGENT_INPUTS: NodeType["inputs"] = [
   {
@@ -59,7 +69,7 @@ const AGENT_INPUTS: NodeType["inputs"] = [
     type: "number",
     description: "Maximum number of agent steps (tool call rounds)",
     hidden: true,
-    value: 10,
+    value: DEFAULT_MAX_STEPS,
   },
   {
     name: "tools",
@@ -265,7 +275,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
           instructions: instructions || "",
           context: agentContext,
           input,
-          maxSteps: max_steps ?? 10,
+          maxSteps: max_steps ?? DEFAULT_MAX_STEPS,
           maxHistory: max_history ?? 50,
           tools: tools ?? [],
           codeMode: code_mode ?? false,

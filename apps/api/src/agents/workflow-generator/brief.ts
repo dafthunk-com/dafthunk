@@ -7,6 +7,7 @@ import type {
   BriefSegment,
   WorkflowTrigger,
 } from "@dafthunk/types";
+import { BRIEF_BLANK_ROLES } from "@dafthunk/types";
 import {
   BRIEF_EXAMPLES,
   RESOURCE_FAMILY_NOUNS,
@@ -14,11 +15,6 @@ import {
 } from "@dafthunk/utils";
 
 import { rankBriefExamples } from "./brief-examples";
-import {
-  BRIEF_SCHEMA,
-  buildBriefSystemPrompt,
-  buildBriefUserPrompt,
-} from "./brief-prompts";
 import {
   BRIEF_ATTEMPTS,
   BRIEF_SUGGESTION_COUNT,
@@ -28,9 +24,12 @@ import {
 } from "./config";
 import { defaultDestination } from "./destinations";
 import type { GroundingContext } from "./grounding";
-import { normalizeTrigger } from "./hydrate";
+import type { GenerateCall, GenerateResult } from "./llm";
 import { parseJsonObject } from "./parse-json";
-import type { GenerateCall, GenerateResult } from "./pipeline";
+import { briefBriefing } from "./projection";
+import { buildBriefUserPrompt } from "./projection/brief-turn";
+import { normalizeTrigger, VALID_TRIGGERS } from "./triggers";
+import type { Workspace } from "./workspace";
 
 /**
  * Reads a request back as a sentence with the guesses left visible.
@@ -46,10 +45,17 @@ import type { GenerateCall, GenerateResult } from "./pipeline";
 
 export interface BriefDependencies {
   request: string;
-  destinations: BriefDestination[];
-  connectedProviders: ReadonlySet<string>;
-  /** What the workspace owns, so the sentence can name real components. */
-  grounding?: GroundingContext;
+  /**
+   * What can be built here. The sentence may only offer destinations this
+   * workspace can actually reach and name components it actually owns — the
+   * same picture the pipeline is held to, so a brief cannot promise something
+   * the build would then have to walk back.
+   *
+   * The trigger is not known until the brief picks one, so destinations are
+   * asked for as `manual`; responder destinations are resolved later, on
+   * `resolve`, once there is a trigger to resolve them against.
+   */
+  workspace: Workspace;
   callLLM: (call: GenerateCall) => Promise<GenerateResult>;
 }
 
@@ -268,9 +274,7 @@ function toBlank(raw: RawBlank): BriefBlank | undefined {
     assumed,
     weight: typeof raw.weight === "number" ? raw.weight : 0,
     role: (typeof raw.role === "string" &&
-    ["destination", "trigger", "subject", "criterion", "detail"].includes(
-      raw.role
-    )
+    (BRIEF_BLANK_ROLES as readonly string[]).includes(raw.role)
       ? raw.role
       : "detail") as BriefBlank["role"],
     // Options-based mechanics only, so an open blank cannot carry it.
@@ -364,12 +368,11 @@ export function normalizeBrief(
    * change how the workflow starts. Off a trigger blank the field means
    * nothing, so it is stripped there too.
    */
-  const validTriggers = new Set(Object.keys(TRIGGER_TO_NODE_TYPES));
   for (const blank of parsed) {
     if (blank.type !== "choice") continue;
     blank.options = blank.options.map((option) => {
       if (option.triggerValue === undefined) return option;
-      if (blank.role === "trigger" && validTriggers.has(option.triggerValue)) {
+      if (blank.role === "trigger" && VALID_TRIGGERS.has(option.triggerValue)) {
         return option;
       }
       const stripped = { ...option };
@@ -673,6 +676,7 @@ function roleNudge(roles: BriefRole[]): string {
 
 async function attemptBrief(
   deps: BriefDependencies,
+  destinations: BriefDestination[],
   triggers: WorkflowTrigger[],
   nudge: string | undefined
 ): Promise<{ attempt: BriefAttempt; usage: BriefUsage }> {
@@ -680,15 +684,17 @@ async function attemptBrief(
 
   let response: GenerateResult;
   try {
+    const briefing = briefBriefing({
+      destinations,
+      triggers,
+      connectedProviders: deps.workspace.connectedProviders,
+      grounding: deps.workspace.grounding,
+    });
+
     response = await deps.callLLM({
       tier: "fast",
-      schema: BRIEF_SCHEMA as unknown as Record<string, unknown>,
-      system: buildBriefSystemPrompt({
-        destinations: deps.destinations,
-        triggers,
-        connectedProviders: deps.connectedProviders,
-        grounding: deps.grounding,
-      }),
+      schema: briefing.schema,
+      system: briefing.system,
       messages: [{ role: "user", content: userPrompt }],
     });
   } catch (error) {
@@ -716,8 +722,8 @@ async function attemptBrief(
 
   const brief = normalizeBrief(raw, {
     request: deps.request,
-    destinations: deps.destinations,
-    grounding: deps.grounding,
+    destinations,
+    grounding: deps.workspace.grounding,
   });
 
   if (!brief) {
@@ -770,6 +776,10 @@ export async function generateBrief(
 
   const triggers = Object.keys(TRIGGER_TO_NODE_TYPES) as WorkflowTrigger[];
 
+  // Asked once and reused across retries: a retry re-asks the model, not the
+  // workspace, and nothing about what this org can reach changes mid-loop.
+  const destinations = deps.workspace.destinations("manual");
+
   let inputTokens = 0;
   let outputTokens = 0;
   let lastReason = "";
@@ -789,7 +799,12 @@ export async function generateBrief(
   let roleRetries = BRIEF_ATTEMPTS - 1;
 
   for (;;) {
-    const { attempt, usage } = await attemptBrief(deps, triggers, nudge);
+    const { attempt, usage } = await attemptBrief(
+      deps,
+      destinations,
+      triggers,
+      nudge
+    );
     inputTokens += usage.inputTokens;
     outputTokens += usage.outputTokens;
     const spent = { inputTokens, outputTokens };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { FIXTURE_NODE_TYPES } from "./fixtures";
+import { FIXTURE_NODE_TYPES } from "./fixtures/node-types";
 import { findSimilarTypes, scoreNodeTypes, tokenize } from "./node-search";
 
 describe("tokenize", () => {

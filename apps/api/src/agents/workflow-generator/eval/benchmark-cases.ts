@@ -1,6 +1,6 @@
 import type { WorkflowTrigger } from "@dafthunk/types";
 
-import type { OrgResourceType } from "./org-resources";
+import type { OrgResourceType } from "../org-resources";
 
 /**
  * One request per shipped template, phrased the way a user would.

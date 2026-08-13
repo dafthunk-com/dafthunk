@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { achievableDestinations, defaultDestination } from "./destinations";
 import { filterEligible } from "./eligibility";
-import { FIXTURE_NODE_TYPES } from "./fixtures";
+import { FIXTURE_NODE_TYPES } from "./fixtures/node-types";
 
 const ALL_PROVIDERS = new Set(["x", "google-mail", "discord", "linkedin"]);
 

@@ -10,7 +10,7 @@ import {
   OUTPUT_TEXT,
   SEND_EMAIL,
   TEXT_INPUT,
-} from "./fixtures";
+} from "./fixtures/node-types";
 
 function workflowOf(
   nodes: Workflow["nodes"],

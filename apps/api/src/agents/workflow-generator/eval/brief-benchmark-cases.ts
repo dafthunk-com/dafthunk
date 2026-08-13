@@ -1,6 +1,6 @@
 import type { BriefResourceFamily, WorkflowTrigger } from "@dafthunk/types";
 
-import type { BriefRole } from "./brief";
+import type { BriefRole } from "../brief";
 
 /**
  * Requests whose moving parts are known, so systematic identification can be

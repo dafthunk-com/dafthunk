@@ -7,13 +7,13 @@ import {
   FIXTURE_NODE_TYPES,
   RECEIVE_SCHEDULED,
   TEXT_INPUT,
-} from "./fixtures";
+} from "./fixtures/node-types";
 import {
   hydrateGeneratedWorkflow,
-  normalizeTrigger,
   RESPONDER_NODE_ID,
   TRIGGER_NODE_ID,
 } from "./hydrate";
+import { normalizeTrigger } from "./triggers";
 
 function draft(overrides: Partial<GeneratedWorkflowDraft> = {}) {
   return {

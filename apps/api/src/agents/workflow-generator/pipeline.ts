@@ -2,11 +2,9 @@ import type { InputOverrides } from "@dafthunk/runtime";
 import { integrationProvider, isOutward } from "@dafthunk/runtime";
 import type {
   BriefDestination,
-  CloudflareModelInfo,
   Edge,
   GenerationValidationIssue,
   GeneratorServerMessage,
-  NodeType,
   RehearsalReport,
   RehearsedNode,
   Workflow,
@@ -19,7 +17,6 @@ import {
   buildInputOverrides,
   buildTriggerParameters,
 } from "../../utils/example-inputs";
-import { selectCandidates } from "./catalog-selection";
 import type { ModelTier } from "./config";
 import { MAX_REPAIR_ATTEMPTS, MAX_RUN_REPAIR_ATTEMPTS } from "./config";
 import type {
@@ -33,31 +30,30 @@ import { withheldProviders, withheldResources } from "./eligibility";
 import { enrichValidation, formatErrorsForLLM } from "./enrich-validation";
 import { buildGeneratedExamples } from "./examples";
 import { previewExecution } from "./execution-preview";
-import type { GroundingContext } from "./grounding";
 import type { BoundResource, DisarmedInput } from "./hydrate";
-import { hydrateGeneratedWorkflow, normalizeTrigger } from "./hydrate";
-import type { OrgResources, OrgResourceType } from "./org-resources";
-import {
-  boundResourceNote,
-  describeMissingResource,
-  offerableResources,
-} from "./org-resources";
+import { hydrateGeneratedWorkflow } from "./hydrate";
+import type { GenerateCall, GenerateResult, TierUsage } from "./llm";
+import { emptyTierUsage } from "./llm";
+import type { OrgResourceType } from "./org-resources";
+import { boundResourceNote, describeMissingResource } from "./org-resources";
 import { parseJsonObject } from "./parse-json";
 import {
   buildCritiquePrompt,
   buildEarlyPlanPrompt,
   buildRepairPrompt,
   buildRunRepairPrompt,
-  buildSystemPrompt,
   buildUserPrompt,
-  EARLY_PLAN_SCHEMA,
-  EARLY_PLAN_SYSTEM,
-} from "./prompts";
+  earlyPlanBriefing,
+  renderCatalog,
+  synthesisBriefing,
+} from "./projection";
 import { providerLabel } from "./provider-labels";
 import type { CreateResourceFn } from "./resource-resolver";
 import { createResourceResolver } from "./resource-resolver";
 import { deriveSchemaShapes } from "./schema-shapes";
 import type { DraftKind, TraceEntry } from "./trace";
+import { normalizeTrigger } from "./triggers";
+import type { Workspace } from "./workspace";
 
 /**
  * What one revision round produced.
@@ -72,60 +68,15 @@ import type { DraftKind, TraceEntry } from "./trace";
  */
 type RevisionOutcome = "revised" | "empty" | "unusable";
 
-/** One LLM round trip, provider-agnostic so tests can stub it. */
-export interface GenerateCall {
-  system: string;
-  messages: Array<{ role: "user" | "assistant"; content: string }>;
-  /** Defaults to "synthesis", so every call site that predates tiers is unchanged. */
-  tier?: ModelTier;
-  /** Response schema for this call. Defaults to the workflow draft schema. */
-  schema?: Record<string, unknown>;
-}
-
-export interface GenerateResult {
-  content: string;
-  inputTokens: number;
-  outputTokens: number;
-}
-
-/** Tokens spent per tier, since the tiers are priced an order of magnitude apart. */
-export type TierUsage = Record<
-  ModelTier,
-  { inputTokens: number; outputTokens: number }
->;
-
-export function emptyTierUsage(): TierUsage {
-  return {
-    fast: { inputTokens: 0, outputTokens: 0 },
-    synthesis: { inputTokens: 0, outputTokens: 0 },
-  };
-}
-
 export interface PipelineDependencies {
   prompt: string;
-  /** Live registry types; never a hardcoded snapshot. */
-  nodeTypes: NodeType[];
-  connectedProviders: ReadonlySet<string>;
   /**
-   * Providers this deployment can offer OAuth for. A provider that is
-   * available but unconnected is still offered (its steps rehearse until the
-   * account is linked); one absent here is withheld outright. Absent means
-   * every provider is available.
+   * What can be built here: the catalog, the org's components, the connected
+   * accounts, the grounding the prompts are written against. The brief was
+   * held to this same picture, which is what stops the sentence promising
+   * something the graph cannot deliver.
    */
-  availableProviders?: ReadonlySet<string>;
-  /**
-   * Connected integrations by provider — auto-bound onto `integration`
-   * inputs at hydration, so a generated Gmail node arrives wired to the
-   * account the org already linked. Providers absent here stay unbound: the
-   * rehearsal stubs those nodes and the outcome offers to connect them.
-   */
-  integrationsByProvider?: ReadonlyMap<string, { id: string; name: string }>;
-  /** What the org owns, for node inputs holding a resource id. */
-  orgResources?: OrgResources;
-  /** The same facts assembled for prompts: entity purposes + instances. */
-  grounding?: GroundingContext;
-  /** Live Workers AI catalog, best-effort; static descriptions without it. */
-  modelCatalog?: CloudflareModelInfo[];
+  workspace: Workspace;
   /**
    * What the brief's grounded blanks resolved to — which instances to reuse,
    * which to create — re-validated by the caller against the org's current
@@ -137,8 +88,6 @@ export interface PipelineDependencies {
    * path — nothing is ever created and "create" degrades to reuse-or-unset.
    */
   createResource?: CreateResourceFn;
-  /** Address that `send-email` delivers to; the model never sees it. */
-  ownerEmail?: string;
   /**
    * Where the result has to end up, when a brief established it. Absent for a
    * bare prompt, in which case delivery is unconstrained as before.
@@ -336,6 +285,35 @@ export function formatRunFailures(
 }
 
 /**
+ * What actually arrived, when what arrived had no nodes in it.
+ *
+ * An empty revision is the largest single cause of a failed generation — four
+ * of the five failures in the 2026-08-13 sweep — and until now it recorded
+ * nothing about the response beyond the fact that it was empty. That is a
+ * dead end: the rounds in question produced seventeen hundred output tokens,
+ * so the model wrote something substantial, and no log said what.
+ *
+ * Keys and counts, never content. A draft can run to kilobytes, and the
+ * question this has to answer is structural — did the graph arrive under a
+ * different key, did edges survive when nodes did not, was it prose in a JSON
+ * wrapper. All three look identical today.
+ */
+function describeDraftShape(content: string): string {
+  try {
+    const parsed = parseJsonObject(content);
+    const keys = Object.keys(parsed);
+    const count = (value: unknown) =>
+      Array.isArray(value) ? value.length : "absent";
+
+    return `keys: ${keys.join(",") || "(none)"}; nodes=${count(parsed.nodes)}, edges=${count(parsed.edges)}, steps=${count(parsed.steps)}`;
+  } catch {
+    // Unreachable from the empty branch, which only runs after a clean parse,
+    // but this must never be the thing that throws inside a failure path.
+    return "unparseable on re-read";
+  }
+}
+
+/**
  * Extracts the draft object from a model response.
  *
  * The Anthropic path appends the schema to the system prompt rather than
@@ -379,6 +357,7 @@ export function parseDraft(content: string): GeneratedWorkflowDraft {
 export async function runGenerationPipeline(
   deps: PipelineDependencies
 ): Promise<PipelineResult> {
+  const { workspace } = deps;
   const usage = emptyTierUsage();
 
   /** Everything the pipeline itself calls is composition, so it is synthesis. */
@@ -421,7 +400,7 @@ export async function runGenerationPipeline(
    * first draft was.
    */
   const validate = (result: ReturnType<typeof hydrateGeneratedWorkflow>) =>
-    enrichValidation(result.workflow, deps.nodeTypes, result.errors, {
+    enrichValidation(result.workflow, workspace.nodeTypes, result.errors, {
       destination: deps.destination,
     });
 
@@ -444,19 +423,11 @@ export async function runGenerationPipeline(
     // ── Select ────────────────────────────────────────────────────────────
     // Candidate types are needed either way: hydration resolves the model's
     // type names against them, including on a resumed turn.
-    const { candidates, withheld, unconnected } = selectCandidates(
+    const { candidates, withheld, unconnected } = workspace.candidates(
       deps.prompt,
-      deps.nodeTypes,
-      {
-        connectedProviders: deps.connectedProviders,
-        availableProviders: deps.availableProviders,
-        required: deps.destination?.nodeTypes ?? [],
-        offerable: deps.orgResources
-          ? offerableResources(deps.orgResources)
-          : new Set(),
-        modelCatalog: deps.modelCatalog,
-      }
+      deps.destination?.nodeTypes ?? []
     );
+    const renderedCatalog = renderCatalog(candidates, workspace.nodeTypes);
     const unconnectedProviders = [
       ...new Set(unconnected.map((entry) => entry.provider)),
     ];
@@ -474,7 +445,11 @@ export async function runGenerationPipeline(
       note({
         stage: "select",
         ok: missingRequired.length === 0,
-        catalog: deps.nodeTypes.length,
+        catalog: workspace.nodeTypes.length,
+        // The same string the prompt carries, rendered once and handed to the
+        // briefing below — measuring it used to mean building the whole
+        // catalog section a second time and keeping only its length.
+        catalogChars: renderedCatalog.length,
         offeredTypes,
         required: [...required],
         missingRequired,
@@ -495,7 +470,7 @@ export async function runGenerationPipeline(
       deps.emit({
         type: "log",
         level: "info",
-        message: `Considering ${candidates.length} of ${deps.nodeTypes.length} node types.`,
+        message: `Considering ${candidates.length} of ${workspace.nodeTypes.length} node types.`,
       });
 
       // Only providers this deployment cannot offer at all end up here now —
@@ -523,7 +498,7 @@ export async function runGenerationPipeline(
           level: "warn",
           message: describeMissingResource(
             type,
-            deps.orgResources?.[type]?.length ?? 0
+            workspace.orgResources[type]?.length ?? 0
           ),
           important: true,
         });
@@ -545,7 +520,7 @@ export async function runGenerationPipeline(
      * re-emitted "create" from multiplying rows. Creation runs before the
      * (synchronous) hydration, which then binds whatever now exists.
      */
-    const resolver = createResourceResolver(deps.orgResources ?? {}, {
+    const resolver = createResourceResolver(workspace.orgResources, {
       create: deps.createResource,
       briefBindings: deps.resourceBindings,
     });
@@ -556,7 +531,7 @@ export async function runGenerationPipeline(
       // workspace owns under exactly the same rules as a declared one.
       const resolution = await resolver.resolve([
         ...(Array.isArray(input.resources) ? input.resources : []),
-        ...deriveSchemaShapes({ draft: input, nodeTypes: deps.nodeTypes }),
+        ...deriveSchemaShapes({ draft: input, nodeTypes: workspace.nodeTypes }),
       ]);
       for (const created of resolution.created) {
         createdResources.push({
@@ -567,13 +542,13 @@ export async function runGenerationPipeline(
       for (const message of resolution.notes) {
         deps.emit({ type: "log", level: "info", message, important: true });
       }
-      return hydrateGeneratedWorkflow(input, deps.nodeTypes, candidates, {
+      return hydrateGeneratedWorkflow(input, workspace.nodeTypes, candidates, {
         ownerEmail:
-          deps.destination?.kind === "email" ? deps.ownerEmail : undefined,
-        orgResources: deps.orgResources,
+          deps.destination?.kind === "email" ? workspace.ownerEmail : undefined,
+        orgResources: workspace.orgResources,
         bindings: resolution.bindings,
         schemasByNode: resolution.schemasByNode,
-        integrations: deps.integrationsByProvider,
+        integrations: workspace.integrationsByProvider,
       });
     };
 
@@ -586,17 +561,20 @@ export async function runGenerationPipeline(
       });
     }
 
-    const system =
-      deps.resume?.system ??
-      buildSystemPrompt({
-        catalog: candidates,
-        nodeTypes: deps.nodeTypes,
-        withheld,
-        unconnectedProviders,
-        query: deps.prompt,
-        destination: deps.destination,
-        grounding: deps.grounding,
-      });
+    const briefing = synthesisBriefing({
+      catalog: candidates,
+      nodeTypes: workspace.nodeTypes,
+      withheld,
+      unconnectedProviders,
+      query: deps.prompt,
+      destination: deps.destination,
+      grounding: workspace.grounding,
+      renderedCatalog,
+    });
+
+    // A resumed turn replays the system prompt of the turn it continues, so the
+    // model is corrected against the catalog it was originally shown.
+    const system = deps.resume?.system ?? briefing.system;
 
     // A resumed turn replays the conversation that produced the workflow and
     // appends the note, so the model corrects what it built rather than
@@ -621,14 +599,15 @@ export async function runGenerationPipeline(
     // list — overwrites it the moment the real draft returns.
     let synthesisReturned = false;
     if (deps.earlyPlan && !deps.resume) {
+      const earlyPlan = earlyPlanBriefing();
       void deps
         .callLLM({
           tier: "fast",
-          system: EARLY_PLAN_SYSTEM,
+          system: earlyPlan.system,
           messages: [
             { role: "user", content: buildEarlyPlanPrompt(deps.prompt) },
           ],
-          schema: EARLY_PLAN_SCHEMA as unknown as Record<string, unknown>,
+          schema: earlyPlan.schema,
         })
         .then((result) => {
           record(result, "fast");
@@ -653,7 +632,11 @@ export async function runGenerationPipeline(
         });
     }
 
-    let response = await deps.callLLM({ system, messages });
+    let response = await deps.callLLM({
+      system,
+      messages,
+      schema: briefing.schema,
+    });
     synthesisReturned = true;
     record(response);
 
@@ -682,7 +665,9 @@ export async function runGenerationPipeline(
         ok: true,
         attempt,
         kind,
+        inputTokens: response.inputTokens,
         outputTokens: response.outputTokens,
+        systemChars: system.length,
         types: draft.nodes.map((node) => node.type),
       });
 
@@ -797,7 +782,11 @@ export async function runGenerationPipeline(
       messages.push({ role: "assistant", content: response.content });
       messages.push({ role: "user", content: instruction });
 
-      response = await deps.callLLM({ system, messages });
+      response = await deps.callLLM({
+        system,
+        messages,
+        schema: briefing.schema,
+      });
       record(response);
 
       let revised: GeneratedWorkflowDraft;
@@ -817,7 +806,9 @@ export async function runGenerationPipeline(
           attempt,
           kind,
           reason,
+          inputTokens: response.inputTokens,
           outputTokens: response.outputTokens,
+          systemChars: system.length,
           types: [],
         });
         return "unusable";
@@ -838,7 +829,7 @@ export async function runGenerationPipeline(
        * `EMPTY_WORKFLOW` and the repair budget.
        */
       if (revised.nodes.length === 0 && draft.nodes.length > 0) {
-        const reason = "the revision named no nodes";
+        const reason = `the revision named no nodes — ${describeDraftShape(response.content)}`;
         console.warn(
           `[WorkflowGenerator] discarding an empty revision: ${reason}`
         );
@@ -848,7 +839,9 @@ export async function runGenerationPipeline(
           attempt,
           kind,
           reason,
+          inputTokens: response.inputTokens,
           outputTokens: response.outputTokens,
+          systemChars: system.length,
           types: [],
         });
         return "empty";
@@ -1030,7 +1023,7 @@ export async function runGenerationPipeline(
     const rehearsalReport = (
       workflow: Workflow
     ): RehearsalReport | undefined => {
-      const byType = new Map(deps.nodeTypes.map((nt) => [nt.type, nt]));
+      const byType = new Map(workspace.nodeTypes.map((nt) => [nt.type, nt]));
       const nodes: RehearsedNode[] = [];
       const unconnected = new Set<string>();
 

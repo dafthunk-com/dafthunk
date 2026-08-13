@@ -8,10 +8,12 @@ import {
   missingBriefRoles,
   normalizeBrief,
 } from "./brief";
-import { briefViolations } from "./brief-assertions";
 import { MAX_ASKED_BLANKS } from "./config";
+import { briefViolations } from "./eval/brief-assertions";
 import type { GroundingContext } from "./grounding";
-import type { GenerateCall, GenerateResult } from "./pipeline";
+import type { GenerateCall, GenerateResult } from "./llm";
+import type { Workspace, WorkspaceFacts } from "./workspace";
+import { createWorkspace } from "./workspace";
 
 const EMAIL: BriefDestination = {
   id: "email",
@@ -75,6 +77,24 @@ const context = {
   request: "sort my support email",
   destinations: DESTINATIONS,
 };
+
+/**
+ * A workspace offering exactly these destinations.
+ *
+ * Stated rather than derived on purpose: what is under test here is what the
+ * brief does with a set of destinations, not how that set is arrived at —
+ * `destinations.test.ts` owns the derivation. Deriving them from fixture node
+ * types would couple every assertion below to the destination catalog.
+ */
+function workspaceOffering(
+  destinations: BriefDestination[],
+  facts: Partial<WorkspaceFacts> = {}
+): Workspace {
+  return {
+    ...createWorkspace({ nodeTypes: [], ...facts }),
+    destinations: () => destinations,
+  };
+}
 
 /** A brief carrying every guaranteed slot, so enforcement has nothing to add. */
 function completeRawBrief() {
@@ -429,8 +449,7 @@ describe("generateBrief", () => {
 
     const outcome = await generateBrief({
       request: "sort my support email by urgency",
-      destinations: DESTINATIONS,
-      connectedProviders: new Set(),
+      workspace: workspaceOffering(DESTINATIONS),
       callLLM,
     });
 
@@ -444,8 +463,7 @@ describe("generateBrief", () => {
 
     const outcome = await generateBrief({
       request: "automate stuff",
-      destinations: DESTINATIONS,
-      connectedProviders: new Set(),
+      workspace: workspaceOffering(DESTINATIONS),
       callLLM,
     });
 
@@ -462,8 +480,7 @@ describe("generateBrief", () => {
   it("honours the model saying it cannot do it", async () => {
     const outcome = await generateBrief({
       request: "make my whole business run itself",
-      destinations: DESTINATIONS,
-      connectedProviders: new Set(),
+      workspace: workspaceOffering(DESTINATIONS),
       callLLM: callWith({ content: '{"insufficient": true}' }),
     });
 
@@ -496,8 +513,7 @@ describe("generateBrief", () => {
 
     const outcome = await generateBrief({
       request: "sort my support email by urgency",
-      destinations: DESTINATIONS,
-      connectedProviders: new Set(),
+      workspace: workspaceOffering(DESTINATIONS),
       callLLM,
     });
 
@@ -510,8 +526,7 @@ describe("generateBrief", () => {
   it("reports our own failure as ours, not as a thin request", async () => {
     const outcome = await generateBrief({
       request: "sort my support email by urgency",
-      destinations: DESTINATIONS,
-      connectedProviders: new Set(),
+      workspace: workspaceOffering(DESTINATIONS),
       callLLM: callWith({ content: "I'm sorry, I can't help with that." }),
     });
 
@@ -527,8 +542,7 @@ describe("generateBrief", () => {
 
     const outcome = await generateBrief({
       request: "sort my support email by urgency",
-      destinations: DESTINATIONS,
-      connectedProviders: new Set(),
+      workspace: workspaceOffering(DESTINATIONS),
       callLLM,
     });
 
@@ -541,8 +555,7 @@ describe("generateBrief", () => {
 
     const outcome = await generateBrief({
       request: "make my whole business run itself",
-      destinations: DESTINATIONS,
-      connectedProviders: new Set(),
+      workspace: workspaceOffering(DESTINATIONS),
       callLLM,
     });
 
@@ -568,8 +581,7 @@ describe("generateBrief", () => {
 
     const outcome = await generateBrief({
       request: "sort my support email by urgency",
-      destinations: DESTINATIONS,
-      connectedProviders: new Set(),
+      workspace: workspaceOffering(DESTINATIONS),
       callLLM,
     });
 
@@ -607,8 +619,7 @@ describe("generateBrief", () => {
 
     const outcome = await generateBrief({
       request: "sort my support email by urgency",
-      destinations: DESTINATIONS,
-      connectedProviders: new Set(),
+      workspace: workspaceOffering(DESTINATIONS),
       callLLM,
     });
 
@@ -628,8 +639,7 @@ describe("generateBrief", () => {
 
     const outcome = await generateBrief({
       request: "sort my support email by urgency",
-      destinations: DESTINATIONS,
-      connectedProviders: new Set(),
+      workspace: workspaceOffering(DESTINATIONS),
       callLLM,
     });
 
@@ -653,7 +663,6 @@ describe("grounded blanks", () => {
           { id: "ds-2", name: "Support KB" },
         ],
         triggerKinds: [],
-        consumerCount: 1,
       },
       {
         family: "discord",
@@ -662,7 +671,6 @@ describe("grounded blanks", () => {
         creatable: false,
         instances: [{ id: "bot-1", name: "HelpBot" }],
         triggerKinds: [],
-        consumerCount: 1,
       },
     ],
     aiModels: "models",

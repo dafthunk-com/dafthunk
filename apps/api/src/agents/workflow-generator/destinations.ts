@@ -137,13 +137,29 @@ const DESTINATION_SPECS: readonly DestinationSpec[] = [
   },
 ];
 
+/**
+ * Every destination id this deployment knows, whatever an org can reach today.
+ *
+ * Exported for the guard: the brief prompt's worked example hardcodes two of
+ * these to show the output shape, and a renamed spec would leave it teaching a
+ * dead id with nothing to notice. The example is JSON a person reads, so it
+ * stays hand-written — what is checked is that the ids in it still exist.
+ */
+export const DESTINATION_IDS: readonly string[] = DESTINATION_SPECS.map(
+  (spec) => spec.id
+);
+
 export interface AchievableDestinationsInput {
   /** `filterEligible(...).eligible` — what this org can execute right now. */
   eligible: NodeType[];
   /** The trigger the workflow will use, which decides responder availability. */
   trigger: WorkflowTrigger;
-  /** Providers whose OAuth credentials exist in this deployment. */
-  availableProviders: ReadonlySet<string>;
+  /**
+   * Providers whose OAuth credentials exist in this deployment. Absent means
+   * every provider is available — the same convention `filterEligible` uses,
+   * so a caller holding one optional set can pass it to both.
+   */
+  availableProviders?: ReadonlySet<string>;
   /**
    * The full registry and the org's context, used to tell "not connected yet"
    * apart from "cannot be reached at all".
@@ -196,7 +212,11 @@ export function achievableDestinations(
     if (spec.requiresTrigger && !spec.requiresTrigger.includes(input.trigger)) {
       continue;
     }
-    if (spec.provider && !input.availableProviders.has(spec.provider)) {
+    if (
+      spec.provider &&
+      input.availableProviders &&
+      !input.availableProviders.has(spec.provider)
+    ) {
       continue;
     }
 

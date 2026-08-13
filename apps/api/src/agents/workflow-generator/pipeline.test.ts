@@ -11,16 +11,19 @@ import { describe, expect, it, vi } from "vitest";
 import { workflowToDraft } from "./adopt";
 import { selectCandidates } from "./catalog-selection";
 import { withheldProviders, withheldResources } from "./eligibility";
-import { FIXTURE_NODE_TYPES } from "./fixtures";
+import { FIXTURE_NODE_TYPES } from "./fixtures/node-types";
+import type { GenerateResult } from "./llm";
 import type { OrgResource } from "./org-resources";
-import type { GenerateResult, PipelineDependencies } from "./pipeline";
+import type { PipelineDependencies } from "./pipeline";
 import {
   formatRunFailures,
   isRunImprovement,
   runGenerationPipeline,
 } from "./pipeline";
-import { buildUserPrompt } from "./prompts";
+import { buildUserPrompt } from "./projection/synthesis-turn";
 import { firstFailure } from "./trace";
+import type { Workspace, WorkspaceFacts } from "./workspace";
+import { createWorkspace } from "./workspace";
 
 /** A draft whose only fault is a json -> string edge, the archetypal mistake. */
 const BROKEN_DRAFT = {
@@ -92,6 +95,11 @@ function execution(status: WorkflowExecution["status"]): WorkflowExecution {
  * "completed" once exhausted — which is how a failing first run and a healthy
  * second one are expressed.
  */
+/** The fixture catalog as a workspace, with whatever this case cares about. */
+function workspace(facts: Partial<WorkspaceFacts> = {}): Workspace {
+  return createWorkspace({ nodeTypes: FIXTURE_NODE_TYPES, ...facts });
+}
+
 function harness(
   responses: GenerateResult[],
   overrides: Partial<PipelineDependencies> = {},
@@ -135,8 +143,7 @@ function harness(
 
   const deps: PipelineDependencies = {
     prompt: "echo a json value as text",
-    nodeTypes: FIXTURE_NODE_TYPES,
-    connectedProviders: new Set(),
+    workspace: workspace(),
     callLLM,
     emit: (frame) => frames.push(frame),
     save,
@@ -396,6 +403,44 @@ describe("runGenerationPipeline", () => {
     expect(result.inputTokens).toBe(105);
   });
 
+  it("keeps re-asking after an empty revision, and records what arrived", async () => {
+    // The largest single cause of a failed generation — four of the five
+    // failures in the 2026-08-13 benchmark sweep, twice exhausting the whole
+    // repair budget on it. Unlike an unreadable round this one is worth
+    // re-asking: it parsed, so the model is answering in the right shape and
+    // simply produced nothing that round.
+    const { deps, callLLM } = harness([
+      llmResult(BROKEN_DRAFT),
+      // Parses cleanly, carries edges and steps, names no nodes. This is the
+      // shape the sweep actually saw, not an invented one.
+      llmResult({ ...FIXED_DRAFT, nodes: [] }),
+      llmResult(FIXED_DRAFT),
+    ]);
+
+    const result = await runGenerationPipeline(deps);
+
+    // The budget was spent on the empty round and the recovery, and the
+    // generation still succeeded — an empty round must not end it.
+    expect(callLLM).toHaveBeenCalledTimes(3);
+    expect(result.outcome).toBe("ok");
+
+    const discarded = result.trace.find(
+      (entry) => entry.stage === "draft" && !entry.ok
+    );
+    expect(discarded?.stage === "draft" && discarded.reason).toContain(
+      "named no nodes"
+    );
+    // The shape is recorded, because "it was empty" is a dead end: the rounds
+    // that do this produce well over a thousand output tokens, so something
+    // substantial was written and the only question worth asking is what.
+    expect(discarded?.stage === "draft" && discarded.reason).toContain(
+      "nodes=0"
+    );
+    expect(discarded?.stage === "draft" && discarded.reason).toContain(
+      "edges=2"
+    );
+  });
+
   it("keeps the saved workflow when the run repair comes back unreadable", async () => {
     const { deps, frames, save, saved } = harness(
       [
@@ -524,7 +569,9 @@ describe("the pipeline trace", () => {
     // the first token: the prompt names a delivery node whose ports the model
     // cannot see.
     const { deps } = harness([llmResult(DRAFT_WITH_EXAMPLES)], {
-      availableProviders: new Set(["slack", "wordpress"]),
+      workspace: workspace({
+        availableProviders: new Set(["slack", "wordpress"]),
+      }),
       destination: {
         id: "x",
         kind: "integration" as const,
@@ -543,6 +590,25 @@ describe("the pipeline trace", () => {
     // And it is the first failure, so a harness attributes the whole sample to
     // selection rather than to the delivery check that fires later.
     expect(firstFailure(trace)?.stage).toBe("select");
+  });
+
+  it("records what the projection cost, not only what it produced", async () => {
+    const { deps } = harness([llmResult(DRAFT_WITH_EXAMPLES)]);
+
+    const { trace } = await runGenerationPipeline(deps);
+
+    // The catalog is most of the prompt, and `offeredTypes.length` prices a
+    // fifteen-port node the same as a `text-input`. Without these three numbers
+    // a projection change that doubles the prompt is invisible everywhere
+    // except the bill — no harness reads `usage`.
+    const select = trace.find((entry) => entry.stage === "select");
+    expect(select?.stage === "select" && select.catalogChars).toBeGreaterThan(
+      0
+    );
+
+    const draft = trace.find((entry) => entry.stage === "draft");
+    expect(draft?.stage === "draft" && draft.inputTokens).toBe(100);
+    expect(draft?.stage === "draft" && draft.systemChars).toBeGreaterThan(0);
   });
 
   it("survives a generation that produced nothing", async () => {
@@ -1077,7 +1143,10 @@ describe("dormant workflows and their disarmed bindings", () => {
     const { deps, frames, saved } = harness([
       llmResult(SCHEDULED_PASSTHROUGH_DRAFT),
     ]);
-    const outcome = await runGenerationPipeline({ ...deps, nodeTypes });
+    const outcome = await runGenerationPipeline({
+      ...deps,
+      workspace: workspace({ nodeTypes }),
+    });
 
     // The stored graph is dormant, the frame says so, and the result carries
     // the only copy of what "turn it on" must write back.
@@ -1156,7 +1225,7 @@ describe("creating workspace components", () => {
   it("creates the component, binds it, and announces it once", async () => {
     const createResource = createStub();
     const { deps, frames, saved } = harness([llmResult(DB_DRAFT)], {
-      orgResources: {},
+      workspace: workspace({ orgResources: {} }),
       createResource,
     });
 
@@ -1204,7 +1273,7 @@ describe("creating workspace components", () => {
       ],
     };
     const { deps } = harness([llmResult(broken), llmResult(DB_DRAFT)], {
-      orgResources: {},
+      workspace: workspace({ orgResources: {} }),
       createResource,
     });
 
@@ -1220,7 +1289,7 @@ describe("creating workspace components", () => {
   it("creates nothing when no creator was supplied", async () => {
     const { deps } = harness(
       [llmResult(DB_DRAFT), llmResult(DB_DRAFT), llmResult(DB_DRAFT)],
-      { orgResources: {} }
+      { workspace: workspace({ orgResources: {} }) }
     );
 
     const result = await runGenerationPipeline(deps);
@@ -1281,7 +1350,7 @@ describe("shaping a form's schema", () => {
   it("creates the shape the draft declared and derives the trigger's ports", async () => {
     const createResource = createStub();
     const { deps, saved } = harness([llmResult(FORM_DRAFT)], {
-      orgResources: {},
+      workspace: workspace({ orgResources: {} }),
       createResource,
     });
 
@@ -1307,15 +1376,17 @@ describe("shaping a form's schema", () => {
   it("ignores an unrelated schema the workspace already owns", async () => {
     const createResource = createStub();
     const { deps, saved } = harness([llmResult(FORM_DRAFT)], {
-      orgResources: {
-        schema: [
-          {
-            id: "sch-old",
-            name: "invoice",
-            fields: [{ name: "amount", type: "number" }],
-          },
-        ],
-      },
+      workspace: workspace({
+        orgResources: {
+          schema: [
+            {
+              id: "sch-old",
+              name: "invoice",
+              fields: [{ name: "amount", type: "number" }],
+            },
+          ],
+        },
+      }),
       createResource,
     });
 
@@ -1336,7 +1407,7 @@ describe("shaping a form's schema", () => {
     const createResource = createStub();
     const { deps, saved } = harness(
       [llmResult({ ...FORM_DRAFT, resources: [] })],
-      { orgResources: {}, createResource }
+      { workspace: workspace({ orgResources: {} }), createResource }
     );
 
     const result = await runGenerationPipeline(deps);

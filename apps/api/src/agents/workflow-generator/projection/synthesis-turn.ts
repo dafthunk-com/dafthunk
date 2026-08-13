@@ -1,16 +1,67 @@
 import type { BriefDestination, NodeType } from "@dafthunk/types";
-import { TRIGGER_TO_NODE_TYPES } from "@dafthunk/utils";
-
-import { agentToolCatalog } from "./agent-tools";
-import { projectCatalog } from "./catalog-projection";
-import type { Ineligible } from "./eligibility";
-import { withheldProviders } from "./eligibility";
+import { FIELD_TYPES } from "@dafthunk/types";
+import {
+  COMPONENT_FAMILIES,
+  explainIncompatibility,
+  NON_LITERAL_PARAMETER_TYPES,
+  TRIGGER_TO_NODE_TYPES,
+} from "@dafthunk/utils";
+import { TRIGGER_SAMPLE_KEYS } from "../../../utils/example-inputs";
+import { agentToolCatalog, isAgentNodeType } from "../agent-tools";
+import { MAX_GENERATED_EXAMPLES } from "../config";
+import type { Ineligible } from "../eligibility";
+import {
+  AI_CAPABILITIES,
+  OFFERED_AI_TYPES,
+  withheldProviders,
+} from "../eligibility";
 import {
   type GroundingContext,
   projectGroundingForSynthesis,
-} from "./grounding";
-import { RESPONDER_NODE_ID, TRIGGER_NODE_ID } from "./hydrate";
-import { selectExamples, templateToEmitFormat } from "./template-examples";
+} from "../grounding";
+import { RESPONDER_NODE_ID, TRIGGER_NODE_ID } from "../hydrate";
+import { PLACE_RESOURCE_TYPES, SHAPE_RESOURCE_TYPES } from "../org-resources";
+import { selectExamples, templateToEmitFormat } from "../template-examples";
+import { projectCatalog } from "./catalog";
+
+/** `"a"|"b"|"c"` — the union form a JSON Schema description states inline. */
+function union(values: readonly string[]): string {
+  return values.map((value) => `"${value}"`).join("|");
+}
+
+/**
+ * What the `resources` array may carry.
+ *
+ * Every list in it is derived. Three of them used to be typed out, and two had
+ * already drifted: the family union named eight of the nine the wire accepts,
+ * leaving `schema` looking like a family the server would reject, and the field
+ * union named ten of eleven, so a schema the server itself derived could carry
+ * a `blob` the model had been told did not exist.
+ *
+ * The place/shape split is `SHAPE_RESOURCE_TYPES`, which is where the rest of
+ * the module already draws it.
+ */
+function describeResources(): string {
+  const place = `{"family": ${union(PLACE_RESOURCE_TYPES)}, "action": "use"|"create", "name": "...", "description": "..."}`;
+  const shape = `{"family": ${union([...SHAPE_RESOURCE_TYPES])}, "action": "create", "name": "...", "description": "...", "nodeId": "the node this shape belongs to", "fields": [{"name": "identifier", "type": ${union(FIELD_TYPES)}, "required": true, "label": "Question"}]}`;
+
+  return `Optional. Workspace components the workflow leans on. Places to read, store or send — ${place} — are reused by the exact name listed under Workspace components, with "create" only when nothing listed fits. Record shapes are written, not chosen: ${shape} — one entry per node that needs one, and the server reuses an identical existing shape by itself. Leave the matching node inputs unset; the server fills the ids.`;
+}
+
+/**
+ * What a simulated trigger payload may carry, per trigger that takes one.
+ *
+ * Rendered from `TRIGGER_SAMPLE_KEYS`, which sits beside the function that
+ * reads them. The hand-written version listed keys from memory: it left out
+ * `attachments` altogether, so no generated example ever exercised an email
+ * with one.
+ */
+function describeTriggerPayloads(): string {
+  const lines = Object.entries(TRIGGER_SAMPLE_KEYS).map(
+    ([trigger, keys]) => `${trigger}: {${(keys ?? []).join(", ")}}`
+  );
+  return `Simulated trigger payload. ${lines.join(". ")}. Omit for other triggers.`;
+}
 
 /** JSON Schema for the draft, appended to the system prompt by the Anthropic path. */
 export const DRAFT_SCHEMA = {
@@ -29,20 +80,9 @@ export const DRAFT_SCHEMA = {
     description: { type: "string" },
     trigger: {
       type: "string",
-      enum: [
-        "manual",
-        "http_webhook",
-        "http_request",
-        "form_webhook",
-        "form_request",
-        "email_message",
-        "queue_message",
-        "scheduled",
-        "discord_event",
-        "telegram_event",
-        "whatsapp_event",
-        "slack_event",
-      ],
+      // Derived: the hand-typed copy agreed with the platform when it was
+      // written, and nothing would have said so when it stopped.
+      enum: Object.keys(TRIGGER_TO_NODE_TYPES),
     },
     steps: {
       type: "array",
@@ -80,8 +120,7 @@ export const DRAFT_SCHEMA = {
     },
     examples: {
       type: "array",
-      description:
-        "Two or three named test inputs. The first one is executed once the workflow is saved.",
+      description: `Up to ${MAX_GENERATED_EXAMPLES} named test inputs. The first one is executed once the workflow is saved.`,
       items: {
         type: "object",
         required: ["name"],
@@ -95,20 +134,40 @@ export const DRAFT_SCHEMA = {
           },
           trigger: {
             type: "object",
-            description:
-              "Simulated trigger payload. email_message: {from, subject, body}. http_*: {method, query, jsonBody}. form_*: {formRecord}. Omit for other triggers.",
+            description: describeTriggerPayloads(),
           },
         },
       },
     },
     resources: {
       type: "array",
-      description:
-        'Optional. Workspace components the workflow leans on. Places to read, store or send — {"family": "database"|"dataset"|"queue"|"email"|"discord"|"telegram"|"whatsapp"|"slack", "action": "use"|"create", "name": "...", "description": "..."} — are reused by the exact name listed under Workspace components, with "create" only when nothing listed fits. Record shapes are written, not chosen: {"family": "schema", "action": "create", "name": "...", "description": "...", "nodeId": "the node this shape belongs to", "fields": [{"name": "identifier", "type": "string"|"integer"|"number"|"boolean"|"datetime"|"json"|"image"|"document"|"audio"|"video", "required": true, "label": "Question"}]} — one entry per node that needs one, and the server reuses an identical existing shape by itself. Leave the matching node inputs unset; the server fills the ids.',
+      description: describeResources(),
       items: { type: "object" },
     },
   },
 } as const;
+
+/**
+ * Inputs on an injected trigger node the model may actually set.
+ *
+ * `hidden` is the wrong filter here, and using it cost the prompt a fact. It
+ * means "no handle on the canvas", which is true of the scheduled trigger's
+ * `scheduleExpression` — so the projection dropped the one input a request can
+ * imply and nothing else can supply, and the prompt named it in prose instead.
+ * A rename would have left that sentence pointing at nothing.
+ *
+ * The real test is who fills it, and `NON_LITERAL_PARAMETER_TYPES` already
+ * declares exactly that: an org-resource id, an integration or a secret is
+ * meaningless or unsafe as a literal. Everything else on a trigger is
+ * configuration, and the cron line behind "every morning at 8" has nowhere to
+ * come from but the request. Re-deriving the set here also dropped `secret`,
+ * so a trigger that ever grew one would have been advertised as configurable.
+ */
+function configurableTriggerInputs(nodeType: NodeType): NodeType["inputs"] {
+  return nodeType.inputs.filter(
+    (input) => !NON_LITERAL_PARAMETER_TYPES.has(input.type)
+  );
+}
 
 /**
  * Describes what the server will inject for each trigger choice.
@@ -124,6 +183,8 @@ function describeTriggerOptions(nodeTypes: NodeType[]): string {
       .filter((p) => !p.hidden)
       .map((p) => `${p.name}:${p.type}`)
       .join(", ") || "(none)";
+  const settable = (parameters: NodeType["inputs"]) =>
+    parameters.map((p) => `${p.name}:${p.type}`).join(", ");
 
   const lines: string[] = [
     `- "manual": no trigger node. Start from input nodes carrying realistic sample values.`,
@@ -137,6 +198,11 @@ function describeTriggerOptions(nodeTypes: NodeType[]): string {
 
     let line = `- "${trigger}": adds node id "${TRIGGER_NODE_ID}" (type ${triggerType.type}) with outputs ${ports(triggerType.outputs)}`;
 
+    const configurable = configurableTriggerInputs(triggerType);
+    if (configurable.length) {
+      line += `, configurable by emitting "${TRIGGER_NODE_ID}" with "inputs" carrying ${settable(configurable)}`;
+    }
+
     const responderType = typeIds[1] ? byType.get(typeIds[1]) : undefined;
     if (responderType) {
       line += `, plus node id "${RESPONDER_NODE_ID}" (type ${responderType.type}) with inputs ${ports(responderType.inputs)}. You MUST wire exactly one edge into "${RESPONDER_NODE_ID}" — it is what the caller receives`;
@@ -146,6 +212,110 @@ function describeTriggerOptions(nodeTypes: NodeType[]): string {
   }
 
   return lines.join("\n");
+}
+
+/**
+ * The three edges a model gets wrong, chosen to make the rules concrete.
+ *
+ * The pairs are pedagogy — these are the mistakes worth pre-empting. Every word
+ * explaining them is not: it comes from `explainIncompatibility`, the function
+ * that will actually reject the edge.
+ *
+ * `number -> string` is first because its explanation is the general rule,
+ * blob flavours and all, stated by the code that enforces it. `json -> string`
+ * is the asymmetry that costs the most repair rounds. `image -> audio` is the
+ * one people assume works because both are blobs.
+ */
+const REJECTED_EXAMPLES: ReadonlyArray<readonly [string, string]> = [
+  ["number", "string"],
+  ["json", "string"],
+  ["image", "audio"],
+];
+
+/**
+ * The type rules, taught by running the predicate rather than paraphrasing it.
+ *
+ * This section used to be five hand-written bullets restating
+ * `parameter-compatibility.ts` — including a hand-copied `BLOB_COMPATIBLE_TYPES`
+ * in a different order. Worse than the duplication: it explained the json rule
+ * in different words than `explainIncompatibility` uses at failure time, so a
+ * repair round opened by asking the model to reconcile two vocabularies for one
+ * rule. Now there is one vocabulary, and it belongs to the validator.
+ */
+function describeTypeRules(): string {
+  const rejections = REJECTED_EXAMPLES.map(([from, to]) =>
+    explainIncompatibility(from, to)
+  ).filter((reason): reason is string => reason !== null);
+
+  // A pair that became legal would silently shorten this section. Better to
+  // notice: `prompts.test.ts` asserts the count, and the rule it protects is
+  // that every example still demonstrates something.
+  return rejections.map((reason) => `- ${reason}`).join("\n");
+}
+
+/** `"a", "b" or "c"` — a list of type names as it reads in a sentence. */
+function quotedList(types: readonly string[]): string {
+  const quoted = types.map((type) => `"${type}"`);
+  if (quoted.length <= 1) return quoted[0] ?? "";
+  return `${quoted.slice(0, -1).join(", ")} or ${quoted[quoted.length - 1]}`;
+}
+
+/**
+ * Which model node does which job.
+ *
+ * Rule 6 used to say "prefer the `ai-*` nodes", which named two of the eight
+ * actually offered — a naming convention the curated list had abandoned. Six
+ * capabilities were on the table with nothing pointing at them, and the model
+ * had to find them by keyword luck in a sixty-entry catalog. Rendered from
+ * `AI_CAPABILITIES` so the rule and the list cannot part company again.
+ */
+function describeModelNodes(catalog: NodeType[]): string {
+  const offered = new Set(catalog.map((nodeType) => nodeType.type));
+
+  return AI_CAPABILITIES.flatMap((capability) => {
+    // Only what this request's catalog actually contains. Three of the eight
+    // curated types are in `CORE_NODE_TYPES` and reach every catalog; the rest
+    // have to earn their place by ranking against the request. Naming one that
+    // did not is the exact defect this rule was rewritten to fix — a type the
+    // model is told to reach for and cannot read the ports of — so the rule
+    // narrows with the catalog, the way rule 9 already does.
+    const available = capability.types.filter((type) => offered.has(type));
+    if (available.length === 0) return [];
+    return [`   - ${capability.work}: ${quotedList(available)}`];
+  }).join("\n");
+}
+
+/**
+ * Rule 9, or nothing when this deployment offers no agent node.
+ *
+ * The agent types are found structurally rather than by name. `isAgentNodeType`
+ * is the real test — an agent is a node carrying `tools` and `max_steps` — and
+ * its own comment says the `agent-` prefix is the wrong one to use. The rule
+ * used it anyway, which is how it came to name a prefix matching one of the
+ * eight types on offer.
+ *
+ * Omitted entirely rather than rendered empty: a rule telling the model to
+ * reach for a node that is not in its catalog is worse than no rule, and the
+ * list simply ends at 8.
+ */
+function describeAgentRule(nodeTypes: NodeType[]): string {
+  const agents = nodeTypes
+    .filter(
+      (nodeType) =>
+        OFFERED_AI_TYPES.has(nodeType.type) && isAgentNodeType(nodeType)
+    )
+    .map((nodeType) => nodeType.type);
+
+  if (agents.length === 0) return "";
+
+  return `
+9. Use ${quotedList(agents)}, with "tools" set, when the number of steps depends
+   on what an earlier step returns — "read the top stories and summarize each
+   one" fans out over a list whose length nobody knows while drawing the graph,
+   and a fixed chain of nodes has to guess at it. Give the agent the tools it
+   needs and say the whole task in its "input". For work whose shape is known in
+   advance, the same node without "tools" in a plain pipeline is cheaper and
+   easier to read — prefer it.`;
 }
 
 function describeWithheld(withheld: Ineligible[]): string {
@@ -163,6 +333,22 @@ function describeWithheld(withheld: Ineligible[]): string {
 function describeUnconnected(providers: string[]): string {
   if (!providers.length) return "";
   return `These services are in the catalog but their account is not connected yet: ${providers.join(", ")}. Use their nodes when the request calls for them — the user will connect the account afterwards, and until then the trial run rehearses those steps with stand-in data instead of touching a real account. Do not substitute an "output-text" node for them and do not pretend the account is connected.`;
+}
+
+/**
+ * The catalog section, rendered.
+ *
+ * Exported so a caller that needs its size can render it once and hand the
+ * string back through `renderedCatalog`. The pipeline records the catalog's
+ * share of the prompt on every generation, and measuring it used to mean
+ * building the whole ~26,000-character section a second time and throwing it
+ * away.
+ */
+export function renderCatalog(
+  catalog: NodeType[],
+  nodeTypes: NodeType[]
+): string {
+  return projectCatalog(catalog, { agentTools: agentToolCatalog(nodeTypes) });
 }
 
 export interface SystemPromptInput {
@@ -183,6 +369,13 @@ export interface SystemPromptInput {
    * what keeps that check from being the mechanism.
    */
   destination?: BriefDestination;
+  /**
+   * The catalog section already rendered, when the caller needed its size.
+   *
+   * An optimization, not a second way to describe the catalog: absent, this
+   * renders exactly the same string from `catalog` and `nodeTypes`.
+   */
+  renderedCatalog?: string;
 }
 
 /**
@@ -216,17 +409,16 @@ Return ONLY a JSON object matching the schema. No prose, no markdown fences.
 
 # How graphs work
 
-A node has typed input and output ports. An edge connects one node's output port to another node's input port. You reference nodes by an id you invent, and ports by their exact names from the catalog below.
+${COMPONENT_FAMILIES.node.purpose} An edge connects one node's output port to another node's input port. You reference nodes by an id you invent, and ports by their exact names from the catalog below.
 
 You do NOT describe port shapes — only the node "type" and any literal "inputs" values. The server materializes the real ports from the registry.
 
 # Type rules — these are enforced and are the most common cause of failure
 
-- Types must match exactly, OR one side must be "any".
-- "any" is a wildcard in both directions.
-- "json" is NOT a wildcard. json -> string is REJECTED. Use a "to-string" node, or "json-extract-string" to pull out a field.
-- There is no coercion. number -> string and boolean -> string are both REJECTED.
-- "blob" pairs with image, audio, video, document, gltf, buffergeometry in either direction. But image -> audio is REJECTED; two blob flavours never connect directly.
+Every edge is checked before the workflow can run. These are the rejections you
+would be shown, in the words you would be shown them:
+
+${describeTypeRules()}
 
 # Rules
 
@@ -235,35 +427,33 @@ You do NOT describe port shapes — only the node "type" and any literal "inputs
 3. Every required input must either receive an edge or carry a literal value in "inputs".
 ${describeDelivery(input.destination)}
 5. Give input nodes realistic sample values so the first run produces a meaningful result.
-6. Prefer, in order: plain compute nodes (text, json, math, logic, date); the "ai-*" nodes for anything needing judgement, summarizing, classifying or drafting; "fetch" for arbitrary HTTP.
+6. Prefer, in order: plain compute nodes (text, json, math, logic, date); then a
+   model node when the step needs judgement or generation; then "fetch" for
+   arbitrary HTTP. The model nodes on offer, by the work they do:
+${describeModelNodes(input.catalog)}
 7. Build model prompts in their own template node ("var-string-template" with var_1, var_2, … or "json-string-template") rather than burying instructions in a default value.
 8. Build the SMALLEST graph that does what was asked. Every node is something the
    user has to read, understand and maintain, and a step that does not change the
    result is pure cost. Before adding one, ask what the request would lose without
    it — if the answer is nothing, leave it out. In particular: do not add a node to
-   reformat, trim or tidy text that an "ai-*" node was already told to produce in
+   reformat, trim or tidy text that a model node was already told to produce in
    that form; do not chain two model calls where one prompt would do; and do not
    add steps the request never asked for on the grounds that they might be useful.
    Fewer, clearer steps beat a thorough pipeline.
-9. Use an "agent-*" node, with "tools" set, when the number of steps depends on
-   what an earlier step returns — "read the top stories and summarize each one"
-   fans out over a list whose length nobody knows while drawing the graph, and a
-   fixed chain of nodes has to guess at it. Give the agent the tools it needs and
-   say the whole task in its "input". For work whose shape is known in advance,
-   an "ai-*" node in a plain pipeline is cheaper and easier to read — prefer it.
+${describeAgentRule(input.nodeTypes)}
 
 # Triggers
 
-Choose the trigger that matches how the request says the workflow starts ("when an email arrives" → email_message, "every morning" → scheduled, and so on). If it does not say, use "manual".
+${COMPONENT_FAMILIES.trigger.purpose} Choose the one that matches how the request says the workflow starts ("when an email arrives" → email_message, "every morning" → scheduled, and so on). If it does not say, use "manual".
 
-The trigger node is added by the server, with a fixed id. Do NOT emit trigger or response nodes yourself — wire to and from the ids below. One exception: to configure the trigger — the "scheduleExpression" cron line of a scheduled workflow, say — emit a node with the trigger's fixed id carrying only "inputs"; the server merges those values onto its own trigger node.
+The trigger node is added by the server, with a fixed id. Do NOT emit trigger or response nodes yourself — wire to and from the ids below. One exception: where a line says a trigger is configurable, emit a node with the trigger's fixed id carrying only those "inputs"; the server merges the values onto its own trigger node. Everything else on a trigger is filled by the server.
 
 ${describeTriggerOptions(input.nodeTypes)}
 
 # Test examples
 
-Also emit "examples": two or three named input sets the workflow can be run
-against. The first one is executed as soon as the workflow is saved, so it must
+Also emit "examples": up to ${MAX_GENERATED_EXAMPLES} named input sets the workflow
+can be run against. The first one is executed as soon as the workflow is saved, so it must
 be the ordinary case.
 
 - Keep them minimal. One or two short sentences per value is enough — no long
@@ -289,7 +479,7 @@ ${describeUnconnected(input.unconnectedProviders ?? [])}
 
 # Available node types
 
-${projectCatalog(input.catalog, { agentTools: agentToolCatalog(input.nodeTypes) })}
+${input.renderedCatalog ?? renderCatalog(input.catalog, input.nodeTypes)}
 
 # Examples of correct output
 

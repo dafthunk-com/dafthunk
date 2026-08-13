@@ -1,8 +1,9 @@
 import type { BriefDestination, WorkflowTrigger } from "@dafthunk/types";
+import { BRIEF_BLANK_ROLES } from "@dafthunk/types";
 import { BRIEF_EXAMPLES } from "@dafthunk/utils";
 
-import { MAX_ASKED_BLANKS } from "./config";
-import { type GroundingContext, projectGroundingForBrief } from "./grounding";
+import { MAX_ASKED_BLANKS } from "../config";
+import { type GroundingContext, projectGroundingForBrief } from "../grounding";
 
 /**
  * The brief turn's schema.
@@ -65,7 +66,7 @@ export const BRIEF_SCHEMA = {
           weight: { type: "number", description: "0..1" },
           role: {
             type: "string",
-            enum: ["destination", "trigger", "subject", "criterion", "detail"],
+            enum: BRIEF_BLANK_ROLES,
           },
           grounding: {
             type: "object",

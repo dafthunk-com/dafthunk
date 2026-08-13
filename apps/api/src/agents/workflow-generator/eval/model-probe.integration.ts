@@ -1,7 +1,7 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
+import type { Bindings } from "../../../context";
 
 /**
  * Which Workers AI text models actually answer, and in what shape.

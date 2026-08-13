@@ -3,22 +3,23 @@ import { validateWorkflow } from "@dafthunk/runtime";
 import type { NodeType, Workflow } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
-import { CloudflareNodeRegistry } from "../../runtime/cloudflare-node-registry";
-import { findStructuralProblems } from "../../templates/template-test-utils";
-import type { GenerationCase } from "./benchmark-cases";
-import { BENCHMARK_CASES, COVERAGE_CASES } from "./benchmark-cases";
+import type { Bindings } from "../../../context";
+import { CloudflareNodeRegistry } from "../../../runtime/cloudflare-node-registry";
+import { findStructuralProblems } from "../../../templates/template-test-utils";
+import type { GenerateCall } from "../llm";
 import {
   createModelRouter,
   parseModelOverride,
   resolveTier,
-} from "./model-router";
-import type { OrgResources } from "./org-resources";
-import type { GenerateCall } from "./pipeline";
-import { runGenerationPipeline } from "./pipeline";
-import type { CreateResourceFn } from "./resource-resolver";
-import type { TraceEntry } from "./trace";
-import { firstFailure, summarize } from "./trace";
+} from "../model-router";
+import type { OrgResources } from "../org-resources";
+import { runGenerationPipeline } from "../pipeline";
+import type { CreateResourceFn } from "../resource-resolver";
+import type { TraceEntry } from "../trace";
+import { firstFailure, summarize } from "../trace";
+import { createWorkspace } from "../workspace";
+import type { GenerationCase } from "./benchmark-cases";
+import { BENCHMARK_CASES, COVERAGE_CASES } from "./benchmark-cases";
 
 /**
  * Quality gauge for the generator, measured against the 23 shipped templates.
@@ -35,6 +36,25 @@ import { firstFailure, summarize } from "./trace";
  * commands rather than a pair of source edits:
  *
  *   EVAL_MODEL=anthropic:claude-opus-5 pnpm --filter '@dafthunk/api' benchmark:generate
+ *
+ * ## Last measured
+ *
+ * 2026-08-13, `anthropic:claude-sonnet-5`, one sample per case:
+ *
+ *   26/37 valid on first attempt      0.43 mean repairs
+ *   33/37 valid after repair          8/8 met every condition
+ *   32/37 correct trigger
+ *   prompt: median 40,418 chars, of which the catalog is 26,298
+ *   910,149 input tokens for the sweep
+ *
+ * Recorded because it was not, and a rate that lives only in a terminal gives
+ * the next sweep nothing to be compared against. Read it as a floor to notice
+ * movement from, not as a target: at one sample per case this cannot resolve a
+ * few points either way, and four of the five failures were the same
+ * empty-revision pathology rather than four independent faults.
+ *
+ * The prompt sizes are the number a change to `projection/` moves, and the
+ * catalog being 65% of the prompt is the first thing to look at if it grows.
  */
 
 /**
@@ -134,6 +154,11 @@ interface CaseResult {
   unmet: string[];
   /** Every stage, printed when a case fails. */
   trace: TraceEntry[];
+  /** Tokens in across every draft round — the half the prompt drives. */
+  inputTokens: number;
+  /** System-prompt characters on the first draft, and the catalog's share. */
+  systemChars: number;
+  catalogChars: number;
 }
 
 /**
@@ -217,16 +242,18 @@ async function runCase(
 
   const result = await runGenerationPipeline({
     prompt: testCase.prompt,
-    nodeTypes: catalog,
-    connectedProviders: new Set([
-      "slack",
-      "discord",
-      "telegram",
-      "whatsapp",
-      "google-mail",
-      "github",
-    ]),
-    orgResources: ORG_RESOURCES,
+    workspace: createWorkspace({
+      nodeTypes: catalog,
+      connectedProviders: new Set([
+        "slack",
+        "discord",
+        "telegram",
+        "whatsapp",
+        "google-mail",
+        "github",
+      ]),
+      orgResources: ORG_RESOURCES,
+    }),
     createResource: createBenchSchema,
     // Literally the function the Durable Object dispatches through, not a copy
     // of it — same tier, same output ceiling, same constrained decoding. A
@@ -270,6 +297,15 @@ async function runCase(
     ? validateWorkflow(finalWorkflow, catalog)
     : [];
 
+  const drafts = trace.filter(
+    (entry): entry is Extract<TraceEntry, { stage: "draft" }> =>
+      entry.stage === "draft"
+  );
+  const selection = trace.find(
+    (entry): entry is Extract<TraceEntry, { stage: "select" }> =>
+      entry.stage === "select"
+  );
+
   return {
     id: testCase.id,
     // No graph is a failure of every condition at once, and reporting each one
@@ -285,6 +321,11 @@ async function runCase(
     error: structural[0] ?? validationErrors[0]?.message,
     stage: firstFailure(trace)?.stage,
     trace,
+    // What the prompt cost, read off the trace rather than recomputed: the
+    // draft entries carry the tokens the gateway actually billed.
+    inputTokens: drafts.reduce((sum, entry) => sum + entry.inputTokens, 0),
+    systemChars: drafts[0]?.systemChars ?? 0,
+    catalogChars: selection?.catalogChars ?? 0,
   };
 }
 
@@ -351,6 +392,20 @@ describe("workflow generator benchmark", () => {
     );
     const satisfied = conditioned.filter((r) => r.unmet.length === 0).length;
 
+    /**
+     * Reported, never gated.
+     *
+     * Prompt size varies legitimately with how many types a request ranks, and
+     * at one sample per case a threshold on it would be a coin flip. The gate
+     * that catches a bloated projection is the offline per-type ratio in
+     * `prompts.test.ts`; this is the number that says what a sweep cost.
+     */
+    const median = (values: number[]): number => {
+      const sorted = [...values].sort((a, b) => a - b);
+      return sorted[Math.floor(sorted.length / 2)] ?? 0;
+    };
+    const totalInput = results.reduce((sum, r) => sum + r.inputTokens, 0);
+
     console.log(
       // The model that actually answered, not the one configured — a sweep
       // whose report names the wrong model is worse than no report.
@@ -359,7 +414,10 @@ describe("workflow generator benchmark", () => {
         `  ${afterRepair}/${total} valid after repair\n` +
         `  ${triggers}/${total} correct trigger\n` +
         `  ${satisfied}/${conditioned.length} met every condition\n` +
-        `  ${meanRepairs.toFixed(2)} mean repairs\n`
+        `  ${meanRepairs.toFixed(2)} mean repairs\n` +
+        `  prompt: median ${median(results.map((r) => r.systemChars))} chars, ` +
+        `catalog ${median(results.map((r) => r.catalogChars))} of them\n` +
+        `  ${totalInput} input tokens across ${total} cases\n`
     );
 
     for (const result of results.filter((r) => r.unmet.length > 0)) {

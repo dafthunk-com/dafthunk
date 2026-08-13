@@ -40,6 +40,30 @@ function encodeJsonBody(value: unknown): Uint8Array {
 }
 
 /**
+ * The keys a simulated trigger payload may carry, per trigger.
+ *
+ * Declared because something has to tell the generator what to emit, and until
+ * now that was a sentence in the prompt listing keys from memory: it omitted
+ * `attachments` entirely and named one of the two accepted spellings for two
+ * others. The switch below still reads the keys itself — restructuring it into
+ * a coercion table is a change to the path the Run button takes, and not worth
+ * the risk for this — so `example-inputs.test.ts` asserts behaviourally that
+ * every key named here actually changes the payload the executor receives.
+ *
+ * Triggers absent from this map carry no payload the executor understands;
+ * their nodes read from input values instead.
+ */
+export const TRIGGER_SAMPLE_KEYS: Partial<
+  Record<WorkflowTrigger, readonly string[]>
+> = {
+  email_message: ["from", "subject", "body", "attachments"],
+  http_request: ["method", "query", "jsonBody"],
+  http_webhook: ["method", "query", "jsonBody"],
+  form_request: ["formRecord"],
+  form_webhook: ["formRecord"],
+};
+
+/**
  * Maps a loosely-shaped payload onto `WorkflowExecutorParameters`.
  *
  * Coerced defensively rather than schema-enforced: the values come either from a

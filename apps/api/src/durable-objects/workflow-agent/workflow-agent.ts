@@ -54,7 +54,7 @@ import type {
 } from "@dafthunk/types";
 import { Agent } from "agents";
 import type { Connection, ConnectionContext } from "partyserver";
-import { RUN_RETENTION_MS } from "../../agents/workflow-generator/config";
+import { RUN_RETENTION_MS } from "../../agents/workflow-generator";
 import type { Bindings } from "../../context";
 import { ExecutionManager } from "../../services/execution-manager";
 import type { SaveWorkflowRecord } from "../../stores/workflow-store";

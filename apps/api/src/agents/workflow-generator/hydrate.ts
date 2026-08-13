@@ -5,84 +5,39 @@ import type {
   NodeType,
   Parameter,
   Workflow,
-  WorkflowTrigger,
 } from "@dafthunk/types";
 import {
   buildNodeFromNodeType,
   buildTriggerNodes,
   hashSchemaFields,
   SCHEMA_FIELDS_HASH_KEY,
-  TRIGGER_TO_NODE_TYPES,
 } from "@dafthunk/utils";
 import {
   agentToolCatalog,
   applyAgentTools,
   isAgentNodeType,
+  TOOL_REFERENCE_EXAMPLE,
 } from "./agent-tools";
-
 import { expandPseudoNode } from "./ai-nodes";
 import type {
   EnrichedValidationError,
   GeneratedWorkflowDraft,
 } from "./draft-types";
 import { findSimilarTypes } from "./node-search";
-
-/** Fixed ids for the server-injected nodes, referenced by name in the prompt. */
-/** The node whose recipient the server can fill in when nobody else did. */
-const SEND_EMAIL_TYPE = "send-email";
-
 import type {
   OrgResource,
   OrgResources,
   OrgResourceType,
 } from "./org-resources";
 import { PASSIVE_BINDABLE_TYPES, resourceToBind } from "./org-resources";
+import { normalizeTrigger, VALID_TRIGGERS } from "./triggers";
 
+/** The node whose recipient the server can fill in when nobody else did. */
+const SEND_EMAIL_TYPE = "send-email";
+
+/** Fixed ids for the server-injected nodes, referenced by name in the prompt. */
 export const TRIGGER_NODE_ID = "trigger";
 export const RESPONDER_NODE_ID = "responder";
-
-// Derived rather than restated: TRIGGER_TO_NODE_TYPES is typed
-// Record<WorkflowTrigger, …>, so it fails to compile when a trigger is added.
-// A hand-maintained copy here would silently go stale instead.
-const VALID_TRIGGERS: ReadonlySet<string> = new Set(
-  Object.keys(TRIGGER_TO_NODE_TYPES)
-);
-
-/**
- * Common near-misses. `POST /workflows` types `trigger` as a bare string, so an
- * unrecognized value would be stored and produce a workflow the UI cannot
- * classify — normalizing here is the only thing standing in the way.
- */
-const TRIGGER_ALIASES: Record<string, WorkflowTrigger> = {
-  webhook: "http_webhook",
-  http: "http_request",
-  https: "http_request",
-  request: "http_request",
-  api: "http_request",
-  cron: "scheduled",
-  schedule: "scheduled",
-  timer: "scheduled",
-  email: "email_message",
-  mail: "email_message",
-  form: "form_request",
-  queue: "queue_message",
-  discord: "discord_event",
-  telegram: "telegram_event",
-  whatsapp: "whatsapp_event",
-  slack: "slack_event",
-  none: "manual",
-};
-
-export function normalizeTrigger(raw: string): WorkflowTrigger | undefined {
-  const value = raw
-    ?.trim()
-    .toLowerCase()
-    .replace(/[\s-]+/g, "_");
-  if (VALID_TRIGGERS.has(value)) return value as WorkflowTrigger;
-  // No alias key contains an underscore, so stripping them is the only lookup
-  // that can ever match.
-  return TRIGGER_ALIASES[value.replace(/_/g, "")];
-}
 
 /**
  * Input parameter types whose value registers a live trigger when the workflow
@@ -624,7 +579,7 @@ export function hydrateGeneratedWorkflow(
       message: `"${node.id}" asked for ${rejected.length === 1 ? "a tool" : "tools"} it cannot use: ${rejected.join(", ")}.`,
       fix:
         kept.length === 0
-          ? `Node "${node.id}" (type ${node.type}) has no usable tool left. Set its "tools" to references drawn from: ${offered} — for example [{"type":"node","identifier":"fetch"}]. If none of those fit the task, drop the agent and build the steps as ordinary nodes instead.`
+          ? `Node "${node.id}" (type ${node.type}) has no usable tool left. Set its "tools" to references drawn from: ${offered} — for example ${TOOL_REFERENCE_EXAMPLE}. If none of those fit the task, drop the agent and build the steps as ordinary nodes instead.`
           : `Node "${node.id}" (type ${node.type}) kept ${kept.map((tool) => `"${tool.identifier}"`).join(", ")} and dropped the rest. Only these can be used as tools: ${offered}.`,
       nodeId: node.id,
     });

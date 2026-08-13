@@ -74,6 +74,24 @@ export type BriefResourceFamily =
   | "whatsapp"
   | "slack";
 
+/**
+ * What part of the workflow a blank stands for.
+ *
+ * A runtime tuple rather than a bare union because three consumers need the
+ * values, not just the type: the brief's schema offers them to the model, the
+ * normalizer validates what came back against them, and the type is derived
+ * from them here. Those were three hand-written copies of one list.
+ */
+export const BRIEF_BLANK_ROLES = [
+  "destination",
+  "trigger",
+  "subject",
+  "criterion",
+  "detail",
+] as const;
+
+export type BriefBlankRole = (typeof BRIEF_BLANK_ROLES)[number];
+
 interface BriefBlankBase {
   id: string;
   /** One short question, shown only when the blank is opened. "Which one?" */
@@ -92,7 +110,7 @@ interface BriefBlankBase {
   /** 0..1. How differently the workflow would be built if this were wrong. */
   weight: number;
   /** `destination` and `trigger` rewrite the brief, not merely the sentence. */
-  role: "destination" | "trigger" | "subject" | "criterion" | "detail";
+  role: BriefBlankRole;
   /**
    * Whether this blank is put to the person as a question (prominent, dashed)
    * or merely kept reachable (quiet, styled like an answered slot). The budget

@@ -5,6 +5,7 @@ import {
   buildTriggerParameters,
   extractNodeValues,
   selectExample,
+  TRIGGER_SAMPLE_KEYS,
 } from "./example-inputs";
 
 function decode(data: Uint8Array): unknown {
@@ -297,4 +298,50 @@ describe("extractNodeValues", () => {
 
     expect(values).toEqual({});
   });
+});
+
+/**
+ * Is the declared key list the accepted key list?
+ *
+ * `TRIGGER_SAMPLE_KEYS` exists so the generator's schema can tell a model what
+ * a simulated payload may carry, and a declaration nothing checks is just a
+ * second place to be wrong — which is what the prompt sentence it replaced
+ * was: it omitted `attachments`, so no generated example ever carried one.
+ *
+ * Asserted behaviourally rather than structurally. `buildTriggerParameters` is
+ * a defensive switch, not a table, and turning it into one would be a change to
+ * the path the Run button takes. Feeding each key a distinctive value and
+ * checking the payload moves proves the same thing without touching it.
+ */
+describe("TRIGGER_SAMPLE_KEYS", () => {
+  const DISTINCTIVE: Record<string, unknown> = {
+    from: "someone@example.test",
+    subject: "a distinctive subject",
+    body: "a distinctive body",
+    attachments: [{ name: "note.txt" }],
+    method: "PATCH",
+    query: { marker: "distinctive" },
+    jsonBody: { marker: "distinctive" },
+    formRecord: { marker: "distinctive" },
+  };
+
+  for (const [trigger, keys] of Object.entries(TRIGGER_SAMPLE_KEYS)) {
+    for (const key of keys ?? []) {
+      it(`${trigger} reads "${key}"`, () => {
+        const baseline = buildTriggerParameters(
+          trigger as Parameters<typeof buildTriggerParameters>[0],
+          {}
+        );
+        const withKey = buildTriggerParameters(
+          trigger as Parameters<typeof buildTriggerParameters>[0],
+          { [key]: DISTINCTIVE[key] }
+        );
+
+        expect(
+          JSON.stringify(withKey),
+          `"${key}" is declared for ${trigger} and changes nothing`
+        ).not.toBe(JSON.stringify(baseline));
+      });
+    }
+  }
 });

@@ -1,7 +1,9 @@
 import { Hono } from "hono";
 
-import { generationRateLimit } from "../agents/workflow-generator/config";
-import { checkGenerationRateLimit } from "../agents/workflow-generator/rate-limit";
+import {
+  checkGenerationRateLimit,
+  generationRateLimit,
+} from "../agents/workflow-generator";
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { getAgentByName } from "../durable-objects/agent-utils";

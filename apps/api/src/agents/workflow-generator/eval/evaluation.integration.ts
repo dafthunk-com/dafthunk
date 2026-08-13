@@ -2,21 +2,22 @@ import { env } from "cloudflare:test";
 import type { NodeType, Workflow, WorkflowExecution } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
-import { CloudflareNodeRegistry } from "../../runtime/cloudflare-node-registry";
-import { WorkflowExecutor } from "../../services/workflow-executor";
-import type { EvaluationCase } from "./evaluation-cases";
-import { EVALUATION_CASES } from "./evaluation-cases";
+import type { Bindings } from "../../../context";
+import { CloudflareNodeRegistry } from "../../../runtime/cloudflare-node-registry";
+import { WorkflowExecutor } from "../../../services/workflow-executor";
 import {
   createModelRouter,
   parseModelOverride,
   resolveTier,
-} from "./model-router";
+} from "../model-router";
+import { runGenerationPipeline } from "../pipeline";
+import type { TraceEntry } from "../trace";
+import { firstFailure, summarize } from "../trace";
+import { createWorkspace } from "../workspace";
+import type { EvaluationCase } from "./evaluation-cases";
+import { EVALUATION_CASES } from "./evaluation-cases";
 import type { OutputProblem } from "./output-checks";
 import { checkDelivered, deliveredText } from "./output-checks";
-import { runGenerationPipeline } from "./pipeline";
-import type { TraceEntry } from "./trace";
-import { firstFailure, summarize } from "./trace";
 
 /**
  * Does a generated workflow do the job? — the question the benchmark cannot ask.
@@ -157,10 +158,12 @@ async function runSample(testCase: EvaluationCase): Promise<Sample> {
   try {
     const result = await runGenerationPipeline({
       prompt: testCase.prompt,
-      nodeTypes: CATALOG,
-      // Nothing linked: the eval must not depend on which accounts happen to be
-      // connected to whatever workspace it runs against.
-      connectedProviders: new Set<string>(),
+      workspace: createWorkspace({
+        nodeTypes: CATALOG,
+        // Nothing linked: the eval must not depend on which accounts happen to
+        // be connected to whatever workspace it runs against.
+        connectedProviders: new Set<string>(),
+      }),
       // The Durable Object's own dispatch, so what is measured is what ships.
       callLLM: ROUTE,
       // Frames are the browser's channel and this suite no longer reads them.
