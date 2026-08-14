@@ -10,7 +10,7 @@ import { ConnectProviderCard } from "@/components/brief/connect-card";
 import { OutcomeView } from "@/components/brief/outcome-view";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
+import { GrowingTextarea, textareaClassName } from "@/components/ui/textarea";
 import type { BriefNote, BriefState } from "@/hooks/use-workflow-brief";
 import { getProviderLabel, useIntegrations } from "@/integrations";
 import { cn } from "@/utils/utils";
@@ -261,15 +261,18 @@ function BriefNotes({
   if (notes.length === 0) return null;
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       {notes.map((note, index) => (
         <p
           key={`${note.message}-${index}`}
           className={cn(
-            "text-xs",
+            "text-muted-foreground",
+            // The dashed aside this flow already uses for "here is what I did
+            // instead" — same kind of message, so the same shape, and the
+            // weight does the work a hue used to.
             note.level === "warn"
-              ? "text-amber-600 dark:text-amber-500"
-              : "text-muted-foreground"
+              ? "rounded-md border border-dashed p-3 text-sm"
+              : "text-xs"
           )}
         >
           {note.message}
@@ -322,7 +325,10 @@ export function CritiqueForm({
         submit();
       }}
     >
-      <Textarea
+      {/* Grows with what is typed, like the request box on /start — this is
+          the same conversation, continued, and a critique is often longer
+          than the ask that started it. */}
+      <GrowingTextarea
         rows={2}
         value={note}
         onChange={(event) => setNote(event.target.value)}
@@ -333,6 +339,7 @@ export function CritiqueForm({
           }
         }}
         placeholder="What should be different?"
+        className={textareaClassName}
       />
       <div className="flex flex-wrap items-center gap-3">
         <Button
@@ -661,9 +668,9 @@ export function ConversationRail({
           {/* A live region: this flow is mostly waiting, and a screen reader
               user otherwise submits a request and hears nothing for a minute.
               Visually it is the wire: each completed phase solders a node,
-              the link draws down toward the glowing tip, and the narration
-              types itself beside the tip — progress drawn as the thing being
-              built. The static phase map only fills gaps in the server's own
+              the link draws down toward the live tip, and the narration types
+              itself beside the tip — progress drawn as the thing being built.
+              The static phase map only fills gaps in the server's own
               narration. */}
           <div role="status" className="text-sm">
             {state.phaseTrail.map((label, index) => (

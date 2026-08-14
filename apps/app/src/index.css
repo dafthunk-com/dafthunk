@@ -470,82 +470,6 @@ html.dark .react-flow__attribution a {
   color: #bbb !important;
 }
 
-/* ── The aurora behind /start ───────────────────────────────────────────────
-   Soft drifting color fields, the one colorful thing on an otherwise
-   monochrome page. Visible at rest (the glow is calm, not motion), while
-   the drift itself sits behind the motion preference. */
-.aurora-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  will-change: transform;
-}
-
-.aurora-violet {
-  background: radial-gradient(circle, hsl(265 90% 60% / 0.33), transparent 70%);
-}
-
-.aurora-cyan {
-  background: radial-gradient(circle, hsl(195 95% 55% / 0.3), transparent 70%);
-}
-
-.aurora-rose {
-  background: radial-gradient(circle, hsl(330 90% 62% / 0.26), transparent 70%);
-}
-
-.dark .aurora-violet {
-  background: radial-gradient(circle, hsl(265 90% 62% / 0.4), transparent 70%);
-}
-
-.dark .aurora-cyan {
-  background: radial-gradient(circle, hsl(195 95% 58% / 0.36), transparent 70%);
-}
-
-.dark .aurora-rose {
-  background: radial-gradient(circle, hsl(330 90% 64% / 0.3), transparent 70%);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .aurora-drift-1 {
-    animation: aurora-drift-1 21s ease-in-out infinite alternate;
-  }
-
-  .aurora-drift-2 {
-    animation: aurora-drift-2 27s ease-in-out infinite alternate;
-  }
-
-  .aurora-drift-3 {
-    animation: aurora-drift-3 24s ease-in-out infinite alternate;
-  }
-
-  @keyframes aurora-drift-1 {
-    from {
-      transform: translate3d(0, 0, 0) scale(1);
-    }
-    to {
-      transform: translate3d(14vw, 10vh, 0) scale(1.2);
-    }
-  }
-
-  @keyframes aurora-drift-2 {
-    from {
-      transform: translate3d(0, 0, 0) scale(1.1);
-    }
-    to {
-      transform: translate3d(-12vw, 14vh, 0) scale(0.9);
-    }
-  }
-
-  @keyframes aurora-drift-3 {
-    from {
-      transform: translate3d(0, 0, 0) scale(0.95);
-    }
-    to {
-      transform: translate3d(10vw, -12vh, 0) scale(1.15);
-    }
-  }
-}
-
 /* ── The readback arriving ──────────────────────────────────────────────────
    The brief sentence cascades in word by word — the moment the request
    visibly becomes something the model understood. Slots land last-in-place
@@ -670,17 +594,14 @@ html.dark .react-flow__attribution a {
 
 /* ── The wire ───────────────────────────────────────────────────────────────
    Build progress drawn as the thing being built: each finished phase solders
-   a node onto a vertical wire, the link draws down toward a glowing tip, and
-   the narration types itself beside it. The tip and the caret are the only
-   foreground elements that borrow the aurora's colors — color always means
-   "happening now". The tip glows even under reduced motion (color is not
-   motion); the soldering, drawing, pulsing, and typing all sit behind the
-   preference. */
+   a node onto a vertical wire, the link draws down toward the live tip, and
+   the narration types itself beside it. Every part of it is the page's own
+   ink: the tip is foreground where the settled nodes are muted, which is how
+   the rest of the UI already tells now from done — no hue is spent saying it.
+   The tip stays solid under reduced motion; the soldering, drawing, pulsing,
+   and typing all sit behind the preference. */
 .wire-tip {
-  background: linear-gradient(135deg, hsl(265 90% 60%), hsl(195 95% 55%));
-  box-shadow:
-    0 0 10px hsl(265 90% 60% / 0.5),
-    0 0 20px hsl(195 95% 55% / 0.35);
+  background: hsl(var(--foreground));
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -688,19 +609,16 @@ html.dark .react-flow__attribution a {
     animation: wire-tip 1.8s ease-in-out infinite;
   }
 
+  /* A ring breathing out of the tip, in place of the old glow. */
   @keyframes wire-tip {
     0%,
     100% {
       transform: scale(0.9);
-      box-shadow:
-        0 0 6px hsl(265 90% 60% / 0.45),
-        0 0 14px hsl(195 95% 55% / 0.3);
+      box-shadow: 0 0 0 0 hsl(var(--foreground) / 0.16);
     }
     50% {
-      transform: scale(1.15);
-      box-shadow:
-        0 0 14px hsl(265 90% 60% / 0.7),
-        0 0 26px hsl(195 95% 55% / 0.5);
+      transform: scale(1.1);
+      box-shadow: 0 0 0 4px hsl(var(--foreground) / 0.08);
     }
   }
 
@@ -713,17 +631,17 @@ html.dark .react-flow__attribution a {
     0% {
       opacity: 0;
       transform: scale(0.4);
-      box-shadow: 0 0 0 0 hsl(265 90% 60% / 0.5);
+      box-shadow: 0 0 0 0 hsl(var(--muted-foreground) / 0.4);
     }
     45% {
       opacity: 1;
       transform: scale(1.3);
-      box-shadow: 0 0 0 5px hsl(265 90% 60% / 0.18);
+      box-shadow: 0 0 0 5px hsl(var(--muted-foreground) / 0.15);
     }
     100% {
       opacity: 1;
       transform: scale(1);
-      box-shadow: 0 0 0 0 hsl(265 90% 60% / 0);
+      box-shadow: 0 0 0 0 hsl(var(--muted-foreground) / 0);
     }
   }
 
@@ -749,7 +667,7 @@ html.dark .react-flow__attribution a {
     margin-left: 2px;
     vertical-align: -0.1em;
     border-radius: 1px;
-    background: linear-gradient(180deg, hsl(265 90% 60%), hsl(195 95% 55%));
+    background: hsl(var(--foreground));
     animation: wire-caret 1.1s steps(2, start) infinite;
   }
 

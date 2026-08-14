@@ -19,11 +19,8 @@ import {
   railScreen,
   SessionSkeleton,
 } from "@/components/brief/conversation-rail";
-import {
-  type AuroraLevel,
-  ThinkingAurora,
-} from "@/components/brief/thinking-aurora";
 import { Button } from "@/components/ui/button";
+import { GrowingTextarea } from "@/components/ui/textarea";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { useWorkflowBrief } from "@/hooks/use-workflow-brief";
 import { markWorkflowKept } from "@/services/profile-service";
@@ -42,6 +39,16 @@ import { markWorkflowKept } from "@/services/profile-service";
  * the generator was never shown reads well and builds badly.
  */
 const EXAMPLES = BRIEF_EXAMPLES.slice(0, 3).map((example) => example.prompt);
+
+/**
+ * Not one of the example chips, and not on their list at all: the same
+ * sentence twice on one screen reads as a bug, and a fourth complete job
+ * teaches more. The first chip is a Hacker News digest, so this one cannot be.
+ *
+ * Named because the box measures itself against it — see the mirror below.
+ */
+const REQUEST_PLACEHOLDER =
+  "When a new issue lands in my GitHub repo, summarize it and post it to Slack";
 
 /**
  * Marks a visit nobody chose: the redirect that follows signing up sets it.
@@ -88,34 +95,26 @@ function writeLastSession(orgId: string, entry: LastSession): void {
 }
 
 /**
- * A single reading-width column, centered, lit from behind.
+ * A single reading-width column, centered on an empty page.
  *
  * No stage, no canvas: everything visual about the build lives on the
  * workflow page now, and a split screen whose right half is permanently
  * empty would only say that something is missing. Here the sentence is the
- * whole page — and the aurora behind it is atmosphere, not information:
- * ambient while the person holds the pen, blooming while the model does.
- * Every screen returns this same component at the same tree position, which
- * is what lets the aurora persist and crossfade between levels instead of
- * cutting.
+ * whole page, and nothing behind it competes for the eye — the words carry
+ * the wait themselves.
  */
 function Centered({
-  aurora = "off",
   banner,
   children,
 }: {
-  aurora?: AuroraLevel;
   banner?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <>
-      <ThinkingAurora level={aurora} />
-      <div className="relative mx-auto w-full max-w-2xl space-y-6 px-6 py-16">
-        {banner}
-        {children}
-      </div>
-    </>
+    <div className="mx-auto w-full max-w-2xl space-y-6 px-6 py-16">
+      {banner}
+      {children}
+    </div>
   );
 }
 
@@ -227,7 +226,7 @@ export function BriefPage() {
   // first-run hero over ten minutes of history.
   if (sessionId && !state.sessionLoaded) {
     return (
-      <Centered aurora="ambient">
+      <Centered>
         <SessionSkeleton />
       </Centered>
     );
@@ -258,7 +257,7 @@ export function BriefPage() {
       !sessionId && orgId ? readLastSession(orgId) : undefined;
 
     return (
-      <Centered aurora="ambient" banner={banner}>
+      <Centered banner={banner}>
         {/* A focused route has no sidebar to leave by, and this is the first
             screen of an account that has not agreed to anything yet. Quiet,
             and above the fold: an exit found by scrolling past the thing you
@@ -314,7 +313,9 @@ export function BriefPage() {
               costume between being written and being read. The caret and the
               placeholder are the whole affordance — a border here would say
               "form" on a page whose interface is a sentence. */}
-          <textarea
+          {/* Growing, like the critique box the same conversation continues
+              in on the workflow page: one line of request, or ten. */}
+          <GrowingTextarea
             autoFocus
             rows={2}
             value={request}
@@ -327,12 +328,8 @@ export function BriefPage() {
                 submitRequest(request);
               }
             }}
-            // Not one of the example chips, and not on their list at all: the
-            // same sentence twice on one screen reads as a bug, and a fourth
-            // complete job teaches more. The first chip is a Hacker News
-            // digest, so this one cannot be.
-            placeholder="When a new issue lands in my GitHub repo, summarize it and post it to Slack"
-            className="field-sizing-content w-full resize-none bg-transparent text-2xl leading-relaxed tracking-tight caret-primary outline-none placeholder:text-muted-foreground/50"
+            placeholder={REQUEST_PLACEHOLDER}
+            className="w-full bg-transparent text-2xl leading-relaxed tracking-tight caret-primary outline-none placeholder:text-muted-foreground/50"
           />
           {/* Chips are modifiers of the input — they load the box and leave
               the pen in your hand, so they sit between it and Continue. */}
@@ -390,7 +387,7 @@ export function BriefPage() {
   // ── Too thin to read back ───────────────────────────────────────────────
   if (screen === "suggestions" && state.suggestions) {
     return (
-      <Centered aurora="ambient" banner={banner}>
+      <Centered banner={banner}>
         {/* "Did you mean" is a claim to have understood. Only make it when the
             suggestions actually scored against what they wrote — otherwise
             these are examples, and calling them a guess reads as nonsense. */}
@@ -430,7 +427,7 @@ export function BriefPage() {
   // ── Brief ───────────────────────────────────────────────────────────────
   if (screen === "brief" && state.brief) {
     return (
-      <Centered aurora="ambient" banner={banner}>
+      <Centered banner={banner}>
         <BriefSentence
           brief={state.brief}
           answers={answers}
@@ -502,7 +499,7 @@ export function BriefPage() {
   // continues on the workflow page.
   if (screen === "running") {
     return (
-      <Centered aurora="active" banner={banner}>
+      <Centered banner={banner}>
         <ConversationRail
           state={state}
           actions={railActions}

@@ -144,12 +144,6 @@ export interface BriefSentenceProps {
    * show where the model's attention is instead of going flat.
    */
   phase?: GenerationPhase;
-  /**
-   * Marks one slot while the sentence is disabled — the approval gate uses it
-   * to point at the phrase that leaves the platform, so consent stays anchored
-   * to the words that caused the question.
-   */
-  highlightBlankId?: string;
 }
 
 export function BriefSentence({
@@ -159,7 +153,6 @@ export function BriefSentence({
   onOpenBlank,
   disabled,
   phase,
-  highlightBlankId,
 }: BriefSentenceProps) {
   const byId = new Map(brief.blanks.map((blank) => [blank.id, blank]));
   const activity = disabled && phase ? PHASE_ACTIVITY[phase] : undefined;
@@ -231,9 +224,7 @@ export function BriefSentence({
               className={cn(
                 "rounded bg-muted px-1 text-muted-foreground",
                 tightRight && "pr-0",
-                activity === "slots" && "thinking-slot",
-                segment.blankId === highlightBlankId &&
-                  "bg-amber-500/10 text-foreground ring-1 ring-amber-500/40 dark:bg-amber-400/10 dark:ring-amber-400/40"
+                activity === "slots" && "thinking-slot"
               )}
             >
               {resolveBlank(blank, answers)}
