@@ -42,7 +42,7 @@ export type { GroundingContext } from "./grounding";
  */
 export type { DisarmedInput } from "./hydrate";
 /** The one seam every model call goes through. */
-export type { CallLLM, GenerateCall, GenerateResult, TierUsage } from "./llm";
+export type { GenerateCall, GenerateResult, TierUsage } from "./llm";
 export { emptyTierUsage } from "./llm";
 export type { ModelOverride, ModelOverrides } from "./model-router";
 export {

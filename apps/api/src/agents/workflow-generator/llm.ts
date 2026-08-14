@@ -26,9 +26,6 @@ export interface GenerateResult {
   outputTokens: number;
 }
 
-/** Dispatches one call. What the DO wires to the gateway and tests stub. */
-export type CallLLM = (call: GenerateCall) => Promise<GenerateResult>;
-
 /** Tokens spent per tier, since the tiers are priced an order of magnitude apart. */
 export type TierUsage = Record<
   ModelTier,
