@@ -184,8 +184,11 @@ const storeReturnTo = (c: Context<ApiContext>) => {
   }
 };
 
-// Read and clear returnTo cookie, returning the redirect URL
-const consumeReturnTo = (c: Context<ApiContext>): string => {
+// Read and clear returnTo cookie, returning the redirect URL. `fallback` is
+// where to land when nothing was stashed — a deep link the person followed
+// before signing in always outranks it, because that is the page they asked
+// for and we only guessed at the other one.
+const consumeReturnTo = (c: Context<ApiContext>, fallback = ""): string => {
   const returnTo = getCookie(c, OAUTH_RETURN_TO_COOKIE);
   if (returnTo) {
     deleteCookie(c, OAUTH_RETURN_TO_COOKIE, { path: "/" });
@@ -193,8 +196,20 @@ const consumeReturnTo = (c: Context<ApiContext>): string => {
       return c.env.WEB_HOST + returnTo;
     }
   }
-  return c.env.WEB_HOST;
+  return c.env.WEB_HOST + fallback;
 };
+
+/**
+ * Where a brand-new account lands.
+ *
+ * The dashboard is a scoreboard, and on the first visit every number on it is
+ * zero: it answers "how much have you done?" to someone who has done nothing.
+ * The one thing a person has on their first minute and never again is the
+ * specific thing they wanted when they signed up, so the first screen asks for
+ * it while they still remember. `first` marks the navigation as ours rather
+ * than theirs, which is what earns the escape hatch on the other side.
+ */
+const FIRST_RUN_PATH = "/start?first=1";
 
 // Auth middleware
 export const jwtMiddleware = async (
@@ -553,7 +568,7 @@ async function completeOAuthLogin(
 
   await setAuthTokens(c, accessPayload, refreshPayload);
 
-  return c.redirect(consumeReturnTo(c));
+  return c.redirect(consumeReturnTo(c, isNewUser ? FIRST_RUN_PATH : ""));
 }
 
 auth.get(

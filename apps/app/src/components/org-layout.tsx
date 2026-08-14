@@ -32,9 +32,9 @@ interface OrgLayoutProps {
    * Drop the sidebar and the tour, keeping only the org syncing.
    *
    * For screens that run before the user has any reason to care that
-   * workflows, executions and datasets are separate things. The tour is
-   * excluded deliberately as well as the chrome: it auto-starts when an org
-   * has no workflows, which is exactly when a first-run screen is on display.
+   * workflows, executions and datasets are separate things. The tour comes out
+   * with the chrome because it is a tour *of* the chrome: five steps pointing
+   * at a sidebar this layout does not render.
    */
   focused?: boolean;
 }

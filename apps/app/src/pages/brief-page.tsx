@@ -7,7 +7,7 @@ import {
 } from "@dafthunk/utils";
 import ArrowRight from "lucide-react/icons/arrow-right";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { BriefBlankCard } from "@/components/brief/brief-blank-card";
@@ -42,6 +42,18 @@ import { markWorkflowKept } from "@/services/profile-service";
  * the generator was never shown reads well and builds badly.
  */
 const EXAMPLES = BRIEF_EXAMPLES.slice(0, 3).map((example) => example.prompt);
+
+/**
+ * Marks a visit nobody chose: the redirect that follows signing up sets it.
+ *
+ * Two things hang off that distinction. Someone who clicked "Describe what you
+ * want" knows what this page is and wants the pen; someone who was put here
+ * thirty seconds after signing up may not know what can be asked for, and has
+ * no sidebar to leave by. So being sent here is what earns the examples their
+ * full width and the page an exit — and neither survives a first ask, because
+ * by then the question has been answered.
+ */
+const FIRST_RUN_PARAM = "first";
 
 /** The last brief session, so the second visit to /start has a memory. */
 interface LastSession {
@@ -123,6 +135,8 @@ export function BriefPage() {
   const { organization } = useAuth();
   const orgId = organization?.id || "";
   const { getOrgUrl } = useOrgUrl();
+  const [searchParams] = useSearchParams();
+  const isFirstRun = !sessionId && searchParams.has(FIRST_RUN_PARAM);
 
   // The latest submitted request, for stamping the session memory — a ref so
   // `onSessionStarted` does not have to be recreated per keystroke.
@@ -245,6 +259,20 @@ export function BriefPage() {
 
     return (
       <Centered aurora="ambient" banner={banner}>
+        {/* A focused route has no sidebar to leave by, and this is the first
+            screen of an account that has not agreed to anything yet. Quiet,
+            and above the fold: an exit found by scrolling past the thing you
+            are trying to escape is not an exit. */}
+        {isFirstRun && (
+          <div className="flex justify-end">
+            <Link
+              className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+              to={getOrgUrl("dashboard")}
+            >
+              Skip for now
+            </Link>
+          </div>
+        )}
         {lastSession && (
           <p className="text-sm text-muted-foreground">
             Still building "
@@ -306,22 +334,55 @@ export function BriefPage() {
             placeholder="When a new issue lands in my GitHub repo, summarize it and post it to Slack"
             className="field-sizing-content w-full resize-none bg-transparent text-2xl leading-relaxed tracking-tight caret-primary outline-none placeholder:text-muted-foreground/50"
           />
-          <div className="flex flex-wrap gap-2">
-            {EXAMPLES.map((example) => (
-              <button
-                key={example}
-                type="button"
-                onClick={() => setRequest(example)}
-                className="rounded-full border px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                {example}
-              </button>
-            ))}
-          </div>
+          {/* Chips are modifiers of the input — they load the box and leave
+              the pen in your hand, so they sit between it and Continue. */}
+          {!isFirstRun && (
+            <div className="flex flex-wrap gap-2">
+              {EXAMPLES.map((example) => (
+                <button
+                  key={example}
+                  type="button"
+                  onClick={() => setRequest(example)}
+                  className="rounded-full border px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  {example}
+                </button>
+              ))}
+            </div>
+          )}
           <Button type="submit" disabled={!request.trim()}>
             Continue
           </Button>
         </form>
+
+        {/* The same three sentences, at the weight someone needs who does not
+            yet know what can be asked for: an open prompt is only an
+            invitation to a person who already knows the answer. They are
+            complete jobs by construction, so picking one asks it outright
+            rather than loading the box — the readback screen is where a brief
+            gets edited, and it is the next screen either way. */}
+        {isFirstRun && (
+          <div className="space-y-3 pt-2">
+            <p className="text-sm text-muted-foreground">
+              Or start from one of these:
+            </p>
+            <div className="space-y-2">
+              {EXAMPLES.map((example) => (
+                <button
+                  key={example}
+                  type="button"
+                  onClick={() => {
+                    setRequest(example);
+                    submitRequest(example);
+                  }}
+                  className="block w-full rounded-lg border p-4 text-left text-base transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  {example}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </Centered>
     );
   }

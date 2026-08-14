@@ -31,5 +31,7 @@ export const OrgRedirect: React.FC<OrgRedirectProps> = ({
     }
   }
 
-  return <Navigate to={redirectTo} replace={replace} />;
+  // The query string belongs to the destination, not to this hop: filling in
+  // an org id is not a reason to drop what the caller was asking for.
+  return <Navigate to={`${redirectTo}${location.search}`} replace={replace} />;
 };

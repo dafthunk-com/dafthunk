@@ -3,12 +3,10 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from "react";
 import { updateProfile, useProfile } from "@/services/profile-service";
-import { useWorkflows } from "@/services/workflow-service";
 
 import { TourSpotlight } from "./tour-spotlight";
 import { TourStepPopover } from "./tour-step";
@@ -40,34 +38,24 @@ interface TourProviderProps {
   children: ReactNode;
 }
 
+/**
+ * The tour is opt-in, and deliberately.
+ *
+ * It used to auto-start for anyone with no workflows, which meant the first
+ * thing a new account saw was five steps naming the sidebar: Organization,
+ * Workflows, Resources, Settings, Documentation. That is a map handed to
+ * someone with nowhere to go — nobody signs up to find Settings. Where the
+ * chrome lives is worth learning once you have something to keep in it, so it
+ * waits behind the "Take a Tour" button until then.
+ */
 export function TourProvider({ children }: TourProviderProps) {
-  const { profile, mutateProfile } = useProfile();
-  const { workflows, isWorkflowsLoading } = useWorkflows();
+  const { mutateProfile } = useProfile();
 
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [hasAutoStarted, setHasAutoStarted] = useState(false);
 
   const totalSteps = TOUR_STEPS.length;
   const currentStepData = TOUR_STEPS[currentStep] ?? null;
-
-  // Auto-start tour for new users with no workflows
-  useEffect(() => {
-    if (
-      !hasAutoStarted &&
-      profile &&
-      !profile.tourCompleted &&
-      !isWorkflowsLoading &&
-      workflows.length === 0
-    ) {
-      // Small delay to ensure DOM elements are rendered
-      const timer = setTimeout(() => {
-        setIsActive(true);
-        setHasAutoStarted(true);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [profile, workflows, isWorkflowsLoading, hasAutoStarted]);
 
   const completeTour = useCallback(async () => {
     setIsActive(false);

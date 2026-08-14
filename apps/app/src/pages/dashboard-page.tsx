@@ -44,8 +44,6 @@ export function DashboardPage() {
   const { getOrgUrl } = useOrgUrl();
   const { organization } = useAuth();
   const orgId = organization?.id || "";
-  // The brief flow is the first-run path, but it stays gated until it has been
-  // dogfooded. Removing this condition is what ships it.
   const { mutateWorkflows } = useWorkflows();
   const { nodeTypes } = useNodeTypes({ revalidateOnFocus: false });
   const { start: startTour } = useTour();
