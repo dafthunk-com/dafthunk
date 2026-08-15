@@ -10,9 +10,14 @@ const adminGenerationsRoutes = new Hono<ApiContext>();
 /**
  * What the generator did, across every workspace.
  *
- * Metadata only, by construction — the write side records no prompt text and
- * no graph contents, so nothing here is a person's words. See
- * `GenerationSession.recordGeneration` for why.
+ * Metadata plus the sentence each session opened with — no graph contents, and
+ * nothing else that is a person's words. See `GenerationSession.recordGeneration`
+ * for what that one field costs and why it is worth it.
+ *
+ * Two rows per turn, sharing a session id: `briefed` or `unmatched` when the
+ * request was read back, then the build's own outcome if the person went
+ * ahead. Both are listed here — a reader filtering for failures wants the
+ * requests that never got as far as a build too.
  *
  * The columns are positional because Analytics Engine has no schema; the map
  * below is the schema, and it has to be read together with the write site.
@@ -23,9 +28,11 @@ const adminGenerationsRoutes = new Hono<ApiContext>();
  *   blob3   outcome               double4  inputTokens
  *   blob4   stage that failed     double5  outputTokens
  *   blob5   fatal codes           double6  turn
- *   blob6   trigger
- *   blob7   node types
+ *   blob6   trigger               double7  blanks asked
+ *   blob7   node types            double8  blanks answered
  *   blob8   error code
+ *   blob9   opening request
+ *   blob10  unreachable destination
  */
 
 /**
@@ -54,11 +61,27 @@ adminGenerationsRoutes.get(
         .regex(/^[a-zA-Z0-9_-]+$/)
         .optional(),
       outcome: z
-        .enum(["ok", "partial", "failed", "crashed", "refused"])
+        .enum([
+          "ok",
+          "partial",
+          "failed",
+          "crashed",
+          "refused",
+          "briefed",
+          "unmatched",
+        ])
         .optional(),
       /** The stage that broke, for the view worth opening first. */
       stage: z
-        .enum(["select", "draft", "hydrate", "validate", "save", "run"])
+        .enum([
+          "brief",
+          "select",
+          "draft",
+          "hydrate",
+          "validate",
+          "save",
+          "run",
+        ])
         .optional(),
       trigger: z
         .string()
@@ -168,6 +191,10 @@ adminGenerationsRoutes.get(
         trigger: row.blob6 || undefined,
         nodeTypes: split(row.blob7),
         errorCode: row.blob8 || undefined,
+        // Absent on rows written before the request was recorded, and on
+        // sessions that opened before an adoption seeded a name.
+        request: row.blob9 || undefined,
+        unavailableDestination: row.blob10 || undefined,
         organizationId: row.index1,
         organizationName:
           orgsMap.get(String(row.index1)) ?? "Unknown Organization",
@@ -177,6 +204,8 @@ adminGenerationsRoutes.get(
         inputTokens: Number(row.double4 ?? 0),
         outputTokens: Number(row.double5 ?? 0),
         turn: Number(row.double6 ?? 0),
+        blanksAsked: Number(row.double7 ?? 0),
+        blanksAnswered: Number(row.double8 ?? 0),
         /** How many generations this row stands for once sampling is applied. */
         weight: Number(row._sample_interval ?? 1),
         timestamp: new Date(String(row.timestamp)),

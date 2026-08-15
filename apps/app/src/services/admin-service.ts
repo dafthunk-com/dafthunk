@@ -214,6 +214,10 @@ export interface AdminGeneration {
   trigger?: string;
   nodeTypes: string[];
   errorCode?: string;
+  /** The sentence the session opened with, truncated at the write site. */
+  request?: string;
+  /** A destination the request named that the workspace cannot reach. */
+  unavailableDestination?: string;
   organizationId: string;
   organizationName: string;
   durationMs: number;
@@ -222,6 +226,9 @@ export interface AdminGeneration {
   inputTokens: number;
   outputTokens: number;
   turn: number;
+  /** Questions the read-back asked, and how many came back answered. */
+  blanksAsked: number;
+  blanksAnswered: number;
   /** Generations this row stands for once Analytics Engine sampling applies. */
   weight: number;
   timestamp: Date;

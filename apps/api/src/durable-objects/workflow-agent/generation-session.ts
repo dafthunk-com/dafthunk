@@ -141,6 +141,34 @@ export interface GenerationHost {
   saveWorkflowRecord(record: SaveWorkflowRecord): Promise<void>;
 }
 
+/**
+ * One analytics row, as the turn that produced it sees it. Named rather than
+ * inlined because both turns build one and the brief turn fills a subset —
+ * see `GenerationSession.recordGeneration` for what the row is for.
+ */
+interface GenerationRecord {
+  organizationId: string;
+  outcome: string;
+  workflowId?: string;
+  trigger?: string;
+  nodeTypes?: string[];
+  trace?: TraceEntry[];
+  /** Where it broke when there is no trace to read it off — the brief turn. */
+  failedStage?: string;
+  usage?: TierUsage;
+  durationMs: number;
+  turn: number;
+  errorCode?: string;
+  /**
+   * A destination the request named that this workspace cannot reach. On a
+   * brief row it is demand for something we do not have; on a built row it is
+   * a workflow that quietly went somewhere else than it was asked to.
+   */
+  unavailableDestination?: string;
+  /** Questions the read-back asked, and how many came back answered. */
+  blanks?: { asked: number; answered: number };
+}
+
 export class GenerationSession {
   private schemaReady = false;
 
@@ -830,6 +858,21 @@ export class GenerationSession {
     const context = await this.prepare();
     if (!context) return;
 
+    // The brief is a model call the person waits on before anything visible
+    // happens, so it is timed and counted like the build is. Its tokens were
+    // reaching the console and nothing else, which left every recorded cost
+    // short by a whole tier of calls.
+    const startedAt = Date.now();
+    const record = (
+      input: Omit<GenerationRecord, "organizationId" | "durationMs" | "turn">
+    ) =>
+      this.recordGeneration({
+        organizationId: context.organizationId,
+        durationMs: Date.now() - startedAt,
+        turn,
+        ...input,
+      });
+
     try {
       this.emit({
         type: "phase",
@@ -844,10 +887,11 @@ export class GenerationSession {
         callLLM: (call: GenerateCall) => this.callModel(call),
       });
 
-      this.logUsage(context.organizationId, "brief", {
+      const usage: TierUsage = {
         fast: outcome.usage,
         synthesis: { inputTokens: 0, outputTokens: 0 },
-      });
+      };
+      this.logUsage(context.organizationId, "brief", usage);
 
       // Our end broke. Say so, and keep it recoverable — the request was fine
       // and retyping it is not what needs to happen. The diagnostic goes to
@@ -857,6 +901,12 @@ export class GenerationSession {
         console.error(
           `[WorkflowGenerator] brief failed: ${outcome.message} (session=${this.sessionId})`
         );
+        record({
+          outcome: "failed",
+          usage,
+          failedStage: "brief",
+          errorCode: "INTERNAL",
+        });
         this.fail({
           type: "error",
           code: "INTERNAL",
@@ -868,6 +918,15 @@ export class GenerationSession {
       }
 
       if (outcome.kind === "suggestions") {
+        // The most valuable row in the dataset: a request the generator could
+        // not build anything from, kept next to the words that produced it.
+        // `matched` separates "too thin to read back" from "nothing we have
+        // comes close", which are different problems with different fixes.
+        record({
+          outcome: "unmatched",
+          usage,
+          errorCode: outcome.matched ? "THIN" : "NO_MATCH",
+        });
         this.emit({
           type: "suggestions",
           turn,
@@ -878,10 +937,22 @@ export class GenerationSession {
         return;
       }
 
+      record({
+        outcome: "briefed",
+        usage,
+        trigger: outcome.brief.trigger,
+        unavailableDestination: outcome.brief.unavailableDestination,
+        blanks: { asked: outcome.brief.blanks.length, answered: 0 },
+      });
       this.emit({ type: "brief", turn, brief: outcome.brief });
       this.storeBrief(outcome.brief);
     } catch (error) {
       console.error("[WorkflowGenerator] brief crashed:", error);
+      record({
+        outcome: "crashed",
+        failedStage: "brief",
+        errorCode: "INTERNAL",
+      });
       this.fail({
         type: "error",
         code: "INTERNAL",
@@ -893,34 +964,37 @@ export class GenerationSession {
   }
 
   /**
-   * One row per finished generation, for the admin view.
+   * One row per turn the generator finished, for the admin view.
    *
-   * Deliberately metadata only: the trigger, the outcome, where it broke and
-   * what it cost. No prompt text and no graph contents — Analytics Engine has
-   * no row delete, so anything written here outlives an erasure request and
-   * leaves with nothing. Everything below is either our own vocabulary (node
-   * types, trigger names, validation codes) or a number.
+   * Metadata — the trigger, the outcome, where it broke, what it cost — plus
+   * the one sentence the session opened with. Everything else here is our own
+   * vocabulary (node types, trigger names, validation codes, destination
+   * labels) or a number; no graph contents, ever.
    *
    * The question it exists to answer is the one the pipeline's own logs cannot:
    * not "did this generation work" but "what is failing, across everybody, and
    * how often". A stage that breaks for one person is a bug report; the same
-   * stage breaking for a fifth of requests is a defect with a size.
+   * stage breaking for a fifth of requests is a defect with a size. The
+   * request is here because the other half of that question is what people
+   * were trying to build when it broke, and a stage name does not say.
+   *
+   * That sentence is the only field that is a person's own words, and it is
+   * written knowing Analytics Engine has no row delete: it ages out with the
+   * dataset's retention window instead of being erasable on demand. Truncated
+   * for the same reason — enough to read an intent, not a transcript. The
+   * copy in `gen_runs.prompt` is the one that can still be deleted, and it
+   * outlives this row.
+   *
+   * Both halves of a turn write a row, and they share a session id. The brief
+   * row is the one that says what was asked for; the build row says what came
+   * of it. A session id with the first and not the second is someone who read
+   * their request back and walked away — which is a number no single row can
+   * hold, and the reason the brief turn reports at all.
    *
    * Fire-and-forget, like the execution store's — telemetry must never be the
    * reason a generation the user is waiting on fails.
    */
-  private recordGeneration(input: {
-    organizationId: string;
-    outcome: string;
-    workflowId?: string;
-    trigger?: string;
-    nodeTypes?: string[];
-    trace?: TraceEntry[];
-    usage?: TierUsage;
-    durationMs: number;
-    turn: number;
-    errorCode?: string;
-  }): void {
+  private recordGeneration(input: GenerationRecord): void {
     try {
       const failure = input.trace ? firstFailure(input.trace) : undefined;
 
@@ -938,6 +1012,12 @@ export class GenerationSession {
         (entry) => entry.stage === "draft" && entry.kind === "repair"
       ).length;
 
+      // Read off the run rather than passed in: `resolve` builds its prompt
+      // from the brief and `critique` from the conversation, so neither call
+      // site holds the words the person actually typed. An adopted session
+      // never had any, and carries the workflow's name in their place.
+      const request = this.currentRun()?.prompt ?? "";
+
       const tokens = input.usage
         ? (Object.keys(input.usage) as Array<keyof TierUsage>).reduce(
             (total, tier) => ({
@@ -954,7 +1034,7 @@ export class GenerationSession {
           this.sessionId,
           input.workflowId ?? "",
           input.outcome,
-          failure?.stage ?? "",
+          failure?.stage ?? input.failedStage ?? "",
           fatalCodes.substring(0, 500),
           input.trigger ?? "",
           // Sorted so the same graph reads the same way across rows, and
@@ -964,6 +1044,10 @@ export class GenerationSession {
             .join(",")
             .substring(0, 2000),
           input.errorCode ?? "",
+          request.substring(0, 1000),
+          // A product name the model recognised, not free text — but it comes
+          // from the request, so it is held to a label's length.
+          (input.unavailableDestination ?? "").substring(0, 100),
         ],
         doubles: [
           input.durationMs,
@@ -972,6 +1056,8 @@ export class GenerationSession {
           tokens.input,
           tokens.output,
           input.turn,
+          input.blanks?.asked ?? 0,
+          input.blanks?.answered ?? 0,
         ],
       });
     } catch (error) {
@@ -1200,6 +1286,16 @@ export class GenerationSession {
         usage: result.usage,
         durationMs: Date.now() - startedAt,
         turn,
+        unavailableDestination: input.brief?.unavailableDestination,
+        // Whether the read-back's questions are worth asking: a brief that
+        // asks two and is answered zero times across everybody is a screen
+        // people click past, not a conversation.
+        blanks: input.brief && {
+          asked: input.brief.blanks.length,
+          answered: Object.values(answers).filter(
+            (answer) => answer.trim().length > 0
+          ).length,
+        },
       });
 
       this.sql.exec(

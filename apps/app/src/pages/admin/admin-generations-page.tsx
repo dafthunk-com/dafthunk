@@ -29,10 +29,18 @@ import { formatDate } from "@/utils/date";
 /**
  * What the generator did, across every workspace.
  *
- * Metadata only: the API records no prompt text, so this page cannot show what
- * anybody typed. The question it answers is which stage is failing and how
- * often — the thing per-session logs cannot tell you because each one is a
- * single case.
+ * Which stage is failing and how often — the thing per-session logs cannot tell
+ * you, because each one is a single case — read next to the sentence each
+ * session opened with, which is the only way to tell a stage that breaks on
+ * hard requests from one that breaks on everything.
+ *
+ * A session appears twice: `briefed` or `unmatched` when its request was read
+ * back, then again under the build's own outcome. They are not duplicates and
+ * the counts are not double — the first row is a request, the second is a
+ * workflow, and a request with no second row is someone who walked away.
+ *
+ * Rows written before a column existed show nothing in it; none of this is
+ * backfilled.
  */
 
 const outcomeOptions = [
@@ -42,10 +50,13 @@ const outcomeOptions = [
   { value: "failed", label: "Failed" },
   { value: "crashed", label: "Crashed" },
   { value: "refused", label: "Refused" },
+  { value: "briefed", label: "Briefed" },
+  { value: "unmatched", label: "Unmatched" },
 ];
 
 const stageOptions = [
   { value: "all", label: "All Stages" },
+  { value: "brief", label: "Brief" },
   { value: "select", label: "Select" },
   { value: "draft", label: "Draft" },
   { value: "hydrate", label: "Hydrate" },
@@ -59,6 +70,7 @@ function getOutcomeVariant(outcome: string) {
     case "ok":
       return "default";
     case "partial":
+    case "unmatched":
       return "secondary";
     case "failed":
     case "crashed":
@@ -73,6 +85,20 @@ function createColumns(
 ): ColumnDef<AdminGeneration>[] {
   return [
     {
+      accessorKey: "request",
+      header: "Request",
+      cell: ({ row }) => (
+        // Bounded and truncated: these run to a paragraph, and one long request
+        // would otherwise set the width of every other column on the page.
+        <div
+          className="max-w-[28rem] truncate text-sm"
+          title={row.original.request}
+        >
+          {row.original.request || "—"}
+        </div>
+      ),
+    },
+    {
       accessorKey: "outcome",
       header: "Outcome",
       cell: ({ row }) => (
@@ -86,6 +112,18 @@ function createColumns(
       header: "Trigger",
       cell: ({ row }) => (
         <span className="text-sm">{row.original.trigger || "—"}</span>
+      ),
+    },
+    {
+      accessorKey: "unavailableDestination",
+      header: "Unreachable",
+      // What they asked for by name and this workspace could not deliver. On a
+      // briefed row it is demand; on an ok row it is a workflow that shipped
+      // pointing somewhere else than it was asked to.
+      cell: ({ row }) => (
+        <span className="text-sm">
+          {row.original.unavailableDestination || "—"}
+        </span>
       ),
     },
     {
@@ -106,6 +144,19 @@ function createColumns(
                 ({fatalCodes.join(", ")})
               </span>
             )}
+          </span>
+        );
+      },
+    },
+    {
+      id: "blanks",
+      header: "Blanks",
+      cell: ({ row }) => {
+        const { blanksAsked, blanksAnswered } = row.original;
+        if (!blanksAsked) return <span className="text-sm">—</span>;
+        return (
+          <span className="text-sm tabular-nums" title="answered / asked">
+            {blanksAnswered}/{blanksAsked}
           </span>
         );
       },
