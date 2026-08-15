@@ -364,17 +364,20 @@ export function WorkflowsPage() {
             Build and test your workflows.
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" asChild>
+            <Button variant="default" asChild>
               <Link to={getOrgUrl("start")}>
                 <Sparkles className="mr-2 size-4" />
-                Generate with AI
+                Describe what you want
               </Link>
             </Button>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsCreateDialogOpen(true)}
+            >
               <PlusCircle className="mr-2 size-4" />
               Create Workflow
             </Button>
-            <Button asChild>
+            <Button variant="outline" asChild>
               <Link to={getOrgUrl("templates")}>
                 <FileDown className="mr-2 size-4" />
                 Browse Templates
