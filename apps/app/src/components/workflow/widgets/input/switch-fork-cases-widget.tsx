@@ -11,6 +11,12 @@ import { createWidget } from "../widget";
 
 const CASE_PATTERN = /^case_(\d+)$/;
 
+/**
+ * The counter used to be bound to a placeholder `cases` input. Nodes saved
+ * back then still carry it; keep it out of the inspector.
+ */
+const LEGACY_FIELDS = ["cases"];
+
 interface SwitchForkCasesWidgetProps extends BaseWidgetProps {
   nodeId: string;
   caseCount: number;
@@ -155,7 +161,7 @@ export function createSwitchForkCasesWidget(
   return createWidget({
     component: SwitchForkCasesWidget,
     nodeTypes: [nodeType],
-    inputField: "cases",
+    managedFields: LEGACY_FIELDS,
     extractConfig: (nodeId, inputs) => ({
       nodeId,
       caseCount: countCases(inputs),

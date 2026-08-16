@@ -45,13 +45,6 @@ export class SwitchForkNode extends ExecutableNode {
         required: true,
       },
       {
-        name: "cases",
-        type: "any",
-        description:
-          "Number of case branches (managed by the inspector widget)",
-        hidden: true,
-      },
-      {
         name: "case_1",
         type: "string",
         description: "Case key compared against the selector",

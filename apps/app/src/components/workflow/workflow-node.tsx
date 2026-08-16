@@ -322,7 +322,7 @@ export const WorkflowNode = memo(
       : null;
 
     const handleWidgetChange = (value: any) => {
-      if (disabled || !updateNodeData || !widget) return;
+      if (disabled || !updateNodeData || !widget?.inputField) return;
 
       const input = data.inputs.find((i) => i.id === widget.inputField);
       if (input) {

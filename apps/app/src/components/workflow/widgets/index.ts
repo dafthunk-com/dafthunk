@@ -116,7 +116,9 @@ const widgets = [
       defaultCount: 2,
       minCount: 1,
     },
-    { inputField: "cases", label: "case" }
+    // `cases` is a placeholder input the counter used to be bound to; nodes
+    // saved before it went away still carry it.
+    { label: "case", managedFields: ["cases"] }
   ),
   createSwitchForkCasesWidget("switch-fork", {
     minCount: 1,

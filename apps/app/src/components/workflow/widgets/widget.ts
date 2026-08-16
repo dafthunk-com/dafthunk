@@ -22,8 +22,14 @@ export interface WidgetDescriptor {
   /** Node types this widget handles */
   nodeTypes: string[];
 
-  /** Which input field this widget updates */
-  inputField: string;
+  /**
+   * Which input field this widget updates, replacing that field's editor.
+   *
+   * Omit it for widgets that shape the node rather than fill one of its
+   * inputs — those render as a row of their own, so every input keeps its
+   * editor.
+   */
+  inputField?: string;
 
   /** Additional input fields managed by this widget (hidden from default rendering) */
   managedFields?: string[];

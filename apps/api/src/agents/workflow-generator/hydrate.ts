@@ -118,13 +118,19 @@ function expandDynamicInputs(
     if (pattern.test(edge.targetInput)) wanted.add(edge.targetInput);
   }
 
+  // Copy the declared slot so the ones we add carry the same contract — the
+  // editor's +/- button clones it too.
+  const declared = nodeType.inputs.find((i) => pattern.test(i.name));
+
   const added: Parameter[] = [];
   for (const name of wanted) {
     if (existing.has(name)) continue;
     added.push({
+      ...declared,
       name,
       type: config.type,
-      description: `Dynamic input ${name}`,
+      description: declared?.description ?? `Dynamic input ${name}`,
+      value: undefined,
     } as Parameter);
   }
   if (added.length === 0) return node;

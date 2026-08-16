@@ -35,13 +35,6 @@ export class SwitchJoinNode extends ExecutableNode {
         required: false,
       },
       {
-        name: "cases",
-        type: "any",
-        description:
-          "Number of case branches (managed by the inspector widget)",
-        hidden: true,
-      },
-      {
         name: "case_1",
         type: "any",
         description: "Value from branch 'case_1'",

@@ -99,14 +99,12 @@ function HttpTriggerInputWidget({
 
 export const httpRequestTriggerWidget = createWidget({
   component: HttpTriggerInputWidget,
-  inputField: "",
   nodeTypes: ["http-request"],
   extractConfig: () => ({ mode: "request" as HttpTriggerMode }),
 });
 
 export const httpWebhookTriggerWidget = createWidget({
   component: HttpTriggerInputWidget,
-  inputField: "",
   nodeTypes: ["http-webhook"],
   extractConfig: () => ({ mode: "webhook" as HttpTriggerMode }),
 });

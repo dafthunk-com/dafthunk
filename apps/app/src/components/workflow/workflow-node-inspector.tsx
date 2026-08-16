@@ -144,9 +144,20 @@ export function WorkflowNodeInspector({
     : null;
 
   const handleWidgetChange = (value: unknown) => {
-    if (disabled || !updateNodeData || !widget) return;
+    if (disabled || !updateNodeData || !widget?.inputField) return;
     updateNodeInput(node.id, widget.inputField, value, inputs, updateNodeData);
   };
+
+  const renderWidget = () =>
+    widget
+      ? createElement(widget.Component, {
+          ...widget.config,
+          onChange: !disabled ? handleWidgetChange : () => {},
+          disabled,
+          createObjectUrl,
+          className: "p-0",
+        })
+      : null;
 
   return (
     <div className="flex flex-col h-full bg-neutral-50 dark:bg-neutral-800">
@@ -220,6 +231,13 @@ export function WorkflowNodeInspector({
           </button>
           {inputsExpanded && (
             <div className="px-4 pb-4 space-y-3">
+              {/* A widget bound to no input shapes the node itself, so it
+                  leads the section rather than standing in for a field. */}
+              {widget && !widget.inputField && (
+                <div className="[&_button]:h-9 [&_button]:text-sm [&_select]:h-9 [&_select]:text-sm">
+                  {renderWidget()}
+                </div>
+              )}
               {inputs.length > 0 ? (
                 inputs.map((input) => {
                   if (
@@ -245,13 +263,7 @@ export function WorkflowNodeInspector({
                           headerOnly
                         />
                         <div className="[&_button]:h-9 [&_button]:text-sm [&_select]:h-9 [&_select]:text-sm">
-                          {createElement(widget.Component, {
-                            ...widget.config,
-                            onChange: !disabled ? handleWidgetChange : () => {},
-                            disabled,
-                            createObjectUrl,
-                            className: "p-0",
-                          })}
+                          {renderWidget()}
                         </div>
                       </div>
                     );

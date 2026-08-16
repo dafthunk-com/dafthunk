@@ -110,8 +110,9 @@ export function PlaygroundExecutePage() {
     : null;
 
   const handleWidgetChange = (value: unknown) => {
-    if (!widget) return;
-    setInputValues((prev) => ({ ...prev, [widget.inputField]: value }));
+    if (!widget?.inputField) return;
+    const inputField = widget.inputField;
+    setInputValues((prev) => ({ ...prev, [inputField]: value }));
   };
 
   const handleExecute = async () => {

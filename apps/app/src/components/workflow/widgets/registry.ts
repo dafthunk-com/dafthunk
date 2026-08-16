@@ -11,8 +11,8 @@ export interface Widget {
   /** Configuration props for the component */
   config: any;
 
-  /** Which input field this widget updates */
-  inputField: string;
+  /** Which input field this widget updates, if it is bound to one */
+  inputField?: string;
 
   /** All input fields managed by this widget (hidden from default rendering) */
   managedFields: Set<string>;
@@ -48,7 +48,7 @@ class WidgetRegistry {
     if (!config) return null;
 
     const managedFields = new Set([
-      descriptor.inputField,
+      ...(descriptor.inputField ? [descriptor.inputField] : []),
       ...(descriptor.managedFields ?? []),
     ]);
 

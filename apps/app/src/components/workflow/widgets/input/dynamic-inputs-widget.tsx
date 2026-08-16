@@ -13,7 +13,8 @@ import { createWidget } from "../widget";
 interface DynamicInputsWidgetProps extends BaseWidgetProps {
   nodeId: string;
   nodeType: string;
-  inputCount: number;
+  /** Ids of the node's dynamic inputs, in index order */
+  inputIds: string[];
   label: string;
   labelPlural: string;
 }
@@ -21,7 +22,7 @@ interface DynamicInputsWidgetProps extends BaseWidgetProps {
 function DynamicInputsWidget({
   nodeId,
   nodeType,
-  inputCount,
+  inputIds,
   label,
   labelPlural,
   className,
@@ -30,6 +31,8 @@ function DynamicInputsWidget({
   const { updateNodeData, edges, deleteEdge, nodeTypes } = useWorkflow();
 
   const config = nodeTypes?.find((t) => t.type === nodeType)?.dynamicInputs;
+  const inputCount = inputIds.length;
+  const lastInputId = inputIds[inputCount - 1];
   const canRemove = config ? inputCount > config.minCount : false;
 
   const handleAdd = useCallback(() => {
@@ -42,7 +45,11 @@ function DynamicInputsWidget({
         return match ? Math.max(max, Number.parseInt(match[1])) : max;
       }, 0);
       const nextIndex = maxIndex + 1;
-      const template = current.inputs[0];
+      // Clone an existing dynamic input, not whichever input happens to come
+      // first: the node's own inputs sit alongside these, and copying one of
+      // those gave the new slot its type and its required flag.
+      const template = current.inputs.find((inp) => pattern.test(inp.id));
+      if (!template) return {};
       const newInput: WorkflowParameter = {
         ...template,
         id: `${config.prefix}_${nextIndex}`,
@@ -54,13 +61,11 @@ function DynamicInputsWidget({
   }, [disabled, updateNodeData, nodeId, config]);
 
   const handleRemove = useCallback(() => {
-    if (disabled || !updateNodeData || !config) return;
+    if (disabled || !updateNodeData || !config || !lastInputId) return;
     if (inputCount <= config.minCount) return;
 
-    // Find and disconnect edges to the last input before updating node data
+    // Disconnect edges into the input before it goes away
     if (edges && deleteEdge) {
-      // Find the last dynamic input by looking at current edges
-      const lastInputId = `${config.prefix}_${inputCount}`;
       for (const edge of edges) {
         if (edge.target === nodeId && edge.targetHandle === lastInputId) {
           deleteEdge(edge.id);
@@ -69,10 +74,21 @@ function DynamicInputsWidget({
     }
 
     updateNodeData(nodeId, (current) => {
-      if (current.inputs.length <= config.minCount) return {};
-      return { inputs: current.inputs.slice(0, -1) };
+      if (countDynamicInputs(current.inputs, config) <= config.minCount) {
+        return {};
+      }
+      return { inputs: current.inputs.filter((i) => i.id !== lastInputId) };
     });
-  }, [disabled, updateNodeData, nodeId, config, inputCount, edges, deleteEdge]);
+  }, [
+    disabled,
+    updateNodeData,
+    nodeId,
+    config,
+    inputCount,
+    lastInputId,
+    edges,
+    deleteEdge,
+  ]);
 
   if (!config) return null;
 
@@ -114,22 +130,35 @@ function DynamicInputsWidget({
 }
 
 /**
- * Counts inputs matching the dynamic prefix pattern (e.g. input_1, input_2, …)
+ * Ids of the inputs matching the dynamic prefix pattern (input_1, input_2, …),
+ * ordered by index — which is not always the order they are stored in.
  */
+function dynamicInputIds(
+  inputs: WorkflowParameter[],
+  config: DynamicInputsConfig
+): string[] {
+  const pattern = new RegExp(`^${config.prefix}_(\\d+)$`);
+  return inputs
+    .map((i) => [i.id, i.id.match(pattern)?.[1]] as const)
+    .filter(
+      (entry): entry is readonly [string, string] => entry[1] !== undefined
+    )
+    .sort(([, a], [, b]) => Number.parseInt(a) - Number.parseInt(b))
+    .map(([id]) => id);
+}
+
 function countDynamicInputs(
   inputs: WorkflowParameter[],
   config: DynamicInputsConfig
 ): number {
-  const pattern = new RegExp(`^${config.prefix}_\\d+$`);
-  return inputs.filter((i) => pattern.test(i.id)).length;
+  return dynamicInputIds(inputs, config).length;
 }
 
 /**
  * Creates a dynamic inputs widget descriptor for a given node type.
  *
- * By default the widget binds to `${prefix}_1`, replacing its rendering with
- * the +/- counter. Pass `inputField` to bind to a different (typically hidden)
- * field so the dynamic inputs themselves render with their default UI.
+ * The counter is bound to no input field: it changes how many inputs the node
+ * has, so binding it to one of them would cost that input its editor.
  *
  * The counter label defaults to "input"/"inputs"; pass `label` (and optionally
  * `labelPlural`) to override (e.g. "case"/"cases").
@@ -138,9 +167,9 @@ export function createDynamicInputsWidget(
   nodeType: string,
   config: DynamicInputsConfig,
   options?: {
-    inputField?: string;
     label?: string;
     labelPlural?: string;
+    managedFields?: string[];
   }
 ) {
   const label = options?.label ?? "input";
@@ -148,11 +177,11 @@ export function createDynamicInputsWidget(
   return createWidget({
     component: DynamicInputsWidget,
     nodeTypes: [nodeType],
-    inputField: options?.inputField ?? `${config.prefix}_1`,
+    managedFields: options?.managedFields,
     extractConfig: (nodeId, inputs) => ({
       nodeId,
       nodeType,
-      inputCount: countDynamicInputs(inputs, config),
+      inputIds: dynamicInputIds(inputs, config),
       label,
       labelPlural,
     }),

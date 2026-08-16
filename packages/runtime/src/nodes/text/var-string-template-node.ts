@@ -32,6 +32,7 @@ export class VarStringTemplateNode extends ExecutableNode {
         name: "var_1",
         type: "string",
         description: "Variable value to inject",
+        required: true,
       },
     ],
     outputs: [
