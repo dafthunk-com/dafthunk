@@ -1,8 +1,4 @@
-import {
-  MultiStepNode,
-  type MultiStepNodeContext,
-  type VideoParameter,
-} from "@dafthunk/runtime";
+import { MultiStepNode, type MultiStepNodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 import { z } from "zod";
 
@@ -23,14 +19,6 @@ const blobSchema = z.object({
  * the first video's resolution and handles audio presence automatically.
  */
 export class AppendVideosNode extends MultiStepNode {
-  private static readonly inputSchema = z.object({
-    video_1: blobSchema,
-    video_2: blobSchema,
-    video_3: blobSchema.optional(),
-    video_4: blobSchema.optional(),
-    video_5: blobSchema.optional(),
-  });
-
   public static readonly nodeType: NodeType = {
     id: "append-videos",
     name: "Append Videos",
@@ -44,36 +32,24 @@ export class AppendVideosNode extends MultiStepNode {
     inlinable: false,
     usage: 10,
     asTool: false,
+    dynamicInputs: {
+      prefix: "video",
+      type: "video",
+      defaultCount: 2,
+      minCount: 2,
+    },
     inputs: [
       {
         name: "video_1",
         type: "video",
-        description: "First video in the sequence",
+        description: "Video in the sequence",
         required: true,
       },
       {
         name: "video_2",
         type: "video",
-        description: "Second video in the sequence",
+        description: "Video in the sequence",
         required: true,
-      },
-      {
-        name: "video_3",
-        type: "video",
-        description: "Third video (optional)",
-        hidden: true,
-      },
-      {
-        name: "video_4",
-        type: "video",
-        description: "Fourth video (optional)",
-        hidden: true,
-      },
-      {
-        name: "video_5",
-        type: "video",
-        description: "Fifth video (optional)",
-        hidden: true,
       },
     ],
     outputs: [
@@ -89,7 +65,11 @@ export class AppendVideosNode extends MultiStepNode {
     const { sleep, doStep } = context;
 
     try {
-      const validatedInput = AppendVideosNode.inputSchema.parse(context.inputs);
+      // Collect video_1, video_2, … in numeric order
+      const videos = z
+        .array(blobSchema)
+        .min(2, "At least two videos are required")
+        .parse(this.collectDynamicInputs(context.inputs, "video"));
 
       const containerBinding: DurableObjectNamespace | undefined =
         context.env.FFMPEG_CONTAINER;
@@ -104,15 +84,6 @@ export class AppendVideosNode extends MultiStepNode {
           "ObjectStore not available in context (required for video uploads)"
         );
       }
-
-      // Collect video inputs in order
-      const videos: VideoParameter[] = [
-        validatedInput.video_1,
-        validatedInput.video_2,
-      ];
-      if (validatedInput.video_3) videos.push(validatedInput.video_3);
-      if (validatedInput.video_4) videos.push(validatedInput.video_4);
-      if (validatedInput.video_5) videos.push(validatedInput.video_5);
 
       // Upload videos to R2 for presigned download URLs
       const presignedUrls: string[] = [];

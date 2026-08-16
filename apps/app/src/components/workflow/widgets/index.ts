@@ -46,7 +46,6 @@ import { whatsappTriggerInputWidget } from "./input/whatsapp-trigger-input";
 import { audioOutputWidget } from "./output/audio-output";
 import { blobOutputWidget } from "./output/blob-output";
 import { booleanOutputWidget } from "./output/boolean-output";
-import { buffergeometryOutputWidget } from "./output/buffergeometry-output";
 import { dateOutputWidget } from "./output/date-output";
 import { documentOutputWidget } from "./output/document-output";
 import { geojsonOutputWidget } from "./output/geojson-output";
@@ -109,6 +108,16 @@ const widgets = [
     minCount: 1,
   }),
   createDynamicInputsWidget(
+    "append-videos",
+    {
+      prefix: "video",
+      type: "video",
+      defaultCount: 2,
+      minCount: 2,
+    },
+    { label: "video" }
+  ),
+  createDynamicInputsWidget(
     "switch-join",
     {
       prefix: "case",
@@ -136,7 +145,6 @@ const widgets = [
   audioOutputWidget,
   videoOutputWidget,
   gltfOutputWidget,
-  buffergeometryOutputWidget,
   jsonOutputWidget,
   geojsonOutputWidget,
 ];

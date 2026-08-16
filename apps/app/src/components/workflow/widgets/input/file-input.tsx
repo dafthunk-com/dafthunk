@@ -222,7 +222,7 @@ function FileWidget({ value, onChange, disabled = false }: FileWidgetProps) {
 
 export const fileInputWidget = createWidget({
   component: FileWidget,
-  nodeTypes: ["blob", "file", "document", "image", "audio", "video"],
+  nodeTypes: ["file"],
   inputField: "value",
   extractConfig: (_nodeId, inputs) => ({
     value: getInputValue(inputs, "value", ""),
