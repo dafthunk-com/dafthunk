@@ -5,6 +5,7 @@ import { discordProvider } from "./discord";
 import { githubProvider } from "./github";
 import { googleCalendarProvider } from "./google-calendar";
 import { googleMailProvider } from "./google-mail";
+import { instagramProvider } from "./instagram";
 import { linkedinProvider } from "./linkedin";
 import { redditProvider } from "./reddit";
 import { wordpressProvider } from "./wordpress";
@@ -18,6 +19,7 @@ export const PROVIDER_REGISTRY: Record<IntegrationProvider, ProviderConfig> = {
   "google-mail": googleMailProvider,
   "google-calendar": googleCalendarProvider,
   discord: discordProvider,
+  instagram: instagramProvider,
   reddit: redditProvider,
   linkedin: linkedinProvider,
   github: githubProvider,

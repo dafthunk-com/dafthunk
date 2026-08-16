@@ -13,6 +13,7 @@ describe("OAuth Module", () => {
       expect(getProvider("google-mail")).toBeDefined();
       expect(getProvider("google-calendar")).toBeDefined();
       expect(getProvider("discord")).toBeDefined();
+      expect(getProvider("instagram")).toBeDefined();
       expect(getProvider("linkedin")).toBeDefined();
       expect(getProvider("reddit")).toBeDefined();
       expect(getProvider("github")).toBeDefined();
@@ -31,7 +32,7 @@ describe("OAuth Module", () => {
 
     it("should return all providers", () => {
       const providers = getAllProviders();
-      expect(providers).toHaveLength(8);
+      expect(providers).toHaveLength(9);
     });
   });
 
@@ -47,6 +48,13 @@ describe("OAuth Module", () => {
     it("should have correct refresh configuration for Discord", () => {
       const discord = getProvider("discord");
       expect(discord.refreshEnabled).toBe(true);
+    });
+
+    it("should have correct refresh configuration for Instagram", () => {
+      const instagram = getProvider("instagram");
+      expect(instagram.refreshEnabled).toBe(true);
+      // Refresh only works while the token is alive, so the buffer is wide.
+      expect(instagram.refreshBuffer).toBe(7 * 24 * 60 * 60 * 1000);
     });
 
     it("should have correct refresh configuration for LinkedIn", () => {

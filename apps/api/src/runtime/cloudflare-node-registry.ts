@@ -309,6 +309,16 @@ import { SliderInputNode } from "@dafthunk/runtime/nodes/input/slider-input-node
 import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
 import { VideoInputNode } from "@dafthunk/runtime/nodes/input/video-input-node";
 import { WebcamInputNode } from "@dafthunk/runtime/nodes/input/webcam-input-node";
+import { CommentOnPostInstagramNode } from "@dafthunk/runtime/nodes/instagram/comment-on-post-instagram-node";
+import { DeleteCommentInstagramNode } from "@dafthunk/runtime/nodes/instagram/delete-comment-instagram-node";
+import { GetPostInstagramNode } from "@dafthunk/runtime/nodes/instagram/get-post-instagram-node";
+import { GetProfileInstagramNode } from "@dafthunk/runtime/nodes/instagram/get-profile-instagram-node";
+import { HideCommentInstagramNode } from "@dafthunk/runtime/nodes/instagram/hide-comment-instagram-node";
+import { ListCommentsInstagramNode } from "@dafthunk/runtime/nodes/instagram/list-comments-instagram-node";
+import { ListPostsInstagramNode } from "@dafthunk/runtime/nodes/instagram/list-posts-instagram-node";
+import { PostImageInstagramNode } from "@dafthunk/runtime/nodes/instagram/post-image-instagram-node";
+import { PostReelInstagramNode } from "@dafthunk/runtime/nodes/instagram/post-reel-instagram-node";
+import { ReplyToCommentInstagramNode } from "@dafthunk/runtime/nodes/instagram/reply-to-comment-instagram-node";
 import { JavascriptNode } from "@dafthunk/runtime/nodes/javascript/javascript-node";
 import { JsonAggNode } from "@dafthunk/runtime/nodes/json/json-agg-node";
 import { JsonArrayLengthNode } from "@dafthunk/runtime/nodes/json/json-array-length-node";
@@ -511,6 +521,10 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     const hasGitHub = !!(
       this.env.INTEGRATION_GITHUB_CLIENT_ID &&
       this.env.INTEGRATION_GITHUB_CLIENT_SECRET
+    );
+    const hasInstagram = !!(
+      this.env.INTEGRATION_INSTAGRAM_CLIENT_ID &&
+      this.env.INTEGRATION_INSTAGRAM_CLIENT_SECRET
     );
     const hasReddit = !!(
       this.env.INTEGRATION_REDDIT_CLIENT_ID &&
@@ -855,6 +869,19 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(BotReceiveSlackMessageNode);
     this.registerImplementation(BotSendMessageSlackNode);
     this.registerImplementation(BotAddReactionSlackNode);
+
+    if (hasInstagram) {
+      this.registerImplementation(PostImageInstagramNode);
+      this.registerImplementation(PostReelInstagramNode);
+      this.registerImplementation(CommentOnPostInstagramNode);
+      this.registerImplementation(ReplyToCommentInstagramNode);
+      this.registerImplementation(ListCommentsInstagramNode);
+      this.registerImplementation(HideCommentInstagramNode);
+      this.registerImplementation(DeleteCommentInstagramNode);
+      this.registerImplementation(GetProfileInstagramNode);
+      this.registerImplementation(GetPostInstagramNode);
+      this.registerImplementation(ListPostsInstagramNode);
+    }
 
     if (hasReddit) {
       this.registerImplementation(GetPostRedditNode);

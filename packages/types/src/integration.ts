@@ -7,6 +7,7 @@ export type IntegrationProvider =
   | "google-mail"
   | "google-calendar"
   | "discord"
+  | "instagram"
   | "reddit"
   | "linkedin"
   | "github"
@@ -112,6 +113,14 @@ export const OAUTH_PROVIDERS: OAuthProvider[] = [
       "Connect your Discord account to send messages and manage servers",
     supportsOAuth: true,
     oauthEndpoint: "/oauth/discord/connect",
+  },
+  {
+    id: "instagram",
+    name: "Instagram",
+    description:
+      "Connect your Instagram professional account to publish images and reels",
+    supportsOAuth: true,
+    oauthEndpoint: "/oauth/instagram/connect",
   },
   {
     id: "reddit",

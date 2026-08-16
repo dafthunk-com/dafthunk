@@ -82,6 +82,7 @@ export const IntegrationProvider = {
   GOOGLE_CALENDAR: "google-calendar",
   DISCORD: "discord",
   GITHUB: "github",
+  INSTAGRAM: "instagram",
   REDDIT: "reddit",
   LINKEDIN: "linkedin",
   X: "x",

@@ -3,6 +3,7 @@ import { DiscordProvider } from "./providers/DiscordProvider";
 import { GitHubProvider } from "./providers/GitHubProvider";
 import { GoogleCalendarProvider } from "./providers/GoogleCalendarProvider";
 import { GoogleMailProvider } from "./providers/GoogleMailProvider";
+import { InstagramProvider } from "./providers/InstagramProvider";
 import { LinkedInProvider } from "./providers/LinkedInProvider";
 import { RedditProvider } from "./providers/RedditProvider";
 import { WordPressProvider } from "./providers/WordPressProvider";
@@ -13,6 +14,7 @@ const providers = {
   "google-mail": new GoogleMailProvider(),
   "google-calendar": new GoogleCalendarProvider(),
   discord: new DiscordProvider(),
+  instagram: new InstagramProvider(),
   linkedin: new LinkedInProvider(),
   reddit: new RedditProvider(),
   github: new GitHubProvider(),

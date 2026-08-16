@@ -127,6 +127,7 @@ const PROVIDER_ALIASES: Record<string, string[]> = {
   "google-mail": ["gmail", "google mail"],
   "google-calendar": ["google calendar", "gcal"],
   discord: ["discord"],
+  instagram: ["instagram", "insta", "ig reel", "ig post"],
   x: ["x", "twitter", "tweet"],
   linkedin: ["linkedin"],
   reddit: ["reddit"],

@@ -76,6 +76,13 @@ const DESTINATION_SPECS: readonly DestinationSpec[] = [
     nodeTypes: ["share-post-x"],
   },
   {
+    id: "instagram",
+    kind: "integration",
+    provider: "instagram",
+    label: "post it to Instagram",
+    nodeTypes: ["post-image-instagram"],
+  },
+  {
     id: "linkedin",
     kind: "integration",
     provider: "linkedin",

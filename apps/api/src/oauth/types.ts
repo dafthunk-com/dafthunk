@@ -214,3 +214,31 @@ export interface WordPressUser {
   primary_blog_url?: string;
   avatar_URL?: string;
 }
+
+/**
+ * Instagram OAuth token response (Instagram API with Instagram Login)
+ *
+ * The code exchange returns a short-lived token wrapped in a one-element
+ * `data` array; the long-lived exchange and refresh responses are flat.
+ * `user_id` (the professional account id used by the publishing endpoints)
+ * only appears on the code exchange, so the provider carries it forward.
+ */
+export interface InstagramToken {
+  access_token: string;
+  token_type?: string;
+  expires_in?: number;
+  user_id?: string | number;
+  permissions?: string | string[];
+}
+
+/**
+ * Instagram user information from graph.instagram.com/me
+ */
+export interface InstagramUser {
+  id?: string;
+  user_id?: string | number;
+  username: string;
+  name?: string;
+  account_type?: string;
+  profile_picture_url?: string;
+}

@@ -78,6 +78,7 @@ integrationRoutes.post(
         "google-mail",
         "google-calendar",
         "discord",
+        "instagram",
         "reddit",
         "linkedin",
         "github",
