@@ -165,11 +165,11 @@ export function CreateWorkflowDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[80vw] max-w-[1400px] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Workflow</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleCreateWorkflow} className="space-y-6">
+        <form onSubmit={handleCreateWorkflow} className="space-y-4">
           <div>
             <Label htmlFor="name">Workflow Name</Label>
             <Input
@@ -193,38 +193,34 @@ export function CreateWorkflowDialog({
               placeholder="Describe what you are building"
               className="mt-2"
               maxLength={256}
-              rows={3}
+              rows={2}
             />
           </div>
           <div>
             <Label>Trigger Type</Label>
-            <div className="grid grid-cols-3 gap-4 mt-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-2">
               {workflowTriggers.map((triggerOption) => {
                 const IconComponent = triggerOption.icon;
                 return (
                   <div
                     key={triggerOption.trigger}
                     className={cn(
-                      "border rounded-lg p-4 transition-all cursor-pointer",
+                      "border rounded-lg p-2.5 transition-all cursor-pointer",
                       workflowTrigger === triggerOption.trigger
                         ? "bg-accent border-primary/50"
                         : "hover:bg-muted/50"
                     )}
                     onClick={() => setWorkflowTrigger(triggerOption.trigger)}
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-primary/10 rounded-md">
-                        <IconComponent className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium text-sm mb-1">
-                          {triggerOption.title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground">
-                          {triggerOption.description}
-                        </p>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <IconComponent className="h-4 w-4 shrink-0 text-primary" />
+                      <h3 className="font-medium text-sm">
+                        {triggerOption.title}
+                      </h3>
                     </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {triggerOption.description}
+                    </p>
                   </div>
                 );
               })}
@@ -232,33 +228,27 @@ export function CreateWorkflowDialog({
           </div>
           <div>
             <Label>Execution Mode</Label>
-            <div className="grid grid-cols-2 gap-4 mt-3">
+            <div className="grid grid-cols-2 gap-2 mt-2">
               {runtimeTypes.map((runtime) => {
                 const IconComponent = runtime.icon;
                 return (
                   <div
                     key={runtime.type}
                     className={cn(
-                      "border rounded-lg p-4 transition-all cursor-pointer",
+                      "border rounded-lg p-2.5 transition-all cursor-pointer",
                       workflowRuntime === runtime.type
                         ? "bg-accent border-primary/50"
                         : "hover:bg-muted/50"
                     )}
                     onClick={() => setWorkflowRuntime(runtime.type)}
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-primary/10 rounded-md">
-                        <IconComponent className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium text-sm mb-1">
-                          {runtime.title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground">
-                          {runtime.description}
-                        </p>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <IconComponent className="h-4 w-4 shrink-0 text-primary" />
+                      <h3 className="font-medium text-sm">{runtime.title}</h3>
                     </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {runtime.description}
+                    </p>
                   </div>
                 );
               })}
