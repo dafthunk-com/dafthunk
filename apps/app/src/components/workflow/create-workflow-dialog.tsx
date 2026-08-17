@@ -31,73 +31,81 @@ const workflowTriggers = [
   {
     trigger: "manual" as WorkflowTrigger,
     title: "Manual",
-    description: "Run it yourself from the editor",
+    description:
+      "Run the workflow yourself from the editor whenever you need it.",
     icon: Play,
   },
   {
     trigger: "scheduled" as WorkflowTrigger,
     title: "Scheduled",
-    description: "Run on a recurring schedule",
+    description: "Runs automatically on a recurring schedule you define.",
     icon: Clock,
   },
   {
     trigger: "http_webhook" as WorkflowTrigger,
     title: "HTTP Webhook",
-    description: "Async call, returns an execution ID",
+    description:
+      "An HTTP endpoint that starts the workflow and responds immediately with an execution ID.",
     icon: Webhook,
   },
   {
     trigger: "http_request" as WorkflowTrigger,
     title: "HTTP Request",
-    description: "Sync call, waits for the result",
+    description:
+      "An HTTP endpoint that runs the workflow and waits for completion to respond with the result.",
     icon: Globe,
   },
   {
     trigger: "form_webhook" as WorkflowTrigger,
     title: "Form Webhook",
-    description: "Public form, runs in the background",
+    description:
+      "A public form that starts the workflow in the background when someone submits it.",
     icon: ClipboardList,
   },
   {
     trigger: "form_request" as WorkflowTrigger,
     title: "Form Request",
-    description: "Public form, waits for the result",
+    description:
+      "A public form that runs the workflow on submit and waits for completion to show the result.",
     icon: FileText,
   },
   {
     trigger: "email_message" as WorkflowTrigger,
     title: "Email Message",
-    description: "Runs on incoming email",
+    description: "Runs whenever the workflow receives an email message.",
     icon: Mail,
   },
   {
     trigger: "queue_message" as WorkflowTrigger,
     title: "Queue Message",
-    description: "Runs on queue messages",
+    description: "Runs for each message posted to your queue.",
     icon: Inbox,
   },
   {
     trigger: "discord_event" as WorkflowTrigger,
     title: "Discord Event",
-    description: "Runs on Discord messages",
+    description:
+      "Runs when a message is posted in your connected Discord server.",
     icon: MessageSquare,
   },
   {
     trigger: "telegram_event" as WorkflowTrigger,
     title: "Telegram Event",
-    description: "Runs on Telegram messages",
+    description: "Runs when your connected Telegram bot receives a message.",
     icon: Send,
   },
   {
     trigger: "whatsapp_event" as WorkflowTrigger,
     title: "WhatsApp Event",
-    description: "Runs on WhatsApp messages",
+    description:
+      "Runs when a message arrives on your connected WhatsApp number.",
     icon: MessageCircle,
   },
   {
     trigger: "slack_event" as WorkflowTrigger,
     title: "Slack Event",
-    description: "Runs on Slack messages",
+    description:
+      "Runs when a message is posted in your connected Slack workspace.",
     icon: Hash,
   },
 ];
