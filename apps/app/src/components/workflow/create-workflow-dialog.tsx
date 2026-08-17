@@ -141,7 +141,20 @@ export function CreateWorkflowDialog({
     useState<WorkflowTrigger>("manual");
   const [workflowRuntime, setWorkflowRuntime] =
     useState<WorkflowRuntime>("workflow");
+  const [hoveredTrigger, setHoveredTrigger] = useState<WorkflowTrigger | null>(
+    null
+  );
+  const [hoveredRuntime, setHoveredRuntime] = useState<WorkflowRuntime | null>(
+    null
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const triggerCaption = workflowTriggers.find(
+    (t) => t.trigger === (hoveredTrigger ?? workflowTrigger)
+  )?.description;
+  const runtimeCaption = runtimeTypes.find(
+    (r) => r.type === (hoveredRuntime ?? workflowRuntime)
+  )?.description;
 
   const handleCreateWorkflow = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -205,30 +218,30 @@ export function CreateWorkflowDialog({
                   <div
                     key={triggerOption.trigger}
                     className={cn(
-                      "border rounded-lg p-3 transition-all cursor-pointer",
+                      "flex items-center gap-2.5 border rounded-lg p-2 transition-all cursor-pointer",
                       workflowTrigger === triggerOption.trigger
                         ? "bg-accent border-primary/50"
                         : "hover:bg-muted/50"
                     )}
                     onClick={() => setWorkflowTrigger(triggerOption.trigger)}
+                    onMouseEnter={() =>
+                      setHoveredTrigger(triggerOption.trigger)
+                    }
+                    onMouseLeave={() => setHoveredTrigger(null)}
                   >
-                    <div className="flex items-start gap-2.5">
-                      <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10">
-                        <IconComponent className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="font-medium text-sm leading-7">
-                          {triggerOption.title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground leading-snug">
-                          {triggerOption.description}
-                        </p>
-                      </div>
+                    <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                      <IconComponent className="h-4 w-4 text-primary" />
                     </div>
+                    <h3 className="font-medium text-sm truncate">
+                      {triggerOption.title}
+                    </h3>
                   </div>
                 );
               })}
             </div>
+            <p className="text-xs text-muted-foreground mt-2 min-h-4">
+              {triggerCaption}
+            </p>
           </div>
           <div>
             <Label>Execution Mode</Label>
@@ -239,30 +252,28 @@ export function CreateWorkflowDialog({
                   <div
                     key={runtime.type}
                     className={cn(
-                      "border rounded-lg p-3 transition-all cursor-pointer",
+                      "flex items-center gap-2.5 border rounded-lg p-2 transition-all cursor-pointer",
                       workflowRuntime === runtime.type
                         ? "bg-accent border-primary/50"
                         : "hover:bg-muted/50"
                     )}
                     onClick={() => setWorkflowRuntime(runtime.type)}
+                    onMouseEnter={() => setHoveredRuntime(runtime.type)}
+                    onMouseLeave={() => setHoveredRuntime(null)}
                   >
-                    <div className="flex items-start gap-2.5">
-                      <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10">
-                        <IconComponent className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="font-medium text-sm leading-7">
-                          {runtime.title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground leading-snug">
-                          {runtime.description}
-                        </p>
-                      </div>
+                    <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                      <IconComponent className="h-4 w-4 text-primary" />
                     </div>
+                    <h3 className="font-medium text-sm truncate">
+                      {runtime.title}
+                    </h3>
                   </div>
                 );
               })}
             </div>
+            <p className="text-xs text-muted-foreground mt-2 min-h-4">
+              {runtimeCaption}
+            </p>
           </div>
           <Button
             type="submit"
