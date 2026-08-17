@@ -31,73 +31,73 @@ const workflowTriggers = [
   {
     trigger: "manual" as WorkflowTrigger,
     title: "Manual",
-    description: "Trigger workflows manually",
+    description: "Run it yourself from the editor",
     icon: Play,
   },
   {
     trigger: "scheduled" as WorkflowTrigger,
     title: "Scheduled",
-    description: "Trigger workflows on a schedule",
+    description: "Run on a recurring schedule",
     icon: Clock,
   },
   {
     trigger: "http_webhook" as WorkflowTrigger,
     title: "HTTP Webhook",
-    description: "Async HTTP trigger, returns execution ID immediately",
+    description: "Async call, returns an execution ID",
     icon: Webhook,
   },
   {
     trigger: "http_request" as WorkflowTrigger,
     title: "HTTP Request",
-    description: "Sync HTTP trigger, waits for workflow completion",
+    description: "Sync call, waits for the result",
     icon: Globe,
   },
   {
     trigger: "form_webhook" as WorkflowTrigger,
     title: "Form Webhook",
-    description: "Public form that starts the workflow asynchronously",
+    description: "Public form, runs in the background",
     icon: ClipboardList,
   },
   {
     trigger: "form_request" as WorkflowTrigger,
     title: "Form Request",
-    description: "Public form that runs the workflow and waits for completion",
+    description: "Public form, waits for the result",
     icon: FileText,
   },
   {
     trigger: "email_message" as WorkflowTrigger,
     title: "Email Message",
-    description: "Trigger workflows from email messages",
+    description: "Runs on incoming email",
     icon: Mail,
   },
   {
     trigger: "queue_message" as WorkflowTrigger,
     title: "Queue Message",
-    description: "Trigger workflows from queue messages",
+    description: "Runs on queue messages",
     icon: Inbox,
   },
   {
     trigger: "discord_event" as WorkflowTrigger,
     title: "Discord Event",
-    description: "Trigger workflows from Discord messages",
+    description: "Runs on Discord messages",
     icon: MessageSquare,
   },
   {
     trigger: "telegram_event" as WorkflowTrigger,
     title: "Telegram Event",
-    description: "Trigger workflows from Telegram messages",
+    description: "Runs on Telegram messages",
     icon: Send,
   },
   {
     trigger: "whatsapp_event" as WorkflowTrigger,
     title: "WhatsApp Event",
-    description: "Trigger workflows from WhatsApp messages",
+    description: "Runs on WhatsApp messages",
     icon: MessageCircle,
   },
   {
     trigger: "slack_event" as WorkflowTrigger,
     title: "Slack Event",
-    description: "Trigger workflows from Slack messages",
+    description: "Runs on Slack messages",
     icon: Hash,
   },
 ];
@@ -198,29 +198,33 @@ export function CreateWorkflowDialog({
           </div>
           <div>
             <Label>Trigger Type</Label>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-2">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mt-2">
               {workflowTriggers.map((triggerOption) => {
                 const IconComponent = triggerOption.icon;
                 return (
                   <div
                     key={triggerOption.trigger}
                     className={cn(
-                      "border rounded-lg p-2.5 transition-all cursor-pointer",
+                      "border rounded-lg p-3 transition-all cursor-pointer",
                       workflowTrigger === triggerOption.trigger
                         ? "bg-accent border-primary/50"
                         : "hover:bg-muted/50"
                     )}
                     onClick={() => setWorkflowTrigger(triggerOption.trigger)}
                   >
-                    <div className="flex items-center gap-2">
-                      <IconComponent className="h-4 w-4 shrink-0 text-primary" />
-                      <h3 className="font-medium text-sm">
-                        {triggerOption.title}
-                      </h3>
+                    <div className="flex items-start gap-2.5">
+                      <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                        <IconComponent className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-medium text-sm leading-7">
+                          {triggerOption.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground leading-snug">
+                          {triggerOption.description}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {triggerOption.description}
-                    </p>
                   </div>
                 );
               })}
@@ -228,27 +232,33 @@ export function CreateWorkflowDialog({
           </div>
           <div>
             <Label>Execution Mode</Label>
-            <div className="grid grid-cols-2 gap-2 mt-2">
+            <div className="grid grid-cols-2 gap-2.5 mt-2">
               {runtimeTypes.map((runtime) => {
                 const IconComponent = runtime.icon;
                 return (
                   <div
                     key={runtime.type}
                     className={cn(
-                      "border rounded-lg p-2.5 transition-all cursor-pointer",
+                      "border rounded-lg p-3 transition-all cursor-pointer",
                       workflowRuntime === runtime.type
                         ? "bg-accent border-primary/50"
                         : "hover:bg-muted/50"
                     )}
                     onClick={() => setWorkflowRuntime(runtime.type)}
                   >
-                    <div className="flex items-center gap-2">
-                      <IconComponent className="h-4 w-4 shrink-0 text-primary" />
-                      <h3 className="font-medium text-sm">{runtime.title}</h3>
+                    <div className="flex items-start gap-2.5">
+                      <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                        <IconComponent className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-medium text-sm leading-7">
+                          {runtime.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground leading-snug">
+                          {runtime.description}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {runtime.description}
-                    </p>
                   </div>
                 );
               })}
