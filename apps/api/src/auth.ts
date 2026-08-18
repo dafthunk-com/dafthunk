@@ -575,6 +575,13 @@ auth.get(
   "/login/github",
   (c, next) => {
     storeReturnTo(c);
+    // Unlike googleAuth, githubAuth runs its CSRF state check on any request
+    // that carries a query string — including the initiation request — and
+    // 401s when a stale state cookie is present. Redirect to the bare path so
+    // only GitHub callbacks (?code=&state=) reach the middleware with a query.
+    if (!c.req.query("code") && c.req.url.includes("?")) {
+      return c.redirect(new URL(c.req.url).pathname);
+    }
     const githubAuthHandler = githubAuth({
       client_id: c.env.GITHUB_CLIENT_ID,
       client_secret: c.env.GITHUB_CLIENT_SECRET,
