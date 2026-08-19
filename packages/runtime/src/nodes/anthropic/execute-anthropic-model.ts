@@ -17,7 +17,8 @@ export async function executeAnthropicModel(
   pricing: TokenPricing
 ): Promise<NodeExecution> {
   try {
-    const { instructions, input } = context.inputs;
+    const { instructions, input, max_tokens } = context.inputs;
+    const maxTokens = max_tokens as number | undefined;
 
     if (!input) {
       return node.createErrorResult("Input is required");
@@ -31,7 +32,7 @@ export async function executeAnthropicModel(
 
     const response = await client.messages.create({
       model: modelId,
-      max_tokens: 1024,
+      max_tokens: maxTokens ?? 1024,
       messages: [{ role: "user", content: input }],
       ...(instructions && { system: instructions }),
     });

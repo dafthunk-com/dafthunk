@@ -24,7 +24,13 @@ export async function executeOpenAIModel(
   pricing: TokenPricing
 ): Promise<NodeExecution> {
   try {
-    const { instructions, input, schema: schemaInput } = context.inputs;
+    const {
+      instructions,
+      input,
+      max_tokens,
+      schema: schemaInput,
+    } = context.inputs;
+    const maxTokens = max_tokens as number | undefined;
 
     if (!input) {
       return node.createErrorResult("Input is required");
@@ -51,7 +57,7 @@ export async function executeOpenAIModel(
 
     const completion = await client.chat.completions.create({
       model: modelId,
-      max_tokens: 1024,
+      max_tokens: maxTokens ?? 1024,
       messages: [
         ...(instructions
           ? [{ role: "system" as const, content: instructions }]

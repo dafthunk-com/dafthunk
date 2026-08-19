@@ -36,6 +36,14 @@ export class ClaudeOpus4Node extends ExecutableNode {
         description: "The input text or question for Claude",
         required: true,
       },
+      {
+        name: "max_tokens",
+        type: "number",
+        description:
+          "Maximum number of tokens in the response. Leave empty for the default",
+        required: false,
+        hidden: true,
+      },
     ],
     outputs: [
       {

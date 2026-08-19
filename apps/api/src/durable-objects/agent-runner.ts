@@ -48,6 +48,8 @@ export interface AgentRunRequest {
   context?: string;
   input: string;
   maxSteps: number;
+  /** Output ceiling per LLM call — falls back to the dispatch default */
+  maxTokens?: number;
   /** Tool references the agent can call */
   tools: ToolReference[];
   /** Enable code mode for multi-tool orchestration */
@@ -571,6 +573,7 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
         tools,
         builtInTools,
         schema,
+        maxTokens: body.maxTokens,
       });
     return {
       callLLM: (messages, tools) => llm(messages, tools),

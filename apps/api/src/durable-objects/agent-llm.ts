@@ -45,8 +45,15 @@ export interface CallLLMArgs {
   maxTokens?: number;
 }
 
-/** Conservative default for conversational turns. */
-const DEFAULT_MAX_TOKENS = 4096;
+/**
+ * Default output ceiling per LLM call.
+ *
+ * Sized for thinking models: on claude-opus-5 reasoning is on by default and
+ * counts against `max_tokens`, so the old 4096 ceiling was routinely consumed
+ * before the visible answer finished. A ceiling is not a spend — only
+ * generated tokens are billed — so the headroom costs nothing on short turns.
+ */
+const DEFAULT_MAX_TOKENS = 16384;
 
 /**
  * Thrown when the model ran out of output budget mid-answer.
@@ -95,9 +102,11 @@ async function callAnthropic(
   env: Bindings,
   { model, instructions, messages, tools, schema, maxTokens }: CallLLMArgs
 ): Promise<LLMResponse> {
+  // 10 min: a non-streaming turn that actually uses the 16K ceiling takes
+  // several minutes to generate; 120s would abort it mid-answer.
   const client = new Anthropic({
     apiKey: "gateway-managed",
-    timeout: 120_000,
+    timeout: 600_000,
     ...getAnthropicConfig(env),
   });
 
@@ -341,9 +350,10 @@ async function callOpenAI(
   env: Bindings,
   { model, instructions, messages, tools, schema, maxTokens }: CallLLMArgs
 ): Promise<LLMResponse> {
+  // Same 10-min budget as the Anthropic client, for the same reason.
   const client = new OpenAI({
     apiKey: "gateway-managed",
-    timeout: 120_000,
+    timeout: 600_000,
     ...getOpenAIConfig(env),
   });
 

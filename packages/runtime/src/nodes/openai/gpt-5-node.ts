@@ -36,6 +36,14 @@ export class Gpt5Node extends ExecutableNode {
         required: true,
       },
       {
+        name: "max_tokens",
+        type: "number",
+        description:
+          "Maximum number of tokens in the response. Leave empty for the default",
+        required: false,
+        hidden: true,
+      },
+      {
         name: "schema",
         type: "schema",
         scope: "structured-output",
