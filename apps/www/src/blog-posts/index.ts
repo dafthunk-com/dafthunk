@@ -4,6 +4,7 @@ import { bestLowCodeWorkflowAutomationToolsContent } from "./best-low-code-workf
 import { bestOpenSourceWorkflowAutomationToolsContent } from "./best-open-source-workflow-automation-tools";
 import { buildingEffectiveAgentsContent } from "./building-effective-agents";
 import { durableExecutionContent } from "./durable-execution";
+import { generatingWorkflowsFromASentenceContent } from "./generating-workflows-from-a-sentence";
 import { workflowAutomationExamplesContent } from "./workflow-automation-examples";
 
 export const blogPostContent: Record<string, ReactNode> = {
@@ -13,5 +14,7 @@ export const blogPostContent: Record<string, ReactNode> = {
     bestOpenSourceWorkflowAutomationToolsContent,
   "building-effective-agents": buildingEffectiveAgentsContent,
   "durable-execution": durableExecutionContent,
+  "generating-workflows-from-a-sentence":
+    generatingWorkflowsFromASentenceContent,
   "workflow-automation-examples": workflowAutomationExamplesContent,
 };

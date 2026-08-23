@@ -1,6 +1,17 @@
 {
   "posts": [
     {
+      "id": "generating-workflows-from-a-sentence",
+      "title": "Generating workflows from a sentence",
+      "description": "Notes on building a workflow generator: how we test a workflow without sending anything, repair it without making it worse, and choose what the model sees.",
+      "tagline": "The call to the model was the easy part. Notes on the five steps around it.",
+      "date": "2026-08-24",
+      "author": "The Dafthunk team",
+      "readingMinutes": 5,
+      "tags": ["Workflow automation", "LLM", "Architecture"],
+      "published": true
+    },
+    {
       "id": "best-open-source-workflow-automation-tools",
       "title": "The best open source workflow automation tools in 2026",
       "description": "Seven open source workflow automation tools, every license read from its repository. Plus the popular ones that are source-available, not open source.",
