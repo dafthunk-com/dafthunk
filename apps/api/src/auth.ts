@@ -184,15 +184,27 @@ const storeReturnTo = (c: Context<ApiContext>) => {
   }
 };
 
+// The app root is not a destination anyone asks for; it is where our own
+// routers land a visitor who asked for nothing. `/` carries no organization,
+// so OrgRedirect bounces to /login and stashes the path it bounced from, and
+// every marketing CTA points at the app root. Letting that stash count as a
+// request would sink the fallback for essentially every new account — which is
+// how the first-run destination went quietly unused. Campaign parameters ride
+// along on those CTAs, so compare the path alone.
+const isDefaultDestination = (returnTo: string): boolean => {
+  const [path] = returnTo.split(/[?#]/, 1);
+  return path === "" || path === "/";
+};
+
 // Read and clear returnTo cookie, returning the redirect URL. `fallback` is
-// where to land when nothing was stashed — a deep link the person followed
+// where to land when nothing was asked for — a deep link the person followed
 // before signing in always outranks it, because that is the page they asked
 // for and we only guessed at the other one.
 const consumeReturnTo = (c: Context<ApiContext>, fallback = ""): string => {
   const returnTo = getCookie(c, OAUTH_RETURN_TO_COOKIE);
   if (returnTo) {
     deleteCookie(c, OAUTH_RETURN_TO_COOKIE, { path: "/" });
-    if (isValidReturnTo(returnTo)) {
+    if (isValidReturnTo(returnTo) && !isDefaultDestination(returnTo)) {
       return c.env.WEB_HOST + returnTo;
     }
   }

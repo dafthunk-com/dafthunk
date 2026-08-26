@@ -20,7 +20,7 @@ export function ProtectedRoute({
   }
 
   if (!isAuthenticated) {
-    const returnTo = encodeURIComponent(location.pathname);
+    const returnTo = encodeURIComponent(location.pathname + location.search);
     return <Navigate to={`${redirectTo}?returnTo=${returnTo}`} replace />;
   }
 
