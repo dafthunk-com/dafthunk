@@ -64,8 +64,8 @@ importers:
         specifier: ^0.2.2
         version: 0.2.2(@cloudflare/workers-types@5.20260730.1)(hono@4.13.1)
       '@hono/oauth-providers':
-        specifier: ^0.8.5
-        version: 0.8.5(hono@4.13.1)
+        specifier: ^0.8.6
+        version: 0.8.8(hono@4.13.1)
       '@hono/zod-validator':
         specifier: ^0.7.6
         version: 0.7.6(hono@4.13.1)(zod@4.4.3)
@@ -1407,8 +1407,8 @@ packages:
     peerDependencies:
       hono: '>=4.12.34 <5'
 
-  '@hono/oauth-providers@0.8.5':
-    resolution: {integrity: sha512-hgEDH/gUmB/opman9jvT8dLItZsSC9M9yFiaam0b6InK7WQkdzIcaRAkdda47QpixnK9S1Ah2vjDB2U16LkMnA==}
+  '@hono/oauth-providers@0.8.8':
+    resolution: {integrity: sha512-euwVPs3KChd8LLQC5j8feGBudpHvjklCVY2j9ErftEVuTq95PWGlDeSJkTqbXdRDMYqm0XvA1wmdpV7eQpaZ8w==}
     engines: {node: '>=18.4.0'}
     peerDependencies:
       hono: '>=4.12.34 <5'
@@ -3315,6 +3315,7 @@ packages:
   '@xmldom/xmldom@0.9.10':
     resolution: {integrity: sha512-A9gOqLdi6cV4ibazAjcQufGj0B1y/vDqYrcuP6d/6x8P27gRS8643Dj9o1dEKtB6O7fwxb2FgBmJS2mX7gpvdw==}
     engines: {node: '>=14.6'}
+    deprecated: this version has critical issues, please update to the latest version
 
   '@xyflow/react@12.11.2':
     resolution: {integrity: sha512-eLAlDWJfWnQEhJwGMjlWdAXO9eYllKpliUmPQlAmOLxz6mExXuzMVDUKLMquixgkrtmMFFtug3jGKmYYld12cA==}
@@ -6374,7 +6375,7 @@ snapshots:
     dependencies:
       hono: 4.13.1
 
-  '@hono/oauth-providers@0.8.5(hono@4.13.1)':
+  '@hono/oauth-providers@0.8.8(hono@4.13.1)':
     dependencies:
       hono: 4.13.1
 
