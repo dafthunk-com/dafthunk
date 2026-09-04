@@ -4,7 +4,6 @@ import type { NodeType, Workflow } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../../context";
-import { CloudflareNodeRegistry } from "../../../runtime/cloudflare-node-registry";
 import { findStructuralProblems } from "../../../templates/template-test-utils";
 import type { GenerateCall } from "../llm";
 import {
@@ -12,7 +11,6 @@ import {
   parseModelOverride,
   resolveTier,
 } from "../model-router";
-import type { OrgResources } from "../org-resources";
 import { runGenerationPipeline } from "../pipeline";
 import type { CreateResourceFn } from "../resource-resolver";
 import type { TraceEntry } from "../trace";
@@ -20,6 +18,11 @@ import { firstFailure, summarize } from "../trace";
 import { createWorkspace } from "../workspace";
 import type { GenerationCase } from "./benchmark-cases";
 import { BENCHMARK_CASES, COVERAGE_CASES } from "./benchmark-cases";
+import {
+  CONNECTED_PROVIDERS,
+  DEPLOYMENT_CATALOG,
+  ORG_RESOURCES,
+} from "./deployment";
 
 /**
  * Quality gauge for the generator, measured against the 23 shipped templates.
@@ -70,55 +73,6 @@ const CASES: GenerationCase[] = [
   })),
   ...COVERAGE_CASES,
 ];
-
-/**
- * What the org is pretended to own, so the resource concepts have something to
- * resolve to.
- *
- * Without this the benchmark measures a tenant that owns nothing: `database`,
- * `schema` and `dataset` inputs are optional on every node that carries them,
- * so a graph reaching for a table binds nothing, validates anyway, and scores
- * as a pass. One instance per type on purpose — a single candidate makes
- * "picked the right one" trivial, which keeps the case about whether the model
- * reached for the resource at all.
- *
- * Places — databases, datasets, mailboxes — are reuse targets only: no creator
- * is supplied for them, so a case needing a table the org does not own should
- * fail. Schemas are the exception, and `createBenchSchema` says why.
- */
-const ORG_RESOURCES: OrgResources = {
-  database: [
-    {
-      id: "bench-database",
-      name: "Customers",
-      description: "One row per customer, keyed by email.",
-    },
-  ],
-  schema: [
-    {
-      id: "bench-schema",
-      name: "Customer enquiry",
-      description: "Name, email and a free-text question.",
-      // Carried because a form trigger's ports are derived from them. A schema
-      // without fields binds and leaves the form with nothing to wire, which is
-      // the failure this suite found.
-      fields: [
-        { name: "name", type: "string", required: true },
-        { name: "email", type: "string", required: true },
-        { name: "question", type: "string", required: true },
-      ],
-    },
-  ],
-  dataset: [
-    {
-      id: "bench-dataset",
-      name: "Product documentation",
-      description: "The public docs, chunked for retrieval.",
-    },
-  ],
-  queue: [{ id: "bench-queue", name: "Incoming jobs" }],
-  email: [{ id: "bench-mailbox", name: "Support", handle: "support" }],
-};
 
 /**
  * The one creator this harness supplies, because schemas are the one family
@@ -206,14 +160,14 @@ function unmetConditions(
   return unmet;
 }
 
+/**
+ * Ambient, and deliberately not the deployment's placeholders: this is what
+ * the model router authenticates with, so it needs the real keys `.dev.vars`
+ * carries. The catalog is the opposite case and comes from `deployment.ts`.
+ */
 const bindings = env as unknown as Bindings;
 
-// Built once: the registry runs ~476 registrations, and rebuilding it per case
-// measures nothing.
-const CATALOG: NodeType[] = new CloudflareNodeRegistry(
-  bindings,
-  false
-).getNodeTypes();
+const CATALOG: NodeType[] = DEPLOYMENT_CATALOG;
 
 /** Delivered as a binding, since `process.env` does not cross into workerd. */
 interface BenchmarkEnv {
@@ -244,14 +198,7 @@ async function runCase(
     prompt: testCase.prompt,
     workspace: createWorkspace({
       nodeTypes: catalog,
-      connectedProviders: new Set([
-        "slack",
-        "discord",
-        "telegram",
-        "whatsapp",
-        "google-mail",
-        "github",
-      ]),
+      connectedProviders: CONNECTED_PROVIDERS,
       orgResources: ORG_RESOURCES,
     }),
     createResource: createBenchSchema,

@@ -266,6 +266,49 @@ const RETURNS_FIELDS = [
   "output-json",
 ] as const;
 
+/**
+ * Produces a video from a description.
+ *
+ * Both entries are withheld today — the gateway node in favour of the curated
+ * stand-ins, the Replicate node as an unoffered AI type — so nothing satisfies
+ * this yet. Listed by what can do the work rather than left empty, so the case
+ * turns green the moment one is offered, or a stand-in for video joins them.
+ */
+const MAKES_A_VIDEO = ["cloudflare-gateway-model", "replicate-model"] as const;
+
+/** Reaches a URL and reports what came back, including that nothing did. */
+const CHECKS_A_SITE = [
+  "fetch",
+  "cloudflare-browser-content",
+  "cloudflare-browser-json",
+  "cloudflare-browser-snapshot",
+] as const;
+
+/** Takes one path or another on a value. */
+const BRANCHES = ["conditional-fork", "switch-fork"] as const;
+
+/**
+ * Emails the person who asked, which is one node and not three.
+ *
+ * The generous `anyOf` rule does not reach here, because the alternatives do
+ * not do this job. "Email me" supplies no address, and both other email nodes
+ * require one: `send-email` takes a `to`, and the Gmail node takes a `to` and
+ * a linked account on top. Nothing in the request can fill either, so a graph
+ * built from them has a blank required input or an address the model invented
+ * — and an invented recipient is worse than a failure, because it validates.
+ *
+ * `notify-me` exists for exactly this: it addresses the workspace, resolved
+ * when the run happens, so there is nothing to supply and nothing to guess.
+ * `destinations.ts` ranks it first ahead of `send-email` on the same
+ * reasoning.
+ *
+ * The one route by which `send-email` would be right is closed here: the
+ * owner's address is read at hydration, and only when a brief has already
+ * settled on the email destination (`pipeline.ts` passes `ownerEmail` on that
+ * condition alone). This harness runs no brief, so that address never arrives.
+ */
+const EMAILS_THE_PERSON_WHO_ASKED = ["notify-me"] as const;
+
 export const COVERAGE_CASES: GenerationCase[] = [
   // ── Triggers ────────────────────────────────────────────────────────────
   {
@@ -432,7 +475,72 @@ export const COVERAGE_CASES: GenerationCase[] = [
     prompt:
       "Every night, count the rows added to my customers table that day and email me the number",
     expectTrigger: "scheduled",
-    requires: [{ capability: "read a table", anyOf: READS_A_TABLE }],
+    requires: [
+      { capability: "read a table", anyOf: READS_A_TABLE },
+      // "Email me the number" was the half this case never checked, on a
+      // trigger where nobody is watching a widget for the answer.
+      {
+        capability: "email the person who asked",
+        anyOf: EMAILS_THE_PERSON_WHO_ASKED,
+      },
+    ],
     binds: ["database"],
+  },
+
+  // ── Sentences people typed ──────────────────────────────────────────────
+  // Verbatim from the generator's input box, punctuation included, because
+  // the words are what failed. The cases above each isolate one capability;
+  // these carry a whole request, with the halves the person left unsaid.
+  {
+    /**
+     * Nothing offered can make a video.
+     *
+     * The eligible catalog holds two video-typed nodes, the input and the
+     * output widget, and no model between them: the two that can generate a
+     * video are withheld, and neither withholding is reported as relevant, so
+     * the model is left to wire an image model into a video output that
+     * cannot take it. The offline gate in `catalog-selection.test.ts` pins the
+     * gap; this case stays red until video generation is offered.
+     *
+     * Measured 2026-09-04 on Sonnet: four nodes, valid first try, run
+     * completed — and nothing in it makes a video. Every structural check
+     * passed; only the requirement below saw the failure.
+     */
+    id: "ai-video",
+    prompt: "Create an ai animated video of a village.",
+    expectTrigger: "manual",
+    requires: [{ capability: "make a video", anyOf: MAKES_A_VIDEO }],
+  },
+  {
+    /**
+     * A check, a judgement and an alert, none of which the sentence names.
+     *
+     * "When my site is down" reads like a trigger and is not one — nothing
+     * fires when a site stops answering — so the workflow has to poll on a
+     * schedule, read what the fetch reports (the node returns status and
+     * error rather than throwing), branch on it, and email only on the bad
+     * path. Retrieval offers every piece; the case measures whether the model
+     * assembles them.
+     *
+     * Measured 2026-09-04 on Sonnet, two samples, and they disagreed. One
+     * drafted eleven nodes with a fork, failed validation on a type mismatch
+     * and two missing inputs, and came back from repair with seven valid
+     * nodes and no fork — a workflow that emails on every run, whether the
+     * site answered or not. The other kept the fork and reached `notify-me`
+     * through it. So the branch is the unstable part of this request, and one
+     * sample cannot say how often it survives; the condition is here to make
+     * the rate visible rather than to record a verdict.
+     */
+    id: "site-down-alert",
+    prompt: "When my site is down, email me.",
+    expectTrigger: "scheduled",
+    requires: [
+      { capability: "check the site", anyOf: CHECKS_A_SITE },
+      { capability: "branch on the outcome", anyOf: BRANCHES },
+      {
+        capability: "email the person who asked",
+        anyOf: EMAILS_THE_PERSON_WHO_ASKED,
+      },
+    ],
   },
 ];

@@ -1,14 +1,17 @@
-import { env } from "cloudflare:test";
 import type { NodeType } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
-import { CloudflareNodeRegistry } from "../../runtime/cloudflare-node-registry";
 import { workflowTemplates } from "../../templates";
 import { pseudoNodeTypes } from "./ai-nodes";
 import { selectCandidates } from "./catalog-selection";
 import { filterEligible } from "./eligibility";
-import { BENCHMARK_CASES } from "./eval/benchmark-cases";
+import type { Requirement } from "./eval/benchmark-cases";
+import { BENCHMARK_CASES, COVERAGE_CASES } from "./eval/benchmark-cases";
+import {
+  CONNECTED_PROVIDERS,
+  DEPLOYMENT_CATALOG,
+  OFFERABLE_RESOURCES,
+} from "./eval/deployment";
 import { EVALUATION_CASES } from "./eval/evaluation-cases";
 import { templateToEmitFormat } from "./template-examples";
 
@@ -35,66 +38,13 @@ import { templateToEmitFormat } from "./template-examples";
  */
 
 /**
- * The catalog the generator ships with, not the one this machine is configured
- * for.
- *
- * A seventh of the registry is gated on a credential — each OAuth integration
- * on its client pair, web search on its API key, SMS on its Twilio trio — and
- * those live in `.dev.vars`, which a developer has and CI does not. Left
- * ambient, this suite ranks 439 node types on a laptop and 369 on CI: different
- * corpora, so different IDF, so a different answer to the only question it
- * asks, and the gaps pinned below are right in one place and wrong in the
- * other. Bound to placeholders so both measure what a deployment offers. The
- * values are never read — nothing here executes a node.
+ * The catalog, the accounts and the owned resources all come from
+ * `deployment.ts`, so this gate and the benchmark it predicts rank the same
+ * platform. Aliased locally because every assertion below reads better naming
+ * the catalog than the deployment.
  */
-const bindings: Bindings = {
-  ...(env as unknown as Bindings),
-  CLOUDFLARE_ACCOUNT_ID: "test",
-  CLOUDFLARE_API_TOKEN: "test",
-  GOOGLE_API_KEY: "test",
-  TAVILY_API_KEY: "test",
-  TWILIO_ACCOUNT_SID: "test",
-  TWILIO_AUTH_TOKEN: "test",
-  TWILIO_PHONE_NUMBER: "test",
-  INTEGRATION_DISCORD_CLIENT_ID: "test",
-  INTEGRATION_DISCORD_CLIENT_SECRET: "test",
-  INTEGRATION_GITHUB_CLIENT_ID: "test",
-  INTEGRATION_GITHUB_CLIENT_SECRET: "test",
-  INTEGRATION_GOOGLE_CALENDAR_CLIENT_ID: "test",
-  INTEGRATION_GOOGLE_CALENDAR_CLIENT_SECRET: "test",
-  INTEGRATION_GOOGLE_MAIL_CLIENT_ID: "test",
-  INTEGRATION_GOOGLE_MAIL_CLIENT_SECRET: "test",
-  INTEGRATION_LINKEDIN_CLIENT_ID: "test",
-  INTEGRATION_LINKEDIN_CLIENT_SECRET: "test",
-  INTEGRATION_REDDIT_CLIENT_ID: "test",
-  INTEGRATION_REDDIT_CLIENT_SECRET: "test",
-  INTEGRATION_WORDPRESS_CLIENT_ID: "test",
-  INTEGRATION_WORDPRESS_CLIENT_SECRET: "test",
-  INTEGRATION_X_CLIENT_ID: "test",
-  INTEGRATION_X_CLIENT_SECRET: "test",
-};
-
-/** Built once: the registry runs several hundred registrations. */
-const CATALOG: NodeType[] = new CloudflareNodeRegistry(
-  bindings,
-  false
-).getNodeTypes();
-
-/**
- * The same providers the benchmark connects.
- *
- * Several templates deliver through an OAuth account, and eligibility withholds
- * those nodes outright when the account is not linked — correctly, but it would
- * make this measure connection state rather than retrieval.
- */
-const CONNECTED: ReadonlySet<string> = new Set([
-  "slack",
-  "discord",
-  "telegram",
-  "whatsapp",
-  "google-mail",
-  "github",
-]);
+const CATALOG: NodeType[] = DEPLOYMENT_CATALOG;
+const CONNECTED = CONNECTED_PROVIDERS;
 
 const BY_TYPE = new Map(CATALOG.map((nodeType) => [nodeType.type, nodeType]));
 
@@ -147,17 +97,19 @@ const KNOWN_RETRIEVAL_GAPS: Record<string, string[]> = {
 };
 
 /**
- * Not covered here: the delivery nodes.
+ * Capabilities a coverage case needs that nothing offered can supply.
  *
- * `send-email` and `notify-me` are registered only when `SEND_EMAIL` and
- * `SEND_EMAIL_FROM` are bound. That gate is a service binding rather than a
- * secret, so it is the one the placeholders above cannot close — the nodes are
- * absent from the catalog and this suite says nothing about whether
- * retrieval would surface them. Worth knowing, because the pipeline only forces
- * a delivery node into the catalog when a brief supplied a destination
- * (`selectCandidates`'s `required`), and the benchmark and evaluation both run
- * without one.
+ * Pinned to the exact list, as the retrieval gaps are, so the gate keeps
+ * working in both directions. Unlike those, this is not the cap biting: the
+ * two nodes that can generate a video are withheld by policy — one replaced by
+ * the curated stand-ins, the other an unoffered AI type — and neither
+ * withholding is reported as relevant, so a person asking for a video is
+ * handed a graph built from an image model and told nothing. Closing it means
+ * offering a stand-in for video generation; this entry goes when that lands.
  */
+const KNOWN_CAPABILITY_GAPS: Record<string, string[]> = {
+  "ai-video": ["make a video"],
+};
 
 describe("the catalog offers what a correct answer needs", () => {
   for (const testCase of BENCHMARK_CASES) {
@@ -194,6 +146,54 @@ describe("the catalog offers what a correct answer needs", () => {
 });
 
 /**
+ * The capabilities nothing offered can supply.
+ *
+ * A requirement met only by a responder counts as met: the server injects
+ * those rather than letting the model choose them, so their absence from the
+ * catalog is by design and not a gap.
+ */
+function unmetBy(
+  offered: ReadonlySet<string>,
+  requirements: readonly Requirement[] = []
+): string[] {
+  return requirements
+    .filter(
+      (requirement) =>
+        !requirement.anyOf.some((type) => offered.has(type) || isInjected(type))
+    )
+    .map((requirement) => requirement.capability);
+}
+
+/**
+ * The coverage cases have no template either, but each states what its graph
+ * cannot do without — and the benchmark only checks that against the graph
+ * that came out, three billed stages after the answer was decided. Asked here
+ * of the catalog: is at least one node per requirement on the table?
+ *
+ * The check the two typed sentences at the end of `COVERAGE_CASES` were added
+ * for. One of them fails here for a reason no model call could fix.
+ */
+describe("the catalog offers every capability a coverage case requires", () => {
+  for (const testCase of COVERAGE_CASES) {
+    const requirements = testCase.requires ?? [];
+    if (requirements.length === 0) continue;
+
+    it(`offers what "${testCase.id}" cannot be built without`, () => {
+      const { candidates } = selectCandidates(testCase.prompt, CATALOG, {
+        connectedProviders: CONNECTED,
+        offerable: OFFERABLE_RESOURCES,
+      });
+      const offered = new Set(candidates.map((candidate) => candidate.type));
+
+      expect(
+        unmetBy(offered, requirements),
+        `"${testCase.prompt}" — the case needs these and retrieval offered nothing that does them`
+      ).toEqual(KNOWN_CAPABILITY_GAPS[testCase.id] ?? []);
+    });
+  }
+});
+
+/**
  * The evaluation cases have no template to derive from — they exist precisely
  * because they are not template-shaped. What they share is a floor: every one
  * asks for something to be produced and shown, so a text generator and a way to
@@ -203,6 +203,7 @@ describe("the catalog offers what a correct answer needs", () => {
 describe("the catalog floor holds for every evaluation case", () => {
   for (const testCase of EVALUATION_CASES) {
     it(`offers a generator and an output for "${testCase.id}"`, () => {
+      // Nothing connected, matching the tier these cases run in.
       const { candidates } = selectCandidates(testCase.prompt, CATALOG, {
         connectedProviders: new Set(),
       });
@@ -210,6 +211,11 @@ describe("the catalog floor holds for every evaluation case", () => {
 
       expect(offered.has("agent-claude-opus-5")).toBe(true);
       expect(offered.has("output-text")).toBe(true);
+
+      // And the destination, for the cases that name one. The evaluation tier
+      // judges delivered text and cannot tell an emailed digest from one left
+      // in a widget, so the promise is held here instead.
+      expect(unmetBy(offered, testCase.requires)).toEqual([]);
     });
   }
 });

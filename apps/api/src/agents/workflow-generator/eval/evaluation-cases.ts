@@ -1,3 +1,5 @@
+import type { Requirement } from "./benchmark-cases";
+
 /**
  * Requests judged on what they deliver, not on whether they compile.
  *
@@ -21,6 +23,19 @@
 export interface EvaluationCase {
   id: string;
   prompt: string;
+  /**
+   * What the graph cannot deliver this request without, by capability.
+   *
+   * Only the destination, and only when the request names one. Everything else
+   * a case cares about is judged from the delivered text, but the destination
+   * cannot be: `deliveredText` reads every terminal node alike, so a request
+   * that said "email it to me" and ended in a widget reads exactly like one
+   * that was emailed, and passes. Checked against the offered catalog in
+   * `catalog-selection.test.ts` rather than against the graph — this tier
+   * executes its workflows, and the email nodes stay unregistered here on
+   * purpose, so the catalog is the only place the promise can be held.
+   */
+  requires?: readonly Requirement[];
   /**
    * Whether the person asked for something to read.
    *
@@ -84,6 +99,18 @@ export const EVALUATION_CASES: EvaluationCase[] = [
     prompt:
       "Every morning read Hacker News, pick the top articles, write a summary of each, and email it to me",
     expectsProse: true,
+    /**
+     * The half of this request nothing was checking.
+     *
+     * "Email it to me" is as much of the ask as the summaries are, and a
+     * digest that lands in a widget on a page nobody has open at 7am has
+     * failed the sentence. `notify-me` alone, for the reason spelled out
+     * beside `EMAILS_THE_PERSON_WHO_ASKED`: the request supplies no address,
+     * and the nodes that need one would have to invent it.
+     */
+    requires: [
+      { capability: "email the person who asked", anyOf: ["notify-me"] },
+    ],
     /**
      * No bound, deliberately.
      *

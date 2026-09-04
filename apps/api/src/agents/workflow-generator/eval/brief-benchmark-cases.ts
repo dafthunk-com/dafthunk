@@ -75,4 +75,42 @@ export const BRIEF_BENCHMARK_CASES: BriefBenchmarkCase[] = [
     expectTrigger: "manual",
     expectRoles: ["trigger", "destination"],
   },
+  // Sentences people typed, verbatim. Both failed in the generator; the
+  // synthesis half of each is in `benchmark-cases.ts`, this is the brief half.
+  {
+    /**
+     * A condition posing as a trigger.
+     *
+     * Nothing fires when a site goes down, so the only trigger that can carry
+     * this is a schedule — and the interval is the guess the brief exists to
+     * surface. Whether "down" needs a criterion blank is left open: a model
+     * reading it as "does not answer" has stated it, and the floor should not
+     * fall on that reading.
+     */
+    id: "site-down-alert",
+    prompt: "When my site is down, email me.",
+    expectTrigger: "scheduled",
+    expectRoles: ["trigger", "destination"],
+    expectDestinationId: "email",
+  },
+  {
+    /**
+     * A request for something the platform cannot yet make.
+     *
+     * The brief has no catalog and cannot know that; what it owes the person
+     * is still a whole sentence with its two guaranteed slots, resolving to
+     * the display since nothing in the request leaves the platform.
+     *
+     * Measured 2026-09-04 on the fast tier: the model answered
+     * `{"insufficient": true}`, so the person was shown three canned
+     * sentences and told, in effect, that eight clear words were too vague.
+     * The per-sample guarantee is what this case trips, before any role is
+     * checked.
+     */
+    id: "ai-video",
+    prompt: "Create an ai animated video of a village.",
+    expectTrigger: "manual",
+    expectRoles: ["trigger", "destination"],
+    expectDestinationId: "display",
+  },
 ];
