@@ -67,7 +67,10 @@ function calculateFinalBearing(
   end: Feature<Point> | Point | number[]
 ): number {
   const bear = bearing(end, start);
-  return (bear + 180) % 360;
+  // Normalize to [-180, 180] to match the range returned by bearing() and
+  // rhumbBearing(); turf made the same correction in 7.4.0.
+  const bear360 = (bear + 180) % 360;
+  return bear360 > 180 ? bear360 - 360 : bear360;
 }
 
 export function rhumbBearing(

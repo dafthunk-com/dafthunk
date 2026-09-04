@@ -8,7 +8,9 @@
   "exports": {
     ".": "./src/index.ts"
   },
-  "files": ["dist/**"],
+  "files": [
+    "dist/**"
+  ],
   "scripts": {
     "test": "vitest run",
     "build": "tsc",
@@ -24,8 +26,8 @@
     "d3-geo": "^3.1.1"
   },
   "devDependencies": {
-    "@types/d3-geo": "^3.1.0",
+    "@types/d3-geo": "^3.1.1",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.11"
   }
 }

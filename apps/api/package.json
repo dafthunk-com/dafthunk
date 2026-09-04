@@ -29,37 +29,37 @@
     "eval:probe": "vitest run --config vitest.probe.config.mts"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.19.0",
-    "@cloudflare/workers-types": "^5.20260730.1",
-    "@types/node": "^22.19.19",
+    "@cloudflare/vitest-pool-workers": "^0.19.1",
+    "@cloudflare/workers-types": "~5.20260730.1",
+    "@types/node": "^22.20.1",
     "drizzle-kit": "0.31.10",
-    "partyserver": "^0.5.9",
+    "partyserver": "^0.5.10",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.6",
-    "wrangler": "^4.115.0"
+    "vitest": "^4.1.11",
+    "wrangler": "^4.129.0"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
     "@cloudflare/containers": "^0.3.7",
-    "@cloudflare/sandbox": "^0.12.4",
+    "@cloudflare/sandbox": "^0.12.9",
     "@dafthunk/runtime": "workspace:*",
     "@dafthunk/types": "workspace:*",
     "@dafthunk/utils": "workspace:*",
     "@google/genai": "^1.52.0",
     "@hono-rate-limiter/cloudflare": "^0.2.2",
-    "@hono/oauth-providers": "^0.8.5",
+    "@hono/oauth-providers": "^0.8.8",
     "@hono/zod-validator": "^0.7.6",
     "agents": "^0.20.1",
     "aws4fetch": "^1.0.20",
-    "cron-parser": "^5.5.0",
+    "cron-parser": "^5.10.0",
     "drizzle-orm": "0.45.2",
-    "hono": "^4.12.34",
-    "jose": "^6.2.3",
+    "hono": "^4.13.7",
+    "jose": "^6.2.11",
     "nanoid": "^5.1.16",
-    "openai": "^6.37.0",
-    "postal-mime": "^2.7.4",
+    "openai": "^6.49.0",
+    "postal-mime": "^2.7.6",
     "stripe": "^20.4.1",
     "uuid": "^13.0.2",
-    "zod": "^4.4.3"
+    "zod": "^4.5.4"
   }
 }
