@@ -49,7 +49,15 @@ export default defineConfig({
     }),
   ],
   test: {
-    include: ["**/benchmark.integration.ts"],
+    // The brief benchmark shares this config for the same reason:
+    // `workspace.ts` imports the node registry, which pulls the wasm the
+    // integration config loads for real and segfaults the pool on import.
+    // Sharing a config is not sharing a run — each script names its own file,
+    // so `benchmark:generate` bills the generation sweep and nothing else.
+    include: [
+      "**/benchmark.integration.ts",
+      "**/brief-benchmark.integration.ts",
+    ],
     // The pass rate is the product of this suite, and the pool swallows worker
     // console output by default — which would leave a run that measured
     // everything and said nothing.

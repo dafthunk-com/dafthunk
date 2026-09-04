@@ -27,7 +27,12 @@ import { BRIEF_BENCHMARK_CASES } from "./brief-benchmark-cases";
  * must hold the floor, and the per-case report is what to read when pushing
  * it up.
  *
- *   pnpm --filter '@dafthunk/api' test:integration
+ *   pnpm --filter '@dafthunk/api' benchmark:brief
+ *
+ * Under the benchmark config rather than the integration one: this file
+ * imports `workspace.ts`, which imports the node registry, and the genuine
+ * wasm behind the image nodes segfaults the pool the moment it is loaded.
+ * The benchmark config stubs it, and nothing here executes a node.
  *
  * `EVAL_RUNS` sets samples per case (default 1). Generation is stochastic —
  * raise it to measure a prompt change, and expect the cost to rise with it.
