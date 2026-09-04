@@ -106,12 +106,16 @@ function createBlobNodeToApi(
     if (!objectStore || !organizationId) {
       throw new Error("ObjectStore and organizationId required for blob type");
     }
-    const blob = new Blob([value.data], { type: value.mimeType });
-    const buffer = await blob.arrayBuffer();
-    const data = new Uint8Array(buffer);
+    // Written straight through. This used to round-trip the bytes via a Blob
+    // to reach `arrayBuffer()`, which copied the payload twice for nothing:
+    // the type guard above has already established that `data` is a
+    // Uint8Array and `mimeType` a string, so there was nothing left to
+    // normalise but the casing the Blob applied. On a generated video that
+    // round trip tripled peak memory against a 128MB isolate, and it is what
+    // held the gateway node's download ceiling down.
     return await objectStore.writeObject(
-      data,
-      blob.type,
+      value.data,
+      value.mimeType.toLowerCase(),
       organizationId,
       executionId,
       value.filename

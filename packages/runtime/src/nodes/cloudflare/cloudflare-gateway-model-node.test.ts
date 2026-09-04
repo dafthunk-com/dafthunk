@@ -148,7 +148,7 @@ describe("CloudflareGatewayModelNode — returned links", () => {
   it("refuses a file too large to hold, by its declared length", async () => {
     stubDownload(new Uint8Array([1]), {
       "content-type": "video/mp4",
-      "content-length": String(64 * 1024 * 1024),
+      "content-length": String(128 * 1024 * 1024),
     });
     const aiRun = vi
       .fn()
@@ -157,6 +157,6 @@ describe("CloudflareGatewayModelNode — returned links", () => {
     const result = await makeNode().execute(makeContext(aiRun));
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain("64MB");
+    expect(result.error).toContain("128MB");
   });
 });

@@ -36,13 +36,19 @@ const GATEWAY_USAGE = 100;
 /**
  * Ceiling on a file downloaded from a returned link.
  *
- * The bytes are held here, then copied again when the runtime writes them to
- * the object store, against an isolate limited to 128 MB. A cap well under
- * that turns an out-of-memory kill — which arrives as a dead worker and no
- * explanation — into a message naming the model and the size. Raising it
- * means removing the copy in the runtime's blob writer first.
+ * A budget rather than a guess: the response body is held once, as a view
+ * over the buffer it arrived in, and the runtime's blob writer now hands
+ * those same bytes to the object store instead of round-tripping them
+ * through a Blob. So this many megabytes of video costs about this many
+ * megabytes of memory, against an isolate limited to 128MB and shared with
+ * whatever else it is serving.
+ *
+ * It exists so an oversized file arrives as a message naming the size rather
+ * than an out-of-memory kill, which arrives as a dead worker and no
+ * explanation. Raising it much further means not holding the file at all —
+ * streaming the response into R2, which the object store cannot do yet.
  */
-const MAX_DOWNLOAD_BYTES = 32 * 1024 * 1024;
+const MAX_DOWNLOAD_BYTES = 64 * 1024 * 1024;
 
 /**
  * The link a provider returns instead of bytes, in either shape it uses: a

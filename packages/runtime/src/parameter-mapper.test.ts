@@ -188,6 +188,42 @@ describe("blob converters", () => {
     expect(store.size).toBe(1);
   });
 
+  it("stores the bytes it was given, without copying them", async () => {
+    // The write path used to reach the object store through a Blob and
+    // `arrayBuffer()`, which duplicated the payload twice on the way. Harmless
+    // on a thumbnail and not on a generated video, where it tripled peak
+    // memory inside a 128MB isolate.
+    const store = new InMemoryObjectStore();
+    const source = blob("pixels");
+    const written: Uint8Array[] = [];
+    const spy = {
+      ...store,
+      writeObject: (data: Uint8Array, ...rest: unknown[]) => {
+        written.push(data);
+        return (
+          store.writeObject as unknown as (...args: unknown[]) => unknown
+        )(data, ...rest);
+      },
+    } as unknown as InMemoryObjectStore;
+
+    await nodeToApiParameter("image", source, spy, ORG, EXEC);
+
+    expect(written[0]).toBe(source.data);
+  });
+
+  it("normalises the media type the way the Blob round trip used to", async () => {
+    const store = new InMemoryObjectStore();
+    const ref = await nodeToApiParameter(
+      "image",
+      blob("pixels", "Image/PNG"),
+      store,
+      ORG,
+      EXEC
+    );
+
+    expect(ref).toMatchObject({ mimeType: "image/png" });
+  });
+
   it("reads a reference back into bytes", async () => {
     const store = new InMemoryObjectStore();
     const ref = await nodeToApiParameter(
