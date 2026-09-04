@@ -34,6 +34,35 @@ const MIME_FALLBACKS: Record<string, string> = {
 const GATEWAY_USAGE = 100;
 
 /**
+ * Ceiling on a file downloaded from a returned link.
+ *
+ * The bytes are held here, then copied again when the runtime writes them to
+ * the object store, against an isolate limited to 128 MB. A cap well under
+ * that turns an out-of-memory kill — which arrives as a dead worker and no
+ * explanation — into a message naming the model and the size. Raising it
+ * means removing the copy in the runtime's blob writer first.
+ */
+const MAX_DOWNLOAD_BYTES = 32 * 1024 * 1024;
+
+/**
+ * The link a provider returns instead of bytes, in either shape it uses: a
+ * bare URL string, or the `{ url }` object the file inputs use.
+ *
+ * Anything else — a data URI, a relative path, a task id — is left alone and
+ * passed through as an ordinary value.
+ */
+function asDownloadUrl(value: unknown): string | undefined {
+  const candidate =
+    typeof value === "string"
+      ? value
+      : typeof value === "object" && value !== null
+        ? (value as { url?: unknown }).url
+        : undefined;
+  if (typeof candidate !== "string") return undefined;
+  return /^https:\/\//i.test(candidate) ? candidate : undefined;
+}
+
+/**
  * Generic node for third-party models served through Cloudflare's unified AI
  * Gateway REST API (the `author/model` catalog). Unlike the `cloudflare-model`
  * node — which runs `@cf/...` Workers AI models inline — this routes partner
@@ -265,6 +294,71 @@ For example: \`xai/grok-imagine-video\`, \`openai/gpt-image-1.5\`, \`google/gemi
     );
   }
 
+  /**
+   * Fetch a file the model returned by reference, as the bytes a blob output
+   * is made of.
+   *
+   * Every failure here is raised rather than swallowed. The alternative was
+   * what this method was written to fix: a link assigned to a blob output is
+   * rejected by the runtime's converter and vanishes, so the run goes green
+   * with nothing in it and there is nowhere to look.
+   */
+  private async downloadBlobOutput(
+    url: string,
+    type: string
+  ): Promise<{ data: Uint8Array; mimeType: string }> {
+    const response = await fetch(url);
+    if (!response.ok) {
+      await response.body?.cancel();
+      throw new Error(
+        `The model returned a link the runtime could not download (${response.status})`
+      );
+    }
+
+    const tooLarge = (bytes: number) =>
+      new Error(
+        `The generated file is ${Math.round(bytes / (1024 * 1024))}MB, over the ${
+          MAX_DOWNLOAD_BYTES / (1024 * 1024)
+        }MB this node can hold`
+      );
+
+    // Checked before reading when the header is there, and again afterwards
+    // because a chunked response does not declare a length.
+    const declared = Number(response.headers.get("content-length"));
+    if (Number.isFinite(declared) && declared > MAX_DOWNLOAD_BYTES) {
+      await response.body?.cancel();
+      throw tooLarge(declared);
+    }
+
+    const data = new Uint8Array(await response.arrayBuffer());
+    if (data.byteLength > MAX_DOWNLOAD_BYTES) throw tooLarge(data.byteLength);
+
+    return {
+      data,
+      mimeType:
+        response.headers.get("content-type")?.split(";")[0]?.trim() ||
+        MIME_FALLBACKS[type] ||
+        MIME_FALLBACKS.blob,
+    };
+  }
+
+  /**
+   * One output value, with a returned link turned into the file it points at.
+   *
+   * Only for blob-typed outputs: a link on a `string` output is the answer
+   * the model was asked for, and downloading it would replace a URL somebody
+   * wanted with bytes they did not.
+   */
+  private async resolveOutputValue(
+    value: unknown,
+    type: string
+  ): Promise<ParameterValue> {
+    if (!BLOB_TYPES.has(type)) return value as ParameterValue;
+    const url = asDownloadUrl(value);
+    if (!url) return value as ParameterValue;
+    return (await this.downloadBlobOutput(url, type)) as ParameterValue;
+  }
+
   /** Distribute an inline (non-upload) model response onto the named outputs. */
   private async processInlineOutput(result: unknown): Promise<NodeExecution> {
     const outputs = this.node.outputs ?? [];
@@ -279,7 +373,10 @@ For example: \`xai/grok-imagine-video\`, \`openai/gpt-image-1.5\`, \`google/gemi
       for (const outputDef of outputs) {
         const value = obj[outputDef.name];
         if (value !== undefined && value !== null) {
-          payload[outputDef.name] = value as ParameterValue;
+          payload[outputDef.name] = await this.resolveOutputValue(
+            value,
+            outputDef.type
+          );
         }
       }
       if (Object.keys(payload).length > 0) {
@@ -291,8 +388,14 @@ For example: \`xai/grok-imagine-video\`, \`openai/gpt-image-1.5\`, \`google/gemi
       );
     }
 
+    // A bare value, which for a file-output model is the link itself.
+    const only = outputs[0];
     return this.createSuccessResult(
-      { [outputs[0]?.name ?? "output"]: result as ParameterValue },
+      {
+        [only?.name ?? "output"]: only
+          ? await this.resolveOutputValue(result, only.type)
+          : (result as ParameterValue),
+      },
       GATEWAY_USAGE
     );
   }
