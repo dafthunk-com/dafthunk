@@ -23,6 +23,8 @@ interface JsonSchema {
   title?: string;
   default?: string | number | boolean;
   enum?: string[];
+  const?: string | number | boolean;
+  anyOf?: JsonSchema[];
   minimum?: number;
   maximum?: number;
   format?: string;
@@ -82,14 +84,54 @@ function collectMetadata(
   if (prop.maximum !== undefined) meta.maximum = prop.maximum;
   if (prop.enum) meta.enum = prop.enum;
   if (prop.default !== undefined) meta.default = prop.default;
+  // A `const` is a range of one. Carried as bounds rather than a new concept
+  // so the field arrives pinned instead of arriving unconstrained.
+  if (typeof prop.const === "number") {
+    meta.minimum = prop.const;
+    meta.maximum = prop.const;
+  }
+  if (typeof prop.const === "string") meta.enum = [prop.const];
   return meta;
+}
+
+/**
+ * The branch of a union the field can actually be edited as.
+ *
+ * Cloudflare writes an option-or-range field as `anyOf`, with no type of its
+ * own: Seedance's duration is "4 to 30, or -1 to choose automatically", which
+ * arrives as a `const` branch beside an `integer` branch. Read naively that
+ * property has no type at all, so it fell through to a free-form JSON field
+ * with no bounds — and a workflow asking for a 3 second video was rejected by
+ * the provider with a message that named the wrong field.
+ *
+ * The ranged branch wins where there is one, because a field bounded to 4-30
+ * is usable and a field pinned to -1 is not. The sentinel value is lost, which
+ * costs the automatic setting and is the price of the field having bounds at
+ * all.
+ */
+function resolveUnion(prop: JsonSchema): JsonSchema {
+  if (prop.type || !prop.anyOf?.length) return prop;
+
+  const branches = prop.anyOf;
+  const chosen =
+    branches.find((branch) => branch.type && branch.const === undefined) ??
+    branches.find((branch) => branch.type);
+  if (!chosen) return prop;
+
+  return {
+    ...chosen,
+    description: prop.description ?? chosen.description,
+    title: prop.title ?? chosen.title,
+    default: prop.default ?? chosen.default,
+  };
 }
 
 function mapInputProperty(
   name: string,
-  prop: JsonSchema,
+  raw: JsonSchema,
   required: boolean
 ): Parameter {
+  const prop = resolveUnion(raw);
   const description = prop.description ?? prop.title;
   const meta = collectMetadata(prop);
 

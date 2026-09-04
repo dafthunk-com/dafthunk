@@ -15,9 +15,8 @@ import { GATEWAY_MODELS } from "./gateway-models";
  * The list is source, so what is worth asserting is what a reader cannot
  * check by eye: that no identifier is malformed or duplicated, and that every
  * entry carries what the palette renders. Which models are listed is a
- * curation decision and is not asserted — except that both tasks survive it,
- * since dropping the last image-to-video model would remove a capability
- * rather than a duplicate.
+ * curation decision and is not asserted, beyond keeping out the two that were
+ * measured failing.
  */
 describe("GATEWAY_MODELS", () => {
   it("addresses every model the way the gateway does", () => {
@@ -44,9 +43,13 @@ describe("GATEWAY_MODELS", () => {
     expect(ids).toEqual([...ids].sort((a, b) => a.localeCompare(b)));
   });
 
-  it("keeps both video tasks reachable", () => {
-    const tasks = new Set(GATEWAY_MODELS.map((entry) => entry.task));
-    expect([...tasks].sort()).toEqual(["Image-to-Video", "Text-to-Video"]);
+  it("lists only models that have been run", () => {
+    // Alibaba's two were listed, failed upstream with a 500 on a minimal
+    // valid payload, and were removed. Pinned so a regeneration from the
+    // catalog cannot quietly bring back a model known not to work.
+    const known = GATEWAY_MODELS.map((entry) => entry.id);
+    expect(known).not.toContain("alibaba/wan-3.0");
+    expect(known).not.toContain("alibaba/hh1.1-i2v");
   });
 
   it("omits the model whose schema maps to nothing", () => {

@@ -24,6 +24,18 @@
  * current flagship is listed and the rest are left to the generic gateway
  * node, which runs any identifier a person pastes into it.
  *
+ * Every entry has been run. Alibaba's two — `wan-3.0` and `hh1.1-i2v` — were
+ * listed and are gone again: both answer a valid minimum payload with a bare
+ * `Model execution failed (Error)` and HTTP 500, about 300ms in, which is too
+ * fast to be a generation attempt. The provider resolves and then fails, so
+ * there is nothing here to send differently. They can come back when
+ * Cloudflare's side does.
+ *
+ * That leaves nothing labelled `Image-to-Video`, which reads worse than it
+ * is: Veo and Gen 4.5 both take an image input, so animating a still is still
+ * something the palette can do — the label is Cloudflare's primary task, not
+ * the limit of what the model accepts.
+ *
  * Only video is listed at all: it is the one capability Workers AI cannot
  * serve, and every other partner model duplicates something available inline
  * and cheaper.
@@ -40,20 +52,6 @@ export interface GatewayModelEntry {
 }
 
 export const GATEWAY_MODELS: readonly GatewayModelEntry[] = [
-  {
-    id: "alibaba/hh1.1-i2v",
-    author: "Alibaba",
-    task: "Image-to-Video",
-    description:
-      "Alibaba's HappyHorse 1.1 image-to-video model. Animates a reference image with an optional text prompt, with smoother motion, natural skin textures, and improved close-up quality over 1.0. Supports 720P and 1080P output with durations from 3 to 15 seconds.",
-  },
-  {
-    id: "alibaba/wan-3.0",
-    author: "Alibaba",
-    task: "Text-to-Video",
-    description:
-      "Alibaba's Wan 3.0 text-to-video model. Generates cinematic videos from text prompts with adaptive aspect ratio, 480P, 720P, or 1080P resolution, and configurable duration.",
-  },
   {
     id: "bytedance/seedance-2.5",
     author: "ByteDance",
