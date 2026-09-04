@@ -8,9 +8,7 @@
   "exports": {
     ".": "./src/index.ts"
   },
-  "files": [
-    "dist/**"
-  ],
+  "files": ["dist/**"],
   "scripts": {
     "test": "vitest run",
     "build": "tsc",
